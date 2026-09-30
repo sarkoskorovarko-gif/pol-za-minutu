@@ -11,9 +11,18 @@
     <b>EGGER</b> · Пол за минуту
   </header>
 
+  <!-- Переключатель комнат -->
+  <nav class="rooms-nav" id="roomsNav"></nav>
+
   <!-- Интерьер 3D -->
   <div class="scene"><canvas id="scene"></canvas></div>
   <p class="note">Цвет на экране может отличаться. Сравните с образцом на стенде.</p>
+
+  <!-- Стены и мебель -->
+  <div class="look">
+    <div class="look-row"><span class="look-lbl">Стены</span><div id="walls" class="swatches"></div></div>
+    <div class="look-row"><span class="look-lbl">Мебель</span><div id="themes" class="seg small-seg"></div></div>
+  </div>
 
   <main>
     <!-- Декор. Позже здесь будет лента с текстурами -->
@@ -62,8 +71,27 @@
   <script src="app.js"></script>
   <script type="module">
     // Связка интерфейса и 3D: app.js сообщает о смене декора через window.onDecorChange
-    import { initInterior, setFloor, preload } from './interior.js';
+    import { initInterior, setFloor, preload, setRoom, setWall, setTheme, PRESETS, WALLS, THEMES } from './interior.js';
     initInterior(document.getElementById('scene'));
+
+    // Кнопки: комната, стены, мебель. Выбранная подсвечивается
+    const buttons = (box, items, onPick, first, render) => {
+      box.innerHTML = '';
+      for (const [id, it] of items) {
+        const b = document.createElement('button');
+        render(b, it);
+        b.classList.toggle('on', id === first);
+        b.onclick = () => { box.querySelectorAll('button').forEach(x => x.classList.remove('on')); b.classList.add('on'); onPick(id); };
+        box.appendChild(b);
+      }
+    };
+    buttons(document.getElementById('roomsNav'), Object.entries(PRESETS), setRoom, 'living',
+      (b, p) => b.innerHTML = `<span>${p.icon}</span>${p.name}`);
+    buttons(document.getElementById('walls'), WALLS.map(w => [w.id, w]), setWall, 'milk',
+      (b, w) => { b.className = 'swatch' + (w.pattern ? ' pat-' + w.pattern : ''); b.style.background = w.color; b.title = w.name; b.setAttribute('aria-label', w.name); });
+    buttons(document.getElementById('themes'), Object.entries(THEMES), setTheme, 'wood',
+      (b, t) => b.textContent = t.name);
+
     window.onDecorChange = setFloor;
     window.onCatalog = c => preload(c.decors);
     if (window.currentDecor) setFloor(window.currentDecor);
