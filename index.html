@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Пол за минуту — EGGER</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <b>EGGER</b> · Пол за минуту
+  </header>
+
+  <!-- Интерьер 3D -->
+  <div class="scene"><canvas id="scene"></canvas></div>
+  <p class="note">Цвет на экране может отличаться. Сравните с образцом на стенде.</p>
+
+  <main>
+    <!-- Декор. Позже здесь будет лента с текстурами -->
+    <section class="card">
+      <label class="lbl" for="decor">Декор</label>
+      <select id="decor" class="big"></select>
+    </section>
+
+    <!-- Экран «Размеры» -->
+    <section class="card">
+      <h2>Размеры</h2>
+      <div id="rooms"></div>
+      <button id="addRoom" class="btn ghost">+ комната</button>
+    </section>
+
+    <!-- Экран «Расчёт» -->
+    <section class="card" id="result">
+      <div class="total"><span id="total">—</span> <small>руб.</small></div>
+      <div class="muted" id="calcInfo"></div>
+      <ul id="lines" class="lines"></ul>
+      <p class="muted small">Цены Материка на <span id="updated"></span>. Проверьте цену на кассе.</p>
+    </section>
+  </main>
+
+  <template id="roomTpl">
+    <div class="room">
+      <div class="room-head"><b class="room-title"></b><button class="del" title="Удалить комнату">✕</button></div>
+      <div class="row">
+        <label>Длина, м<input class="inp len" inputmode="decimal" placeholder="5"></label>
+        <span class="x">×</span>
+        <label>Ширина, м<input class="inp wid" inputmode="decimal" placeholder="4"></label>
+      </div>
+      <div class="row">
+        <label>Дверей
+          <span class="stepper"><button class="minus">−</button><b class="doors">1</b><button class="plus">+</button></span>
+        </label>
+        <label>Укладка
+          <span class="seg"><button class="lay on" data-d="0">прямо</button><button class="lay" data-d="1">по диагонали</button></span>
+        </label>
+      </div>
+      <div class="room-area muted"></div>
+    </div>
+  </template>
+
+  <script src="calc.js"></script>
+  <script src="app.js"></script>
+  <script type="module">
+    // Связка интерфейса и 3D: app.js сообщает о смене декора через window.onDecorChange
+    import { initInterior, setFloor, preload } from './interior.js';
+    initInterior(document.getElementById('scene'));
+    window.onDecorChange = setFloor;
+    window.onCatalog = c => preload(c.decors);
+    if (window.currentDecor) setFloor(window.currentDecor);
+    if (window.catalogLoaded) preload(window.catalogLoaded.decors);
+  </script>
+</body>
+</html>

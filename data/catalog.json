@@ -1,0 +1,36 @@
+{
+  "updated": "2026-09-30",
+  "note": "Временный каталог для этапа 2. Подложка и плинтус — ТЕСТОВЫЕ цены, заменить настоящими.",
+  "decors": [
+    {
+      "id": "EPL038",
+      "name": "Дуб Меловой",
+      "collection": "EGGER PRO+21_Classic",
+      "price_m2": 22.66,
+      "pack_m2": 1.99,
+      "pack_pcs": 8,
+      "board_len_mm": 1292,
+      "board_w_mm": 193,
+      "class": 32,
+      "thickness_mm": 8,
+      "chamfer": false,
+      "water_resistant": false,
+      "color": "серо-бежевый",
+      "color_group": "бежевый",
+      "in_stock": true,
+      "texture": null,
+      "texture_ok": null,
+      "lightness": null,
+      "warmth": null,
+      "texture_scale_m": null,
+      "url": "https://diy.by/laminat/laminat-egger-pro-21-32-epl038-h1062-dub-melovoy-c-it-classic-o/"
+    }
+  ],
+  "underlay": [
+    { "id": "TEST-U1", "name": "Подложка ТЕСТ 3 мм", "price": 15.00, "pack_m2": 10 }
+  ],
+  "skirting": [
+    { "id": "TEST-S1", "name": "Плинтус ТЕСТ 2,5 м", "price": 8.50, "length_m": 2.5,
+      "needs_accessories": true, "corner_price": 1.20, "cap_price": 0.90 }
+  ]
+}
