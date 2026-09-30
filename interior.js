@@ -36,7 +36,7 @@ export const PRESETS = {
   hall:    { name: 'Прихожая',       icon: '🚪', w: 1.6, d: 4,   build: buildHall },
 };
 
-let renderer, scene, camera, sun, floorMat, wallMat, roomGroup;
+let renderer, scene, camera, sun, hemi, floorMat, wallMat, roomGroup;
 const view = { type: 'living', w: 5, d: 4, wall: 'milk', theme: 'wood', furniture: true };
 const texCache = {};
 let mats = {}; // материалы мебели текущей темы
@@ -55,7 +55,8 @@ export function initInterior(canvas) {
   camera = new THREE.PerspectiveCamera(55, 1, 0.1, 50);
 
   // Свет: общий мягкий + солнце из окна (даёт тени)
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xcfc6b8, 1.5));
+  hemi = new THREE.HemisphereLight(0xffffff, 0xcfc6b8, 1.5);
+  scene.add(hemi);
   sun = new THREE.DirectionalLight(0xfff1dc, 2.2);
   sun.castShadow = true;
   sun.shadow.mapSize.set(1024, 1024);
@@ -88,6 +89,19 @@ export function setRoom(type, w, d) {
   Object.assign(view, { type, w: w || p.w, d: d || p.d });
   rebuild();
 }
+// Свет (SPEC 5.1 C3). brightness: 0 — вечерний полумрак … 1 — яркий день;
+// warmth: -1 — холодный дневной … +1 — тёплые лампы
+const COLD = new THREE.Color('#dde8ff'), NEUTRAL = new THREE.Color('#ffffff'), WARM = new THREE.Color('#ffbf73');
+export function setLight(brightness, warmth) {
+  const c = NEUTRAL.clone().lerp(warmth > 0 ? WARM : COLD, Math.abs(warmth));
+  hemi.color.copy(c);
+  hemi.intensity = 0.35 + 1.4 * brightness;
+  sun.color.copy(c);
+  sun.intensity = 2.6 * brightness * brightness; // вечером солнца нет, только лампы
+  renderer.toneMappingExposure = 0.75 + 0.35 * brightness;
+  render();
+}
+
 export function setWall(id) { view.wall = id; applyWall(); render(); }
 export function setTheme(id) { view.theme = id; rebuild(); }
 export function setFurniture(on) { view.furniture = on; rebuild(); }

@@ -2,37 +2,69 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Пол за минуту — EGGER</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <meta name="theme-color" content="#1f6f43">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
   <header class="top">
-    <b>EGGER</b> · Пол за минуту
+    <!-- Долгое нажатие на логотип — меню промоутера -->
+    <b id="logo" class="logo">EGGER</b> · Пол за минуту
   </header>
+
+  <!-- Для покупателя (режим просмотра по ссылке) -->
+  <div id="viewerBar" class="viewer-bar" hidden></div>
 
   <!-- Переключатель комнат -->
   <nav class="rooms-nav" id="roomsNav"></nav>
+  <!-- «Моя комната»: какая из комнат расчёта и мебель вкл/выкл -->
+  <div id="myBar" class="my-bar" hidden>
+    <div id="myRooms" class="chips"></div>
+    <label class="switch"><input type="checkbox" id="furnOn" checked> Мебель</label>
+  </div>
 
   <!-- Интерьер 3D -->
   <div class="scene"><canvas id="scene"></canvas></div>
   <p class="note">Цвет на экране может отличаться. Сравните с образцом на стенде.</p>
 
-  <!-- Стены и мебель -->
-  <div class="look">
+  <!-- Декоры: соседи по тону, лента, ползунки, фильтры -->
+  <section class="decor-box">
+    <div class="decor-now">
+      <button id="lighter" class="nb" aria-label="Светлее"></button>
+      <div class="decor-name"><b id="decorName">—</b><span id="decorInfo" class="muted small"></span></div>
+      <button id="darker" class="nb" aria-label="Темнее"></button>
+    </div>
+    <div id="ribbon" class="ribbon"></div>
+    <div class="sliders">
+      <label>Светлее<input type="range" id="slL" min="0" max="0" step="1">Темнее</label>
+      <label>Теплее<input type="range" id="slW" min="0" max="0" step="1">Холоднее</label>
+    </div>
+    <div id="colorFilter" class="chips"></div>
+    <details class="more">
+      <summary>Ещё фильтры</summary>
+      <div id="classFilter" class="chips"></div>
+      <label class="switch"><input type="checkbox" id="waterOnly"> Только влагостойкий</label>
+    </details>
+  </section>
+
+  <!-- Вид комнаты: стены, мебель, свет -->
+  <details class="look" open>
+    <summary>Стены, мебель, свет</summary>
     <div class="look-row"><span class="look-lbl">Стены</span><div id="walls" class="swatches"></div></div>
     <div class="look-row"><span class="look-lbl">Мебель</span><div id="themes" class="seg small-seg"></div></div>
-  </div>
+    <div class="look-row"><span class="look-lbl">Яркость</span><input type="range" id="bright" min="0" max="100" value="80"></div>
+    <div class="look-row"><span class="look-lbl">Свет</span><span class="small">тёплый</span><input type="range" id="lwarm" min="-100" max="100" value="-20"><span class="small">холодный</span></div>
+    <div class="look-row"><span class="look-lbl"></span>
+      <div class="seg small-seg"><button id="day">☀️ День</button><button id="evening">🌙 Вечер</button></div></div>
+  </details>
 
   <main>
-    <!-- Декор. Позже здесь будет лента с текстурами -->
-    <section class="card">
-      <label class="lbl" for="decor">Декор</label>
-      <select id="decor" class="big"></select>
-    </section>
-
     <!-- Экран «Размеры» -->
-    <section class="card">
+    <section class="card" id="sizes">
       <h2>Размеры</h2>
       <div id="rooms"></div>
       <button id="addRoom" class="btn ghost">+ комната</button>
@@ -44,12 +76,78 @@
       <div class="muted" id="calcInfo"></div>
       <ul id="lines" class="lines"></ul>
       <p class="muted small">Цены Материка на <span id="updated"></span>. Проверьте цену на кассе.</p>
+      <div class="actions promo-only">
+        <button id="share" class="btn main">Отправить</button>
+        <div class="row2"><button id="qr" class="btn ghost">QR-код</button><button id="copy" class="btn ghost">Скопировать текст</button></div>
+      </div>
+      <div id="contact" class="contact" hidden></div>
     </section>
   </main>
 
+  <!-- Окно QR -->
+  <dialog id="qrDlg" class="dlg">
+    <p>Отсканируйте камерой телефона</p>
+    <div id="qrBox"></div>
+    <button class="btn" onclick="this.closest('dialog').close()">Закрыть</button>
+  </dialog>
+
+  <!-- PIN -->
+  <dialog id="pinDlg" class="dlg">
+    <p id="pinMsg">Введите PIN</p>
+    <input id="pinInp" class="inp pin" inputmode="numeric" maxlength="4" autocomplete="off">
+    <div class="row2"><button class="btn ghost" id="pinCancel">Отмена</button><button class="btn main" id="pinOk">OK</button></div>
+  </dialog>
+
+  <!-- Меню промоутера -->
+  <div id="promo" class="promo" hidden>
+    <header class="top">Меню промоутера <button id="promoClose" class="close">✕</button></header>
+    <div class="promo-body">
+      <section class="card">
+        <h2>Итоги</h2>
+        <div class="seg" id="statPeriod">
+          <button data-p="1" class="on">Сегодня</button><button data-p="7">7 дней</button><button data-p="30">30 дней</button><button data-p="0">Всё</button>
+        </div>
+        <div id="stats"></div>
+      </section>
+
+      <section class="card">
+        <h2>Декоры</h2>
+        <label class="switch"><input type="checkbox" id="hideOut"> Скрывать декоры, которых нет в наличии</label>
+        <p class="muted small">Галочка — показывать клиентам. Стрелки — порядок (популярные выше). ● — декор при открытии.</p>
+        <div id="decorAdmin"></div>
+      </section>
+
+      <section class="card">
+        <h2>Расчёт</h2>
+        <label class="lbl">Подложка по умолчанию<select id="setUnderlay" class="big"></select></label>
+        <label class="lbl">Плинтус по умолчанию<select id="setSkirting" class="big"></select></label>
+        <div class="row">
+          <label>Запас прямо, %<input id="wasteS" class="inp" inputmode="decimal"></label>
+          <label>Запас по диагонали, %<input id="wasteD" class="inp" inputmode="decimal"></label>
+        </div>
+        <label class="lbl">Комната при открытии<select id="setRoom" class="big"></select></label>
+      </section>
+
+      <section class="card">
+        <h2>Промоутер</h2>
+        <p class="muted small">Подставляется в сообщение клиенту.</p>
+        <label class="lbl">Имя<input id="pName" class="inp"></label>
+        <label class="lbl">Телефон<input id="pPhone" class="inp" inputmode="tel"></label>
+      </section>
+
+      <section class="card">
+        <h2>Настройки</h2>
+        <p class="muted small">Сохраняются в этом телефоне. Для переноса на другой — файл.</p>
+        <div class="row2"><button id="exportBtn" class="btn ghost">Сохранить в файл</button><button id="importBtn" class="btn ghost">Загрузить из файла</button></div>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
+        <button id="pinReset" class="btn ghost">Сменить PIN</button>
+      </section>
+    </div>
+  </div>
+
   <template id="roomTpl">
     <div class="room">
-      <div class="room-head"><b class="room-title"></b><button class="del" title="Удалить комнату">✕</button></div>
+      <div class="room-head"><b class="room-title"></b><select class="rtype"></select><button class="del" title="Удалить комнату">✕</button></div>
       <div class="row">
         <label>Длина, м<input class="inp len" inputmode="decimal" placeholder="5"></label>
         <span class="x">×</span>
@@ -67,35 +165,8 @@
     </div>
   </template>
 
-  <script src="calc.js?v=3"></script>
-  <script src="app.js?v=3"></script>
-  <script type="module">
-    // Связка интерфейса и 3D: app.js сообщает о смене декора через window.onDecorChange
-    import { initInterior, setFloor, preload, setRoom, setWall, setTheme, PRESETS, WALLS, THEMES } from './interior.js?v=3';
-    initInterior(document.getElementById('scene'));
-
-    // Кнопки: комната, стены, мебель. Выбранная подсвечивается
-    const buttons = (box, items, onPick, first, render) => {
-      box.innerHTML = '';
-      for (const [id, it] of items) {
-        const b = document.createElement('button');
-        render(b, it);
-        b.classList.toggle('on', id === first);
-        b.onclick = () => { box.querySelectorAll('button').forEach(x => x.classList.remove('on')); b.classList.add('on'); onPick(id); };
-        box.appendChild(b);
-      }
-    };
-    buttons(document.getElementById('roomsNav'), Object.entries(PRESETS), setRoom, 'living',
-      (b, p) => b.innerHTML = `<span>${p.icon}</span>${p.name}`);
-    buttons(document.getElementById('walls'), WALLS.map(w => [w.id, w]), setWall, 'milk',
-      (b, w) => { b.className = 'swatch' + (w.pattern ? ' pat-' + w.pattern : ''); b.style.background = w.color; b.title = w.name; b.setAttribute('aria-label', w.name); });
-    buttons(document.getElementById('themes'), Object.entries(THEMES), setTheme, 'wood',
-      (b, t) => b.textContent = t.name);
-
-    window.onDecorChange = setFloor;
-    window.onCatalog = c => preload(c.decors);
-    if (window.currentDecor) setFloor(window.currentDecor);
-    if (window.catalogLoaded) preload(window.catalogLoaded.decors);
-  </script>
+  <script src="lib/qrcode.js?v=4"></script>
+  <script src="calc.js?v=4"></script>
+  <script type="module" src="app.js?v=4"></script>
 </body>
 </html>
