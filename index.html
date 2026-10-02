@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <header class="top">
@@ -56,6 +56,9 @@
     <summary>Стены, мебель, свет</summary>
     <div class="look-row"><span class="look-lbl">Стены</span><div id="walls" class="swatches"></div></div>
     <div class="look-row"><span class="look-lbl">Мебель</span><div id="themes" class="seg small-seg"></div></div>
+    <div class="look-row"><span class="look-lbl">Окно</span>
+      <div class="seg small-seg" id="winWall"><button data-w="back">Сзади</button><button data-w="left">Слева</button><button data-w="none">Нет</button></div></div>
+    <div class="look-row" id="winPosRow"><span class="look-lbl"></span><span class="small">◀</span><input type="range" id="winPos" min="0" max="100" value="50"><span class="small">▶</span></div>
     <div class="look-row"><span class="look-lbl">Яркость</span><input type="range" id="bright" min="0" max="100" value="80"></div>
     <div class="look-row"><span class="look-lbl">Свет</span><span class="small">тёплый</span><input type="range" id="lwarm" min="-100" max="100" value="-20"><span class="small">холодный</span></div>
     <div class="look-row"><span class="look-lbl"></span>
@@ -165,8 +168,10 @@
     </div>
   </template>
 
-  <script src="lib/qrcode.js?v=4"></script>
-  <script src="calc.js?v=4"></script>
-  <script type="module" src="app.js?v=4"></script>
+  <!-- three.js подключается по имени 'three' (так его ищут и дополнения) -->
+  <script type="importmap">{ "imports": { "three": "./lib/three.module.min.js" } }</script>
+  <script src="lib/qrcode.js?v=5"></script>
+  <script src="calc.js?v=5"></script>
+  <script type="module" src="app.js?v=5"></script>
 </body>
 </html>

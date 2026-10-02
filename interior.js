@@ -1,7 +1,8 @@
 // 3D-интерьер на three.js: 5 комнат-пресетов, пол из текстуры декора,
 // меняются цвет/обои стен и цвет мебели. Мебель собирается из простых
 // скруглённых форм и рисованных текстур — ничего тяжёлого не скачиваем.
-import * as THREE from './lib/three.module.min.js';
+import * as THREE from 'three';
+import { RoomEnvironment } from './lib/RoomEnvironment.js';
 
 const ROOM_H = 2.7;            // высота потолка, м
 const DEFAULT_TEX_W_M = 1.3;   // сколько метров пола по ширине на фото (если не задано в каталоге)
@@ -36,7 +37,11 @@ export const PRESETS = {
   hall:    { name: 'Прихожая',       icon: '🚪', w: 1.6, d: 4,   build: buildHall },
 };
 
-let renderer, scene, camera, sun, hemi, floorMat, wallMat, roomGroup;
+let renderer, scene, camera, sun, hemi, ceilLight, skyMat, floorMat, wallMat, roomGroup;
+// Окно: стена ('back' — задняя, 'left' — левая, 'none' — без окна) и место вдоль стены 0…1
+const WINDOW_DEFAULT = { living: ['back', 0.35], bedroom: ['back', 0.7], kitchen: ['back', 0.85],
+                         kids: ['back', 0.65], hall: ['none', 0.5] };
+let userWindow = null; // выбор промоутера; пока не выбирал — окно по пресету
 const view = { type: 'living', w: 5, d: 4, wall: 'milk', theme: 'wood', furniture: true };
 const texCache = {};
 let mats = {}; // материалы мебели текущей темы
@@ -46,7 +51,7 @@ export function initInterior(canvas) {
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMapping = THREE.NeutralToneMapping; // не искажает цвет ламината
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -54,18 +59,26 @@ export function initInterior(canvas) {
   scene.background = new THREE.Color(0xf4f2ee);
   camera = new THREE.PerspectiveCamera(55, 1, 0.1, 50);
 
-  // Свет: общий мягкий + солнце из окна (даёт тени)
-  hemi = new THREE.HemisphereLight(0xffffff, 0xcfc6b8, 1.5);
-  scene.add(hemi);
-  sun = new THREE.DirectionalLight(0xfff1dc, 2.2);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(1024, 1024);
-  sun.shadow.radius = 4;
-  sun.shadow.bias = -0.0005;
-  scene.add(sun, sun.target);
+  // Мягкий рассеянный свет и отражения «как в комнате» (блики на ламинате)
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
-  floorMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 });
-  wallMat = new THREE.MeshStandardMaterial({ roughness: 1 });
+  hemi = new THREE.HemisphereLight(0xffffff, 0xd8cfc0, 0.4);
+  scene.add(hemi);
+  // Солнце: светит снаружи через окно — на полу появляется световое пятно
+  sun = new THREE.DirectionalLight(0xfff0dc, 5);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.bias = -0.0004;
+  sun.shadow.normalBias = 0.02;
+  scene.add(sun, sun.target);
+  // Люстра — вечерний свет
+  ceilLight = new THREE.PointLight(0xffd6a0, 0, 0, 2);
+  scene.add(ceilLight);
+
+  floorMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42, envMapIntensity: 0.9 });
+  wallMat = new THREE.MeshStandardMaterial({ roughness: 0.95, shadowSide: THREE.DoubleSide });
+  skyMat = new THREE.MeshBasicMaterial({ map: canvasTex(skyCanvas(), 'sky') });
   new ResizeObserver(resize).observe(canvas);
   rebuild();
 }
@@ -92,15 +105,36 @@ export function setRoom(type, w, d) {
 // Свет (SPEC 5.1 C3). brightness: 0 — вечерний полумрак … 1 — яркий день;
 // warmth: -1 — холодный дневной … +1 — тёплые лампы
 const COLD = new THREE.Color('#dde8ff'), NEUTRAL = new THREE.Color('#ffffff'), WARM = new THREE.Color('#ffbf73');
+const light = { b: 0.8, w: -0.2 };
 export function setLight(brightness, warmth) {
-  const c = NEUTRAL.clone().lerp(warmth > 0 ? WARM : COLD, Math.abs(warmth));
-  hemi.color.copy(c);
-  hemi.intensity = 0.35 + 1.4 * brightness;
-  sun.color.copy(c);
-  sun.intensity = 2.6 * brightness * brightness; // вечером солнца нет, только лампы
-  renderer.toneMappingExposure = 0.75 + 0.35 * brightness;
+  Object.assign(light, { b: brightness, w: warmth });
+  const b = brightness;
+  const tint = NEUTRAL.clone().lerp(warmth > 0 ? WARM : COLD, Math.abs(warmth));
+  const day = Math.pow(Math.min(1, Math.max(0, (b - 0.25) / 0.75)), 1.3); // 0 — ночь, 1 — день
+  const hasWin = currentWindow()[0] !== 'none';
+  sun.intensity = hasWin ? 4.2 * day : 0;
+  sun.color.copy(tint).lerp(new THREE.Color('#fff2df'), 0.5);
+  hemi.color.copy(tint);
+  hemi.intensity = 0.05 + 0.4 * day;
+  // Рассеянный дневной свет из окна; без окна — меньше
+  scene.environmentIntensity = 0.06 + (hasWin ? 0.6 : 0.35) * day;
+  // Люстра тем ярче, чем темнее за окном
+  ceilLight.intensity = 9 * Math.pow(1 - day, 1.2) + 1;
+  ceilLight.color.copy(new THREE.Color('#ffc78a')).lerp(tint, 0.35);
+  if (ceilLight.userData.shade) ceilLight.userData.shade.material.emissiveIntensity = 0.3 + 1.5 * (1 - day);
+  // Небо за окном: днём светлое, вечером синее
+  skyMat.color.copy(new THREE.Color('#1d2a45')).lerp(new THREE.Color('#ffffff'), day);
+  renderer.toneMappingExposure = 0.75 + 0.2 * day; // вечером глаз видит комнату темнее
   render();
 }
+
+// Окно: wall — 'back' | 'left' | 'none', pos — 0…1 вдоль стены
+export function setWindow(wall, pos) {
+  userWindow = [wall, pos ?? currentWindow()[1]];
+  rebuild();
+}
+export function getWindow() { return currentWindow(); }
+function currentWindow() { return userWindow || WINDOW_DEFAULT[view.type] || ['back', 0.5]; }
 
 export function setWall(id) { view.wall = id; applyWall(); render(); }
 export function setTheme(id) { view.theme = id; rebuild(); }
@@ -160,28 +194,64 @@ function rebuild() {
   roomGroup.add(floor);
   fitFloorTex();
 
-  // Стены: задняя и левая (ближние не строим — через них смотрит камера)
-  const back = new THREE.Mesh(new THREE.PlaneGeometry(w, ROOM_H), wallMat);
-  back.position.set(0, ROOM_H / 2, -d / 2);
-  const left = new THREE.Mesh(new THREE.PlaneGeometry(d, ROOM_H), wallMat);
+  // Окно: где проём и куда смотрит стена
+  const [wwall, wpos] = currentWindow();
+  const WIN = { W: 1.4, H: 1.5, y: 0.85 };                // ширина, высота, подоконник от пола
+  const len = wwall === 'left' ? d : w;
+  const along = Math.min(len / 2 - WIN.W / 2 - 0.25, Math.max(-len / 2 + WIN.W / 2 + 0.25, (wpos - 0.5) * len));
+  const win = wwall !== 'none' && len >= WIN.W + 0.6 ? { ...WIN, c: along } : null;
+
+  // Стены: задняя и левая видимые (с проёмом под окно), ближние — невидимые, только для теней
+  const back = wallMesh(w, wwall === 'back' ? win : null);
+  back.position.set(0, 0, -d / 2);
+  const left = wallMesh(d, wwall === 'left' ? win : null);
   left.rotation.y = Math.PI / 2;
-  left.position.set(-w / 2, ROOM_H / 2, 0);
-  back.receiveShadow = left.receiveShadow = true;
+  left.position.set(-w / 2, 0, 0);
   roomGroup.add(back, left);
+  const ghost = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, side: THREE.DoubleSide });
+  for (const [gw, gh, x, y, z, rx, ry] of [[w, ROOM_H, 0, ROOM_H / 2, d / 2, 0, 0], [d, ROOM_H, w / 2, ROOM_H / 2, 0, 0, Math.PI / 2],
+                                           [w, d, 0, ROOM_H, 0, Math.PI / 2, 0]]) {
+    const g = new THREE.Mesh(new THREE.PlaneGeometry(gw, gh), ghost);
+    g.position.set(x, y, z); g.rotation.set(rx, ry, 0); g.castShadow = true;
+    roomGroup.add(g);
+  }
   applyWall();
+
+  // Мягкое затенение в углах и у стен (как в жизни: свет туда почти не попадает)
+  addAO(w, d);
 
   // Плинтус
   const skMat = new THREE.MeshStandardMaterial({ color: 0xf7f5f0, roughness: 0.5 });
-  add(new THREE.Mesh(new THREE.BoxGeometry(w, 0.07, 0.016), skMat), 0, 0.035, -d / 2 + 0.008);
-  add(new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.07, d), skMat), -w / 2 + 0.008, 0.035, 0);
+  add(new THREE.Mesh(new THREE.BoxGeometry(w, 0.07, 0.016), skMat), 0, 0.035, -d / 2 + 0.008, 0, true);
+  add(new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.07, d), skMat), -w / 2 + 0.008, 0.035, 0, 0, true);
 
-  // Окно на задней стене (кроме прихожей) и солнце через него
-  if (view.type !== 'hall' && w >= 2.4) addWindow({ living: -w * 0.12, kitchen: w / 2 - 0.75 }[view.type] ?? w * 0.18, -d / 2);
-  sun.position.set(-w / 2 + 0.5, 3.5, -d / 2 - 2);
-  sun.target.position.set(0.5, 0, 0.5);
-  const s = Math.max(w, d);
-  Object.assign(sun.shadow.camera, { left: -s, right: s, top: s, bottom: -s, near: 0.5, far: 15 });
+  // Окно и солнце через него
+  const s = Math.max(w, d) + 1;
+  if (win) {
+    // Центр окна и направление «внутрь комнаты»
+    const C = wwall === 'back' ? new THREE.Vector3(win.c, win.y + win.H / 2, -d / 2)
+                               : new THREE.Vector3(-w / 2, win.y + win.H / 2, -win.c);
+    const n = wwall === 'back' ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(1, 0, 0);
+    addWindow(C, win, wwall === 'back' ? 0 : Math.PI / 2);
+    // Пятно солнца ложится на пол примерно в 1,6 м от окна, чуть вбок
+    const side = wwall === 'back' ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 0, -1);
+    const T = C.clone().addScaledVector(n, 1.6).addScaledVector(side, 0.5).setY(0);
+    const dir = C.clone().sub(T).normalize();
+    sun.target.position.copy(T);
+    sun.position.copy(T).addScaledVector(dir, 12);
+  }
+  Object.assign(sun.shadow.camera, { left: -s, right: s, top: s, bottom: -s, near: 1, far: 30 });
   sun.shadow.camera.updateProjectionMatrix();
+
+  // Люстра по центру потолка
+  const shade = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.24, 0.2, 24, 1, true),
+    new THREE.MeshStandardMaterial({ color: '#f3efe7', emissive: '#ffdcae', emissiveIntensity: 0.3, side: THREE.DoubleSide }));
+  shade.position.set(0, ROOM_H - 0.45, 0);
+  const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.35, 6), new THREE.MeshBasicMaterial({ color: '#333' }));
+  cord.position.set(0, ROOM_H - 0.17, 0);
+  roomGroup.add(shade, cord);
+  ceilLight.position.set(0, ROOM_H - 0.5, 0);
+  ceilLight.userData.shade = shade;
 
   if (view.furniture) PRESETS[view.type].build(w, d);
   scene.add(roomGroup);
@@ -189,23 +259,69 @@ function rebuild() {
   // Камера: ближний правый угол, чуть выше глаз, смотрит в дальний левый
   camera.position.set(w / 2 - 0.2, 1.7, d / 2 - 0.2);
   camera.lookAt(-w * 0.25, 0.4, -d * 0.3);
-  render();
+  setLight(light.b, light.w);
+}
+
+// Стена с прямоугольным проёмом под окно. UV в метрах — рисунок обоев не растягивается
+function wallMesh(len, win) {
+  const sh = new THREE.Shape();
+  sh.moveTo(-len / 2, 0); sh.lineTo(len / 2, 0); sh.lineTo(len / 2, ROOM_H); sh.lineTo(-len / 2, ROOM_H); sh.closePath();
+  if (win) {
+    const h = new THREE.Path();
+    h.moveTo(win.c - win.W / 2, win.y); h.lineTo(win.c - win.W / 2, win.y + win.H);
+    h.lineTo(win.c + win.W / 2, win.y + win.H); h.lineTo(win.c + win.W / 2, win.y); h.closePath();
+    sh.holes.push(h);
+  }
+  const m = new THREE.Mesh(new THREE.ShapeGeometry(sh), wallMat);
+  m.receiveShadow = m.castShadow = true;
+  return m;
+}
+
+// Затенение: полосы с плавным переходом у стен и в углу
+function addAO(w, d) {
+  const mat = new THREE.MeshBasicMaterial({ map: canvasTex(gradCanvas(), 'ao'), transparent: true, depthWrite: false,
+    color: '#000', opacity: 0.32, polygonOffset: true, polygonOffsetFactor: -1 });
+  const strip = (L, W, pos, rot) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(L, W), mat);
+    m.position.copy(pos); m.rotation.set(...rot); m.renderOrder = 1;
+    roomGroup.add(m);
+  };
+  const A = 0.4;
+  // на полу у задней и левой стен (тёмный край — у стены)
+  strip(w, A, new THREE.Vector3(0, 0.002, -d / 2 + A / 2), [-Math.PI / 2, 0, 0]);
+  strip(d, A, new THREE.Vector3(-w / 2 + A / 2, 0.002, 0), [-Math.PI / 2, 0, -Math.PI / 2]);
+  // на стенах у пола и в углу между стенами
+  strip(w, A, new THREE.Vector3(0, A / 2, -d / 2 + 0.002), [0, 0, Math.PI]);
+  strip(d, A, new THREE.Vector3(-w / 2 + 0.002, A / 2, 0), [0, Math.PI / 2, Math.PI]);
+  strip(ROOM_H, A, new THREE.Vector3(-w / 2 + A / 2, ROOM_H / 2, -d / 2 + 0.003), [0, 0, -Math.PI / 2]);
+  strip(ROOM_H, A, new THREE.Vector3(-w / 2 + 0.003, ROOM_H / 2, -d / 2 + A / 2), [0, Math.PI / 2, Math.PI / 2]);
 }
 
 function applyWall() {
   const v = WALLS.find(x => x.id === view.wall) || WALLS[0];
   wallMat.color.set(v.pattern ? '#ffffff' : v.color);
   wallMat.map = canvasTex(wallCanvas(v), 'wall-' + v.id);
-  wallMat.map.repeat.set(3, 2);
+  wallMat.map.repeat.set(0.6, 0.6); // UV стены в метрах: рисунок ~1,7 м
   wallMat.needsUpdate = true;
 }
 
 // ---------- Помощники для мебели ----------
-function add(mesh, x, y, z, rotY = 0) {
+function add(mesh, x, y, z, rotY = 0, noBlob = false) {
   mesh.position.set(x, y, z);
   mesh.rotation.y = rotY;
   mesh.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   roomGroup.add(mesh);
+  // Мягкая тень под предметом (есть и вечером, когда солнца нет)
+  const b = new THREE.Box3().setFromObject(mesh);
+  if (!noBlob && b.min.y < 0.15 && b.max.y - b.min.y > 0.05) {
+    const sx = b.max.x - b.min.x, sz = b.max.z - b.min.z;
+    const blob = new THREE.Mesh(new THREE.PlaneGeometry(sx + 0.35, sz + 0.35), new THREE.MeshBasicMaterial({
+      map: canvasTex(blobCanvas(), 'blob'), color: '#000', transparent: true, opacity: 0.55, depthWrite: false }));
+    blob.rotation.x = -Math.PI / 2;
+    blob.position.set((b.min.x + b.max.x) / 2, 0.003, (b.min.z + b.max.z) / 2);
+    blob.renderOrder = 1;
+    roomGroup.add(blob);
+  }
   return mesh;
 }
 
@@ -258,6 +374,7 @@ function makeMats(t) {
     rug:    new THREE.MeshStandardMaterial({ color: '#d9d2c4', roughness: 1, map: canvasTex(fabricCanvas(), 'fabric') }),
     green:  new THREE.MeshStandardMaterial({ color: '#5d7a4f', roughness: 0.8 }),
     pot:    new THREE.MeshStandardMaterial({ color: '#c9b8a3', roughness: 0.7 }),
+    curtain: new THREE.MeshStandardMaterial({ color: '#efe9de', roughness: 1, map: canvasTex(fabricCanvas(), 'fabric') }),
     glass:  new THREE.MeshStandardMaterial({ color: '#dfeef7', emissive: '#cfe6f5', emissiveIntensity: 0.9, roughness: 0.1 }),
   };
 }
@@ -355,16 +472,32 @@ function tv() {
   return group(at(rbox(1.25, 0.72, 0.04, 0.01, mats.black), 0, 1.2, 0));
 }
 
-function addWindow(x, z) {
-  const W = 1.3, H = 1.5, y = 1.55;
-  const frame = new THREE.MeshStandardMaterial({ color: '#f7f7f5', roughness: 0.4 });
-  const glass = new THREE.Mesh(new THREE.PlaneGeometry(W, H), mats.glass || new THREE.MeshBasicMaterial({ color: '#e6f1f8' }));
-  roomGroup.add(at(glass, x, y, z + 0.005));
-  for (const [w, h, dx, dy] of [[W + 0.1, 0.06, 0, H / 2], [W + 0.1, 0.06, 0, -H / 2], [0.06, H, -W / 2, 0], [0.06, H, W / 2, 0], [0.04, H, 0, 0]])
-    roomGroup.add(at(box(w, h, 0.06, frame), x + dx, y + dy, z + 0.03));
-  roomGroup.add(at(box(W + 0.2, 0.03, 0.2, frame), x, y - H / 2 - 0.03, z + 0.1)); // подоконник
-  // Шторы
-  for (const s of [-1, 1]) add(rbox(0.35, 2.3, 0.05, 0.02, mats.accent || frame), x + s * (W / 2 + 0.25), 1.2, z + 0.1);
+function addWindow(C, win, rotY) {
+  const g = new THREE.Group();
+  const frame = new THREE.MeshStandardMaterial({ color: '#f7f7f5', roughness: 0.35 });
+  const W = win.W, H = win.H, T = 0.06;
+  // Небо снаружи (видно через окно)
+  const sky = new THREE.Mesh(new THREE.PlaneGeometry(W + 1.2, H + 0.6), skyMat); // не выше стены
+  sky.position.set(0, 0, -0.6);
+  g.add(sky);
+  // Рама по контуру и импост посередине
+  for (const [fw, fh, x, y] of [[W, T, 0, H / 2 - T / 2], [W, T, 0, -H / 2 + T / 2], [T, H, -W / 2 + T / 2, 0], [T, H, W / 2 - T / 2, 0], [0.05, H, 0, 0]])
+    g.add(at(box(fw, fh, 0.07, frame), x, y, -0.06));
+  // Стекло — почти прозрачное, с бликом
+  const glass = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshStandardMaterial({
+    color: '#ffffff', transparent: true, opacity: 0.08, roughness: 0.05, metalness: 0.9 }));
+  glass.position.z = -0.06;
+  g.add(glass);
+  // Откосы (толщина стены) и подоконник
+  for (const [fw, fh, x, y] of [[0.02, H, -W / 2, 0], [0.02, H, W / 2, 0], [W, 0.02, 0, H / 2]])
+    g.add(at(box(fw, fh, 0.2, frame), x, y, -0.1));
+  g.add(at(box(W + 0.2, 0.03, 0.25, frame), 0, -H / 2 - 0.015, 0.03));
+  // Шторы по бокам
+  for (const sx of [-1, 1]) g.add(at(rbox(0.38, 2.4, 0.06, 0.03, mats.curtain), sx * (W / 2 + 0.3), ROOM_H / 2 - (win.y + H / 2) - 0.05, 0.12));
+  g.position.copy(C);
+  g.rotation.y = rotY;
+  g.traverse(o => { if (o.isMesh && o !== sky && o !== glass) { o.castShadow = true; o.receiveShadow = true; } });
+  roomGroup.add(g);
 }
 
 // Поставить, только если помещается (для «Моей комнаты»)
@@ -487,6 +620,31 @@ function grainCanvas() {
     g.beginPath(); g.moveTo(0, y);
     g.bezierCurveTo(85, y + 6 * Math.random(), 170, y - 6 * Math.random(), 256, y); g.stroke();
   }
+  return c;
+}
+
+// Небо за окном: сверху голубое, к горизонту светлее, внизу — зелень вдали
+function skyCanvas() {
+  const c = mkCanvas(), g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, 256);
+  gr.addColorStop(0, '#a9c9ea'); gr.addColorStop(0.6, '#e9f2fa'); gr.addColorStop(0.75, '#dfe8dc'); gr.addColorStop(1, '#9fb49a');
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+  return c;
+}
+// Градиент от непрозрачного края к прозрачному (затенение у стен)
+function gradCanvas() {
+  const c = mkCanvas(64), g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, 64);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  return c;
+}
+// Круглое мягкое пятно (тень под мебелью)
+function blobCanvas() {
+  const c = mkCanvas(128), g = c.getContext('2d');
+  const gr = g.createRadialGradient(64, 64, 10, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(255,255,255,.9)'); gr.addColorStop(0.6, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
   return c;
 }
 

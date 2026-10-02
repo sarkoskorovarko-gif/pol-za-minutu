@@ -1,6 +1,6 @@
 // Главный файл интерфейса. Формулы расчёта — в calc.js, 3D — в interior.js.
 import { initInterior, setFloor, preload, setRoom, setWall, setTheme, setFurniture, setLight,
-         PRESETS, WALLS, THEMES } from './interior.js?v=4';
+         setWindow, getWindow, PRESETS, WALLS, THEMES } from './interior.js?v=5';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -223,7 +223,7 @@ function renderRoomNav() {
     const b = document.createElement('button');
     b.innerHTML = `<span>${icon}</span>${name}`;
     b.classList.toggle('on', state.view === k);
-    b.onclick = () => { state.view = k; renderRoomNav(); k === 'my' ? showMyRoom(state.myRoom) : (setRoom(k), $('#myBar').hidden = true); };
+    b.onclick = () => { state.view = k; renderRoomNav(); k === 'my' ? showMyRoom(state.myRoom) : (setRoom(k), $('#myBar').hidden = true); syncWindowUI(); };
     nav.appendChild(b);
   }
 }
@@ -269,6 +269,20 @@ function buttons(box, items, onPick, first, render) {
 buttons($('#walls'), WALLS.map(w => [w.id, w]), setWall, 'milk',
   (b, w) => { b.className = 'swatch' + (w.pattern ? ' pat-' + w.pattern : ''); b.style.background = w.color; b.title = w.name; b.setAttribute('aria-label', w.name); });
 buttons($('#themes'), Object.entries(THEMES), setTheme, 'wood', (b, t) => b.textContent = t.name);
+
+// Окно: стена и место вдоль стены
+function syncWindowUI() {
+  const [wall, pos] = getWindow();
+  $$('#winWall button').forEach(b => b.classList.toggle('on', b.dataset.w === wall));
+  $('#winPos').value = pos * 100;
+  $('#winPosRow').hidden = wall === 'none';
+}
+$$('#winWall button').forEach(b => b.onclick = () => { setWindow(b.dataset.w); syncWindowUI(); });
+let winTimer;
+$('#winPos').oninput = e => {
+  clearTimeout(winTimer); // перестраиваем не чаще 10 раз в секунду
+  winTimer = setTimeout(() => setWindow(getWindow()[0], e.target.value / 100), 100);
+};
 
 // Ползунок «Свет»: слева тёплый, справа холодный
 const applyLight = () => setLight($('#bright').value / 100, -$('#lwarm').value / 100);
@@ -653,6 +667,7 @@ fetch('data/catalog.json', { cache: 'no-cache' })
     }
     renderRoomNav();
     if (state.view === 'my') showMyRoom(0); else setRoom(state.view);
+    syncWindowUI();
     renderFilters();
     state.decorId = state.decorId || S.defaultDecor;
     renderRibbon();
