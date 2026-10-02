@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Разметка фото</title>
+<style>
+  body { margin: 0; font: 15px system-ui, sans-serif; background: #222; color: #eee; }
+  .bar { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; background: #333; align-items: center; position: sticky; top: 0; z-index: 2; }
+  button, select, input { font: inherit; padding: 6px 10px; border-radius: 6px; border: 1px solid #555; background: #444; color: #eee; }
+  button.on { background: #1f6f43; border-color: #1f6f43; }
+  input[type=number] { width: 70px; }
+  .wrap { position: relative; margin: 8px auto; }
+  canvas, svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  svg { touch-action: none; }
+  .help { padding: 4px 10px; color: #aaa; font-size: 13px; }
+  textarea { width: calc(100% - 20px); margin: 10px; height: 160px; background: #111; color: #9f9; font: 12px monospace; }
+</style>
+<script type="importmap">{ "imports": { "three": "../lib/three.module.min.js" } }</script>
+</head>
+<body>
+<div class="bar">
+  <select id="pick"></select>
+  <button data-mode="quad" class="on">Углы пола</button>
+  <button data-mode="floor">Контур пола</button>
+  <button data-mode="holes">Вырезы (мебель)</button>
+  <button id="newHole">+ вырез</button>
+  <button id="delPt">Удалить точку</button>
+  Ш <input id="W" type="number" step="0.05"> Г <input id="D" type="number" step="0.05"> м
+  <label><input type="checkbox" id="rot"> доски поперёк</label>
+  <label><input type="checkbox" id="grid" checked> сетка 0,5 м</label>
+  <button id="out">Готово → JSON</button>
+</div>
+<div class="help" id="help"></div>
+<div class="wrap" id="wrap"><canvas id="cv"></canvas><svg id="ov"></svg></div>
+<textarea id="json" hidden></textarea>
+
+<script type="module">
+// Страница разметки фото-интерьеров. Не для покупателей — для подготовки данных.
+window.PHOTO_BASE = '../';
+import { initPhoto, showPhoto, refreshPhoto, setPhotoFloor, setPhotoLight, setGrid } from '../photo.js';
+import { placeholderWood } from '../interior.js';
+const $ = s => document.querySelector(s);
+const HELP = {
+  quad: 'Тяните 4 угла так, чтобы красная сетка 0,5 м лежала ровно по полу: линии параллельны стенам, клетки — квадратные. Ш и Г — размер прямоугольника в метрах.',
+  floor: 'Контур всего пола (вместе с местом под мебелью). Тяните точки; клик по линии — новая точка.',
+  holes: 'Вырезы — где пол закрыт мебелью, ковром и т. п. Клик по линии — новая точка; «+ вырез» — новый.',
+};
+let photos = [], P = null, mode = 'quad', sel = null; // sel: [массив точек, индекс]
+
+photos = await (await fetch('../data/photos.json', { cache: 'no-cache' })).json();
+$('#pick').innerHTML = photos.map((p, i) => `<option value="${i}">${p.id} — ${p.title}</option>`).join('');
+initPhoto($('#cv'));
+setPhotoFloor(placeholderWood({ lightness: 70 }));
+setPhotoLight(0.8, 0);
+
+async function load(i) {
+  P = photos[i];
+  P.data = undefined;
+  const [iw, ih] = P.img;
+  const maxW = Math.max(320, Math.min(innerWidth - 16, 1400)), maxH = Math.max(400, innerHeight - 140); // окно может быть свёрнуто
+  const s = Math.min(maxW / iw, maxH / ih);
+  const wrap = document.getElementById('wrap');
+  wrap.style.width = Math.round(iw * s) + 'px';
+  wrap.style.height = Math.round(ih * s) + 'px';
+  $('#ov').setAttribute('viewBox', `0 0 ${iw} ${ih}`);
+  await showPhoto(P);
+  $('#W').value = P.size[0]; $('#D').value = P.size[1]; $('#rot').checked = !!P.rotate;
+  setGrid($('#grid').checked);
+  draw();
+}
+
+// Нарисовать точки и линии поверх фото
+function draw() {
+  const svg = $('#ov'), r = P.img[0] / 160;
+  const path = (pts, color, closed = true) =>
+    `<polyline points="${pts.map(p => p.join(',')).join(' ')}${closed ? ' ' + pts[0].join(',') : ''}" fill="none" stroke="${color}" stroke-width="${r / 2}" />`;
+  let h = '';
+  const groups = mode === 'quad' ? [P.quad] : mode === 'floor' ? [P.floor] : P.holes;
+  if (mode !== 'quad') h += path(P.floor, '#0f0');
+  P.holes.forEach(hole => h += path(hole, '#f0f'));
+  h += path(P.quad, '#ff0');
+  groups.forEach((g, gi) => g.forEach((p, i) => {
+    const active = sel && sel[0] === g && sel[1] === i;
+    h += `<circle cx="${p[0]}" cy="${p[1]}" r="${r}" fill="${active ? '#f00' : '#fff'}" stroke="#000" stroke-width="${r / 4}" data-g="${gi}" data-i="${i}"/>`;
+  }));
+  svg.innerHTML = h;
+}
+
+// Перетаскивание точек
+const toImg = e => {
+  const b = $('#ov').getBoundingClientRect();
+  return [Math.round((e.clientX - b.left) / b.width * P.img[0]), Math.round((e.clientY - b.top) / b.height * P.img[1])];
+};
+const groups = () => mode === 'quad' ? [P.quad] : mode === 'floor' ? [P.floor] : P.holes;
+let drag = null;
+$('#ov').addEventListener('pointerdown', e => {
+  const t = e.target;
+  if (t.tagName === 'circle') {
+    const g = groups()[+t.dataset.g];
+    sel = drag = [g, +t.dataset.i];
+    $('#ov').setPointerCapture(e.pointerId);
+  } else if (mode !== 'quad') {
+    // клик рядом с линией — вставить точку в ближайший отрезок
+    const p = toImg(e);
+    let best = null;
+    groups().forEach(g => g.forEach((a, i) => {
+      const b = g[(i + 1) % g.length];
+      const dx = b[0] - a[0], dy = b[1] - a[1];
+      const t2 = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy || 1)));
+      const d = Math.hypot(a[0] + t2 * dx - p[0], a[1] + t2 * dy - p[1]);
+      if (!best || d < best.d) best = { d, g, i };
+    }));
+    if (best && best.d < P.img[0] / 30) { best.g.splice(best.i + 1, 0, p); sel = [best.g, best.i + 1]; update(); }
+  }
+  draw();
+});
+$('#ov').addEventListener('pointermove', e => {
+  if (!drag) return;
+  drag[0][drag[1]] = toImg(e);
+  draw();
+  if (mode === 'quad') refreshPhoto(P); // перспектива — сразу
+});
+$('#ov').addEventListener('pointerup', () => { if (drag) { drag = null; update(); } });
+
+function update() { refreshPhoto(P); draw(); }
+
+document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
+  mode = b.dataset.mode; sel = null;
+  document.querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on', x === b));
+  $('#help').textContent = HELP[mode];
+  draw();
+});
+$('#help').textContent = HELP.quad;
+$('#newHole').onclick = () => {
+  const [w, h] = P.img;
+  P.holes.push([[w * .4, h * .7], [w * .6, h * .7], [w * .6, h * .85], [w * .4, h * .85]].map(p => p.map(Math.round)));
+  document.querySelector('[data-mode=holes]').click(); update();
+};
+$('#delPt').onclick = () => {
+  if (!sel || mode === 'quad') return;
+  const [g, i] = sel;
+  if (g.length > 3) g.splice(i, 1);
+  else if (mode === 'holes') P.holes.splice(P.holes.indexOf(g), 1);
+  sel = null; update();
+};
+$('#W').oninput = () => { P.size[0] = +$('#W').value || 1; refreshPhoto(P); };
+$('#D').oninput = () => { P.size[1] = +$('#D').value || 1; refreshPhoto(P); };
+$('#rot').onchange = () => { P.rotate = $('#rot').checked; refreshPhoto(P); };
+$('#grid').onchange = () => setGrid($('#grid').checked);
+$('#pick').onchange = () => load(+$('#pick').value);
+$('#out').onclick = () => {
+  const clean = photos.map(({ data, ...p }) => p);
+  $('#json').hidden = false;
+  $('#json').value = JSON.stringify(clean, null, 1);
+  $('#json').select();
+};
+load(0);
+</script>
+</body>
+</html>

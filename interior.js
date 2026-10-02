@@ -668,7 +668,7 @@ function wallCanvas(v) {
 }
 
 // ВРЕМЕННО: нарисованные доски, пока нет фото. Оттенок — по светлоте декора
-function placeholderWood(decor) {
+export function placeholderWood(decor) {
   const c = document.createElement('canvas');
   c.width = 1024; c.height = 620;
   const g = c.getContext('2d');
