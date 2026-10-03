@@ -27,7 +27,7 @@ export function initPhoto(canvas) {
       Hinv: { value: new THREE.Matrix3() }, imgSize: { value: new THREE.Vector2(1, 1) },
       texM: { value: new THREE.Vector2(1.3, 0.8) }, meanL: { value: 0.5 }, rot: { value: 0 },
       meanC: { value: new THREE.Vector3(0.3, 0.3, 0.3) }, roomTint: { value: new THREE.Vector3(1, 1, 1) },
-      lampFloor: { value: new THREE.Vector2(1.5, 1.5) },
+      lampFloor: { value: new THREE.Vector2(1.5, 1.5) }, hasLamp: { value: 0 },
       exposure: { value: 1 }, tint: { value: new THREE.Vector3(1, 1, 1) }, night: { value: 0 },
       showGrid: { value: 0 }, crop: { value: new THREE.Vector4(0, 0, 1, 1) },
     },
@@ -37,7 +37,7 @@ export function initPhoto(canvas) {
       varying vec2 vUv;
       uniform sampler2D photo, blurP, mask, decor;
       uniform mat3 Hinv; uniform vec2 imgSize, texM; uniform float meanL, rot, exposure, night, showGrid;
-      uniform vec3 tint, meanC, roomTint; uniform vec4 crop; uniform vec2 lampFloor;
+      uniform vec3 tint, meanC, roomTint; uniform vec4 crop; uniform vec2 lampFloor; uniform float hasLamp;
       // sRGB <-> линейный свет (тени и свет умножаем в линейном пространстве)
       vec3 toLin(vec3 c){ return pow(c, vec3(2.2)); }
       vec3 toSrgb(vec3 c){ return pow(max(c, 0.0), vec3(1.0/2.2)); }
@@ -64,12 +64,13 @@ export function initPhoto(canvas) {
           // Вечер: дневной рисунок света (солнце, блики окон) убираем совсем.
           // Остаются только мягкие тени (где на фото темнее среднего), светит люстра.
           float ao = mix(1.0, clamp(L, 0.35, 1.0), 0.6);
-          float lampL = 0.3 + 1.1 / (1.0 + r * r / 3.0);  // ярче под люстрой, к углам темнее
+          // Свет люстры: мягкий спад к углам, без яркого пятна
+          float lampL = hasLamp > 0.5 ? 0.45 + 0.75 / (1.0 + r * r / 6.0) : 0.9;
           vec3 nightLight = vec3(ao * lampL);
           vec3 light = mix(dayLight, nightLight, night);
           vec3 fl = d * min(light, vec3(1.4));
           fl += vec3(max(L - 1.4, 0.0) * 0.5) * (1.0 - night); // блики от окон днём
-          fl += vec3(0.10 * exp(-r * r / 0.35)) * night * ao;   // отражение люстры в ламинате
+          fl += vec3(0.06 * exp(-r * r / 0.5)) * night * ao * hasLamp; // отражение люстры — только если она отмечена
           if (showGrid > 0.5) {                          // сетка 0,5 м — для разметки
             vec2 g = abs(fract(fm / 0.5 + 0.5) - 0.5) / fwidth(fm / 0.5);
             fl = mix(vec3(1.0, 0.1, 0.1), fl, clamp(min(g.x, g.y), 0.0, 1.0));
@@ -147,7 +148,8 @@ function updateGeometry() {
   if (d.lamp) {
     const [x, y] = d.lamp, z = h[6] * x + h[7] * y + h[8];
     mat.uniforms.lampFloor.value.set((h[0] * x + h[1] * y + h[2]) / z, (h[3] * x + h[4] * y + h[5]) / z);
-  } else mat.uniforms.lampFloor.value.set(W / 2, D / 2);
+  }
+  mat.uniforms.hasLamp.value = d.lamp ? 1 : 0; // без отметки люстры — ровный вечерний свет
   mat.uniforms.imgSize.value.set(...d.img);
   mat.uniforms.rot.value = d.rotate ? 1 : 0;
 }
