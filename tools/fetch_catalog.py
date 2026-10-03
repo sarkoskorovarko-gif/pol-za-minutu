@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "raw" / "egger_raw.json"
 DATA = ROOT / "data"
 TEX = DATA / "textures"
-PAUSE = 1.5  # пауза между скачиваниями, сек
+PAUSE = 3  # пауза между скачиваниями, сек (чтобы сайт не заблокировал)
 
 # Цвет Материка → группа для фильтра. Проверяем по порядку, первое совпадение.
 COLOR_GROUPS = [
@@ -56,6 +56,8 @@ def srgb_to_lab(r, g, b):
 def process_image(content, out_path):
     """Сжимает до 800 px, сохраняет jpg 80%. Возвращает (lightness, warmth, texture_ok)."""
     img = Image.open(io.BytesIO(content)).convert("RGB")
+    if img.height > img.width:  # доски вертикально — кладём горизонтально, как остальные
+        img = img.rotate(90, expand=True)
     w, h = img.size
     # Средний цвет без краёв (по 10% с каждой стороны)
     core = img.crop((w // 10, h // 10, w - w // 10, h - h // 10)).resize((1, 1), Image.Resampling.BOX)
@@ -72,7 +74,7 @@ def process_image(content, out_path):
 def make_decor(it):
     p = it["props"]
     # Код декора из названия: EPL038, EHL098, EPC020 ...
-    m = re.search(r"\b(E[A-Z]{2}\d{3})\b", it.get("name") or "")
+    m = re.search(r"(?<![A-Z])(E[A-Z]{2}\d{3})(?!\d)", it.get("name") or "")
     if not m:
         return None
     cls = num(p.get("Класс износостойкости"))
@@ -137,7 +139,8 @@ def main():
     TEX.mkdir(parents=True, exist_ok=True)
     limit = args.textures or len(decors)
     done = 0
-    for d in decors:
+    # Сначала текстуры декоров, которые есть в наличии
+    for d in sorted(decors, key=lambda d: not d["in_stock"]):
         o = old.get(d["id"], {})
         d["texture_scale_m"] = o.get("texture_scale_m")
         path = TEX / f"{d['id']}.jpg"
