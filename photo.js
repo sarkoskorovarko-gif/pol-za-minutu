@@ -75,7 +75,7 @@ export function initPhoto(canvas) {
           vec3 nightLight = vec3(ao * lampL);
           vec3 light = mix(dayLight, nightLight, night);
           vec3 fl = d * min(light, vec3(1.4));
-          fl += vec3(max(L - 1.4, 0.0) * 0.5) * (1.0 - night); // блики от окон днём
+          fl += vec3(min(max(L - 1.4, 0.0) * 0.2, 0.15)) * (1.0 - night); // блики от окон днём
           fl += vec3(0.06 * exp(-r * r / 0.5)) * night * ao * hasLamp; // отражение люстры — только если она отмечена
           if (showGrid > 0.5) {                          // сетка 0,5 м — для разметки
             vec2 g = abs(fract(fm / 0.5 + 0.5) - 0.5) / fwidth(fm / 0.5);
