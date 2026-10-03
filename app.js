@@ -1,7 +1,7 @@
 // Главный файл интерфейса. Формулы расчёта — в calc.js, 3D — в interior.js.
-import { initInterior, setFloor, preload, setRoom, setWall, setTheme, setFurniture, setLight,
-         setWindow, getWindow, placeholderWood, PRESETS, WALLS, THEMES } from './interior.js?v=15';
-import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting } from './photo.js?v=15';
+import { initInterior, setSkirting, setFloor, preload, setRoom, setWall, setTheme, setFurniture, setLight,
+         setWindow, getWindow, placeholderWood, PRESETS, WALLS, THEMES } from './interior.js?v=16';
+import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting } from './photo.js?v=16';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -450,9 +450,10 @@ $('#pickSkirting').onchange = e => { state.sk = e.target.value; changed(); };
 
 // Плинтус на фото комнаты: выбранный цвет; снята галочка — остаётся плинтус с фото
 function photoSkirting() {
-  if (!photoReady || !catalog) return;
-  const s = skirtingNow();
-  setPhotoSkirting(state.use.skirting && s ? s : null);
+  if (!catalog) return;
+  const s = skirtingNow(), on = state.use.skirting && s ? s : null;
+  setSkirting(on);
+  if (photoReady) setPhotoSkirting(on);
 }
 
 function lineDetail(l, decor, underlay, skirting) {

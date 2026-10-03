@@ -909,7 +909,7 @@
    "texture_ok": true,
    "lightness": 82.3,
    "warmth": 2.5,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 1.29,
    "image_src": "https://diy.by/upload/resize_cache/slam/355/760/1000_900_100/60161440.jpg",
    "url": "https://diy.by/laminat/laminat-egger-pro-33-epl245-mramor-levanto-uayt-aquaplus-large-v4/"
   },
@@ -1221,7 +1221,7 @@
    "texture_ok": true,
    "lightness": 66.8,
    "warmth": 3.1,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 1.29,
    "image_src": "https://diy.by/upload/resize_cache/slam/123/806/1152_900_100/60062236.jpg",
    "url": "https://diy.by/laminat/laminat-egger-home-33-ehl229-mramor-kandela-svetlo-seryy-large-v4-aqua/"
   },
@@ -1245,7 +1245,7 @@
    "texture_ok": true,
    "lightness": 96.2,
    "warmth": 2.0,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 1.29,
    "image_src": "https://diy.by/upload/resize_cache/slam/351/636/1200_658_100/60062248.jpg",
    "url": "https://diy.by/laminat/laminat-egger-home-33-ehl228-mramor-kristall-large-v4-aqua/"
   },
@@ -1371,7 +1371,7 @@
   },
   {
    "id": "EHL240",
-   "name": "Ламинат EGGER-HOME/33/EHL240_ДУБ КАНДИ НАТУР_Classic*V4",
+   "name": "Дуб канди натур",
    "collection": "EGGER HOME+26_Classic",
    "price_m2": 34.09,
    "pack_m2": 1.994,
@@ -1395,7 +1395,7 @@
   },
   {
    "id": "EHL244",
-   "name": "Ламинат EGGER-HOME/33/EHL244_КАМЕНЬ БУРГАСБРАУН_AquaPlus_Large*V4",
+   "name": "Камень бургасбраун",
    "collection": "EGGER HOME+26_Large_AquaPlus",
    "price_m2": 43.99,
    "pack_m2": 2.542,
@@ -1419,7 +1419,7 @@
   },
   {
    "id": "EHL241",
-   "name": "Ламинат EGGER-HOME/33/EHL241_ДУБ БАРОНИЯ СЭНД_Classic*V4",
+   "name": "Дуб барония сэнд",
    "collection": "EGGER HOME+26_Classic",
    "price_m2": 34.09,
    "pack_m2": 1.994,
@@ -1443,7 +1443,7 @@
   },
   {
    "id": "EHL242",
-   "name": "Ламинат EGGER-HOME/33/EHL242_ДУБ БАРОНИЯ ГРЕЙ_Classic*V4",
+   "name": "Дуб барония грей",
    "collection": "EGGER HOME+26_Classic",
    "price_m2": 34.09,
    "pack_m2": 1.994,
@@ -1467,7 +1467,7 @@
   },
   {
    "id": "EHL251",
-   "name": "Ламинат EGGER-HOME/33/EHL251_МРАМОР ЮРСКИЙ ГРЕЙ_AquaPlus_Large*V4",
+   "name": "Мрамор юрский грей",
    "collection": "EGGER HOME+26_Large_AquaPlus",
    "price_m2": 43.99,
    "pack_m2": 2.542,
@@ -1485,7 +1485,7 @@
    "texture_ok": true,
    "lightness": 72.2,
    "warmth": 5.6,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 1.29,
    "image_src": "https://diy.by/upload/resize_cache/slam/649/159/998_900_100/60155709.jpg",
    "url": "https://diy.by/laminat/laminat-egger-home-33-ehl251-mramor-yurskiy-grey-aquaplus-large-v4/"
   },
@@ -1563,7 +1563,7 @@
   },
   {
    "id": "EHL233",
-   "name": "Ламинат EGGER-HOME/33/EHL233_ДУБ ОРОТАВА СЭНД_Classic*V4",
+   "name": "Дуб оротава сэнд",
    "collection": "EGGER HOME+26_Classic",
    "price_m2": 46.36,
    "pack_m2": 1.496,
@@ -1611,7 +1611,7 @@
   },
   {
    "id": "EHL235",
-   "name": "Ламинат EGGER-HOME/33/EHL235_ДУБ БАРОНИЯ ЛАЙТ_Classic*V4",
+   "name": "Дуб барония лайт",
    "collection": "EGGER HOME+26_Classic",
    "price_m2": 46.36,
    "pack_m2": 1.496,
@@ -1635,7 +1635,7 @@
   },
   {
    "id": "EPL276",
-   "name": "дуб жоржина натур лайт",
+   "name": "Дуб жоржина натур лайт",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 35.89,
    "pack_m2": 1.994848,
@@ -1659,7 +1659,7 @@
   },
   {
    "id": "EPL269",
-   "name": "дуб поллино сэнд",
+   "name": "Дуб поллино сэнд",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 35.89,
    "pack_m2": 1.994848,
@@ -1683,7 +1683,7 @@
   },
   {
    "id": "EPL270",
-   "name": "дуб поллино натур",
+   "name": "Дуб поллино натур",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 35.89,
    "pack_m2": 1.994848,
@@ -1707,7 +1707,7 @@
   },
   {
    "id": "EPL273",
-   "name": "орех тортона браун",
+   "name": "Орех тортона браун",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 35.89,
    "pack_m2": 1.994848,
@@ -1731,7 +1731,7 @@
   },
   {
    "id": "EPL272",
-   "name": "дуб монте браун",
+   "name": "Дуб монте браун",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 35.89,
    "pack_m2": 1.994848,
@@ -1755,7 +1755,7 @@
   },
   {
    "id": "EPL253",
-   "name": "травертин тибур беж",
+   "name": "Травертин тибур беж",
    "collection": "EGGER PRO+26_Large_AquaPlus",
    "price_m2": 45.9,
    "pack_m2": 2.542656,
@@ -1779,7 +1779,7 @@
   },
   {
    "id": "EPL252",
-   "name": "травертин тибур лайт",
+   "name": "Травертин тибур лайт",
    "collection": "EGGER PRO+26_Large_AquaPlus",
    "price_m2": 45.9,
    "pack_m2": 2.542656,
@@ -1803,7 +1803,7 @@
   },
   {
    "id": "EPL259",
-   "name": "оливия беж",
+   "name": "Оливия беж",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 42.99,
    "pack_m2": 1.745492,
@@ -1827,7 +1827,7 @@
   },
   {
    "id": "EPL265",
-   "name": "дуб уэно айвори",
+   "name": "Дуб уэно айвори",
    "collection": "EGGER PRO+26_Large",
    "price_m2": 37.88,
    "pack_m2": 2.542656,
@@ -1845,13 +1845,13 @@
    "texture_ok": true,
    "lightness": 63.4,
    "warmth": 25.2,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 0.6,
    "image_src": "https://diy.by/upload/resize_cache/slam/180/668/1000_900_100/60066218.jpg",
    "url": "https://diy.by/laminat/laminat-egger-pro-33-epl265r-dub-ueno-ayvori-large/"
   },
   {
    "id": "EPL267",
-   "name": "дуб уэно нюд",
+   "name": "Дуб уэно нюд",
    "collection": "EGGER PRO+26_Large",
    "price_m2": 37.88,
    "pack_m2": 2.542656,
@@ -1869,13 +1869,13 @@
    "texture_ok": true,
    "lightness": 55.5,
    "warmth": 20.9,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 0.6,
    "image_src": "https://diy.by/upload/resize_cache/slam/846/864/1000_900_100/60066235.jpg",
    "url": "https://diy.by/laminat/laminat-egger-pro-33-epl267r-dub-ueno-nyud-large/"
   },
   {
    "id": "EPL280",
-   "name": "орех тортона лайт",
+   "name": "Орех тортона лайт",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 29.6,
    "pack_m2": 1.994848,
@@ -1899,7 +1899,7 @@
   },
   {
    "id": "EPL258",
-   "name": "клен киото грей",
+   "name": "Клен киото грей",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 35.89,
    "pack_m2": 1.994848,
@@ -1923,7 +1923,7 @@
   },
   {
    "id": "EPL255",
-   "name": "клен киото натур",
+   "name": "Клен киото натур",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 35.89,
    "pack_m2": 1.994848,
@@ -1947,7 +1947,7 @@
   },
   {
    "id": "EHL129",
-   "name": "каштан пьягола белый",
+   "name": "Каштан пьягола белый",
    "collection": "EGGER HOME+26_Classic",
    "price_m2": 27.99,
    "pack_m2": 1.994848,
@@ -1971,7 +1971,7 @@
   },
   {
    "id": "EPL271",
-   "name": "дуб монте хани",
+   "name": "Дуб монте хани",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 35.89,
    "pack_m2": 1.994848,
@@ -1995,7 +1995,7 @@
   },
   {
    "id": "EPL262",
-   "name": "вяз никко беж",
+   "name": "Вяз никко беж",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 48.89,
    "pack_m2": 1.496136,
@@ -2019,7 +2019,7 @@
   },
   {
    "id": "EPL288",
-   "name": "дуб луара нюд",
+   "name": "Дуб луара нюд",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 35.89,
    "pack_m2": 1.994848,
@@ -2043,7 +2043,7 @@
   },
   {
    "id": "EPL263",
-   "name": "вяз никко натур",
+   "name": "Вяз никко натур",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 48.89,
    "pack_m2": 1.496136,
@@ -2067,7 +2067,7 @@
   },
   {
    "id": "EHL111",
-   "name": "дуб равенна",
+   "name": "Дуб равенна",
    "collection": "EGGER HOME+26_Classic",
    "price_m2": 46.36,
    "pack_m2": 1.496136,
@@ -2115,7 +2115,7 @@
   },
   {
    "id": "EHL140",
-   "name": "дуб церматт лайт",
+   "name": "Дуб церматт лайт",
    "collection": "EGGER HOME+26_Classic",
    "price_m2": 34.09,
    "pack_m2": 1.994848,
@@ -2139,7 +2139,7 @@
   },
   {
    "id": "EHL146",
-   "name": "дуб элва натур",
+   "name": "Дуб элва натур",
    "collection": "EGGER HOME+26_Classic",
    "price_m2": 46.36,
    "pack_m2": 1.994848,
@@ -2163,7 +2163,7 @@
   },
   {
    "id": "EHL128",
-   "name": "дуб апалона",
+   "name": "Дуб апалона",
    "collection": "EGGER HOME+26_Classic",
    "price_m2": 27.99,
    "pack_m2": 1.994848,
@@ -2211,7 +2211,7 @@
   },
   {
    "id": "EHL201",
-   "name": "дуб маджуро лайт",
+   "name": "Дуб маджуро лайт",
    "collection": "EGGER HOME+26_Classic",
    "price_m2": 34.09,
    "pack_m2": 1.994848,
@@ -2307,7 +2307,7 @@
   },
   {
    "id": "EPL268",
-   "name": "дуб вельвет песочный",
+   "name": "Дуб вельвет песочный",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 42.99,
    "pack_m2": 1.74,
@@ -2331,7 +2331,7 @@
   },
   {
    "id": "EPL260",
-   "name": "дуб оливия смоук",
+   "name": "Дуб оливия смоук",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 42.99,
    "pack_m2": 1.74,
@@ -2355,7 +2355,7 @@
   },
   {
    "id": "EPL266",
-   "name": "ДУБ УЭНО КАРАМЕЛЬНЫЙ",
+   "name": "Дуб уэно карамельный",
    "collection": "EGGER PRO+26_Large",
    "price_m2": 38.2,
    "pack_m2": 2.5427,
@@ -2373,13 +2373,13 @@
    "texture_ok": true,
    "lightness": 59.4,
    "warmth": 28.6,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 0.6,
    "image_src": "https://diy.by/upload/iblock/9c6/wf10v4sao6hmlecmm0g10it7y3ln80cq/60142980.jpeg",
    "url": "https://diy.by/laminat/laminat-egger-pro-33-epl266r-dub-ueno-karamelnyy-large/"
   },
   {
    "id": "EPL250",
-   "name": "МРАМОР ВОКЛЮЗ",
+   "name": "Мрамор воклюз",
    "collection": "EGGER PRO+26_Large_AquaPlus",
    "price_m2": 42.38,
    "pack_m2": 2.5427,
@@ -2397,13 +2397,13 @@
    "texture_ok": true,
    "lightness": 81.6,
    "warmth": 4.2,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.29,
    "image_src": "https://diy.by/upload/iblock/a54/sw7lapg6y4duuji1t8bi94jfbigftrfn/60142981.jpeg",
    "url": "https://diy.by/laminat/laminat-egger-pro-33-epl250-mramor-voklyuz-aquaplus-large-v4/"
   },
   {
    "id": "EPL251",
-   "name": "МРАМОР ЮРСКИЙ СЭНД",
+   "name": "Мрамор юрский сэнд",
    "collection": "EGGER PRO+26_Large_AquaPlus",
    "price_m2": 42.38,
    "pack_m2": 2.5427,
@@ -2421,13 +2421,13 @@
    "texture_ok": true,
    "lightness": 70.6,
    "warmth": 12.0,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.29,
    "image_src": "https://diy.by/upload/iblock/f0a/h4hdxlq8ki7m3dah7nrlwyse38m0mjd4/60142983.jpeg",
    "url": "https://diy.by/laminat/laminat-egger-pro-33-epl251-mramor-yurskiy-send-aquaplus-large-v4/"
   },
   {
    "id": "EPL257",
-   "name": "КЛЕН КИОТО БРАУН",
+   "name": "Клен киото браун",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 35.89,
    "pack_m2": 1.9948,
@@ -2451,7 +2451,7 @@
   },
   {
    "id": "EPL254",
-   "name": "КЛЕН КИОТО ЛАЙТ",
+   "name": "Клен киото лайт",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 35.89,
    "pack_m2": 1.9948,
@@ -2475,7 +2475,7 @@
   },
   {
    "id": "EPL285",
-   "name": "ДУБ ТРОНСЭ НАТУР",
+   "name": "Дуб тронсэ натур",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 48.69,
    "pack_m2": 1.4961,
@@ -2499,7 +2499,7 @@
   },
   {
    "id": "EPL279",
-   "name": "ДУБ БАЛТИМОР БРАУН",
+   "name": "Дуб балтимор браун",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 48.69,
    "pack_m2": 1.4961,
@@ -2523,7 +2523,7 @@
   },
   {
    "id": "EPL256",
-   "name": "КЛЕН КИОТО СЭНД",
+   "name": "Клен киото сэнд",
    "collection": "EGGER PRO+26_Classic",
    "price_m2": 35.89,
    "pack_m2": 1.9948,
@@ -2547,7 +2547,7 @@
   },
   {
    "id": "EPL191",
-   "name": "ДУБ МЕЛЬБА БРАУН",
+   "name": "Дуб мельба браун",
    "collection": "EGGER PRO+26_AquaPlus",
    "price_m2": 44.39,
    "pack_m2": 1.9948,
@@ -2571,7 +2571,7 @@
   },
   {
    "id": "EHL204",
-   "name": "ДУБ КРЕЙДЛ ГРЕЙ",
+   "name": "Дуб крейдл грей",
    "collection": "EGGER HOME+26_Classic",
    "price_m2": 34.09,
    "pack_m2": 1.99,

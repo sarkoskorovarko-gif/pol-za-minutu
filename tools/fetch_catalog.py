@@ -73,6 +73,14 @@ def process_image(content, out_path):
     return round(L, 1), round(b, 1), ok or rotated, rotated
 
 
+def nice_name(n):
+    """'Ламинат EGGER-HOME/33/EHL251_МРАМОР ЮРСКИЙ ГРЕЙ_AquaPlus…' → 'Мрамор юрский грей'."""
+    m = re.search(r"E[A-Z]{2}\d{3}_([^_*]+)", n)
+    if n.startswith("Ламинат") and m:
+        n = m.group(1).strip()
+    return n[:1].upper() + n[1:].lower() if n.isupper() or n.islower() else n
+
+
 def make_decor(it):
     p = it["props"]
     # Код декора из названия: EPL038, EHL098, EPC020 ...
@@ -83,7 +91,7 @@ def make_decor(it):
     water = p.get("Влагостойкость", "").strip().lower()
     return {
         "id": m.group(1),
-        "name": p.get("Наименование цвета производителя") or it["name"],
+        "name": nice_name(p.get("Наименование цвета производителя") or it["name"]),
         "collection": p.get("Коллекция", ""),
         "price_m2": it.get("price"),
         "pack_m2": num(p.get("Количество квадратных метров в упаковке")),

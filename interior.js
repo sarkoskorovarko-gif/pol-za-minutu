@@ -136,6 +136,15 @@ export function setWindow(wall, pos) {
 export function getWindow() { return currentWindow(); }
 function currentWindow() { return userWindow || WINDOW_DEFAULT[view.type] || ['back', 0.5]; }
 
+// Плинтус в 3D: { color: '#rrggbb', height_mm } или null — белый 70 мм, как раньше
+const skMat = new THREE.MeshStandardMaterial({ color: 0xf7f5f0, roughness: 0.5 });
+const skirt = { h: 0.07 };
+export function setSkirting(sk) {
+  skMat.color.set(sk && sk.color ? sk.color : '#f7f5f0');
+  const h = ((sk && sk.height_mm) || 70) / 1000;
+  if (h !== skirt.h) { skirt.h = h; if (roomGroup) rebuild(); } else render();
+}
+
 export function setWall(id) { view.wall = id; applyWall(); render(); }
 export function setTheme(id) { view.theme = id; rebuild(); }
 export function setFurniture(on) { view.furniture = on; rebuild(); }
@@ -221,9 +230,10 @@ function rebuild() {
   addAO(w, d);
 
   // Плинтус
-  const skMat = new THREE.MeshStandardMaterial({ color: 0xf7f5f0, roughness: 0.5 });
-  add(new THREE.Mesh(new THREE.BoxGeometry(w, 0.07, 0.016), skMat), 0, 0.035, -d / 2 + 0.008, 0, true);
-  add(new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.07, d), skMat), -w / 2 + 0.008, 0.035, 0, 0, true);
+  // Плинтус: цвет и высота — выбранного в расчёте (setSkirting)
+  const sh = skirt.h;
+  add(new THREE.Mesh(new THREE.BoxGeometry(w, sh, 0.016), skMat), 0, sh / 2, -d / 2 + 0.008, 0, true);
+  add(new THREE.Mesh(new THREE.BoxGeometry(0.016, sh, d), skMat), -w / 2 + 0.008, sh / 2, 0, 0, true);
 
   // Окно и солнце через него
   const s = Math.max(w, d) + 1;
