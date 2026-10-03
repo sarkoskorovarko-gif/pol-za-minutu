@@ -41,6 +41,9 @@ h2 { margin: 0 0 12px; font-size: 20px; }
 .lines li .sum { font-weight: 600; white-space: nowrap; }
 .lines input[type=checkbox] { width: 24px; height: 24px; }
 .lines .off { opacity: .45; }
+.picks { display: grid; gap: 8px; margin-top: 12px; }
+.picks label { font-size: 14px; color: #666; }
+.picks .big { font-size: 16px; min-height: 44px; margin-top: 2px; }
 .err { border-color: #c33; }
 
 /* Переключатель комнат — горизонтальная лента */

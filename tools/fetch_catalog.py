@@ -9,6 +9,7 @@ from datetime import date
 from pathlib import Path
 
 import requests
+from load_accessories import load_accessories
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -166,6 +167,8 @@ def main():
 
     catalog = {"updated": date.today().isoformat(), "decors": decors,
                "underlay": [], "skirting": []}
+    # подложка и плинтус — из data/accessories_diy.json (tools/load_accessories.py)
+    catalog.update(load_accessories())
     old_path.write_text(json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
 
     with_tex = sum(1 for d in decors if d["texture"])

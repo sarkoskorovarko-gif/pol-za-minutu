@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=14">
+  <link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
   <header class="top">
@@ -77,6 +77,10 @@
     <section class="card" id="result">
       <div class="total"><span id="total">—</span> <small>руб.</small></div>
       <div class="muted" id="calcInfo"></div>
+      <div id="picks" class="picks promo-only" hidden>
+        <label>Подложка<select id="pickUnderlay" class="big"></select></label>
+        <label>Плинтус<select id="pickSkirting" class="big"></select></label>
+      </div>
       <ul id="lines" class="lines"></ul>
       <p class="muted small">Цены Материка на <span id="updated"></span>. Проверьте цену на кассе.</p>
       <div class="actions promo-only">
@@ -170,8 +174,8 @@
 
   <!-- three.js подключается по имени 'three' (так его ищут и дополнения) -->
   <script type="importmap">{ "imports": { "three": "./lib/three.module.min.js" } }</script>
-  <script src="lib/qrcode.js?v=14"></script>
-  <script src="calc.js?v=14"></script>
-  <script type="module" src="app.js?v=14"></script>
+  <script src="lib/qrcode.js?v=15"></script>
+  <script src="calc.js?v=15"></script>
+  <script type="module" src="app.js?v=15"></script>
 </body>
 </html>

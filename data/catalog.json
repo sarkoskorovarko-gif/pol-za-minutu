@@ -2594,6 +2594,1174 @@
    "url": "https://diy.by/laminat/laminat-egger-home-33-ehl204-dub-kreydl-grey-classic-v4/"
   }
  ],
- "underlay": [],
- "skirting": []
+ "underlay": [
+  {
+   "id": "izoshum-3mm",
+   "name": "ИЗОШУМ 3 мм (10 м²)",
+   "price": 29.9,
+   "pack_m2": 10,
+   "price_m2": 2.99
+  },
+  {
+   "id": "izoshum-5mm",
+   "name": "ИЗОШУМ 5 мм (5 м²)",
+   "price": 17.95,
+   "pack_m2": 5,
+   "price_m2": 3.59
+  },
+  {
+   "id": "solid-2mm-list",
+   "name": "SOLID 2 мм, листы (5,25 м²)",
+   "price": 12.02,
+   "pack_m2": 5.25,
+   "price_m2": 2.29
+  },
+  {
+   "id": "solid-2mm-garm",
+   "name": "SOLID 2 мм, гармошка (10,5 м²)",
+   "price": 25.2,
+   "pack_m2": 10.5,
+   "price_m2": 2.4
+  },
+  {
+   "id": "solid-xxl-3mm",
+   "name": "SOLID XXL 3 мм (6 м²)",
+   "price": 15.0,
+   "pack_m2": 6,
+   "price_m2": 2.5
+  },
+  {
+   "id": "solid-xxl-5mm",
+   "name": "SOLID XXL 5 мм (6 м²)",
+   "price": 21.84,
+   "pack_m2": 6,
+   "price_m2": 3.64
+  },
+  {
+   "id": "solid-3mm-garm",
+   "name": "SOLID 3 мм, гармошка (5,25 м²)",
+   "price": 15.7,
+   "pack_m2": 5.25,
+   "price_m2": 2.99
+  },
+  {
+   "id": "solid-warm-3mm",
+   "name": "SOLID для тёплого пола 3 мм (5 м²)",
+   "price": 24.8,
+   "pack_m2": 5,
+   "price_m2": 4.96
+  },
+  {
+   "id": "solid-2mm-rul",
+   "name": "SOLID 2 мм, рулон (10 м²)",
+   "price": 26.6,
+   "pack_m2": 10,
+   "price_m2": 2.66
+  },
+  {
+   "id": "porilex-2mm",
+   "name": "ПОРИЛЕКС НПЭ 2 мм (10 м²)",
+   "price": 18.9,
+   "pack_m2": 10,
+   "price_m2": 1.89
+  },
+  {
+   "id": "porilex-3mm",
+   "name": "ПОРИЛЕКС НПЭ 3 мм (10 м²)",
+   "price": 25.3,
+   "pack_m2": 10,
+   "price_m2": 2.53
+  },
+  {
+   "id": "astep-gold-3mm",
+   "name": "A-STEP Optima Gold 3 мм (10 м²)",
+   "price": 89.9,
+   "pack_m2": 10,
+   "price_m2": 8.99
+  },
+  {
+   "id": "astep-thermo-2mm",
+   "name": "A-STEP Thermo Aquastop 2 мм (15 м²)",
+   "price": 89.85,
+   "pack_m2": 15,
+   "price_m2": 5.99
+  },
+  {
+   "id": "astep-expert-3mm",
+   "name": "A-STEP Expert Soundproof 3 мм (10 м²)",
+   "price": 109.9,
+   "pack_m2": 10,
+   "price_m2": 10.99
+  },
+  {
+   "id": "astep-lvt-1.5mm",
+   "name": "A-STEP Pro LVT Protect 1,5 мм (15 м²)",
+   "price": 119.85,
+   "pack_m2": 15,
+   "price_m2": 7.99
+  },
+  {
+   "id": "astep-silver-3mm",
+   "name": "A-STEP Optima Silver 3 мм (10 м²)",
+   "price": 79.9,
+   "pack_m2": 10,
+   "price_m2": 7.99
+  },
+  {
+   "id": "astep-plus-3mm",
+   "name": "A-STEP Optima Plus 3 мм (10 м²)",
+   "price": 86.9,
+   "pack_m2": 10,
+   "price_m2": 8.69
+  },
+  {
+   "id": "astep-silver-2mm",
+   "name": "A-STEP Optima Silver 2 мм (15 м²)",
+   "price": 89.85,
+   "pack_m2": 15,
+   "price_m2": 5.99
+  },
+  {
+   "id": "astep-gold-2mm",
+   "name": "A-STEP Optima Gold 2 мм (15 м²)",
+   "price": 104.85,
+   "pack_m2": 15,
+   "price_m2": 6.99
+  },
+  {
+   "id": "beltermo-7mm",
+   "name": "BELTERMO UnderFloorLite 7 мм (6,06 м²)",
+   "price": 67.8,
+   "pack_m2": 6.0593,
+   "price_m2": 11.19
+  },
+  {
+   "id": "beltermo-3mm",
+   "name": "BELTERMO UnderFloorLite 3 мм (6,99 м²)",
+   "price": 57.89,
+   "pack_m2": 6.9915,
+   "price_m2": 8.28
+  },
+  {
+   "id": "beltermo-5mm",
+   "name": "BELTERMO UnderFloorLite 5 мм (6,99 м²)",
+   "price": 68.17,
+   "pack_m2": 6.9915,
+   "price_m2": 9.75
+  }
+ ],
+ "skirting": [
+  {
+   "id": "55.001",
+   "name": "IDEAL Классик Белый",
+   "price": 5.99,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#f2f1ee",
+   "needs_accessories": true,
+   "corner_price": 1.95,
+   "cap_price": 1.84
+  },
+  {
+   "id": "55.267",
+   "name": "IDEAL Классик Клён белый",
+   "price": 5.99,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#afb0ad",
+   "needs_accessories": true,
+   "corner_price": 1.95,
+   "cap_price": 1.84
+  },
+  {
+   "id": "55.252",
+   "name": "IDEAL Классик Ясень белый",
+   "price": 5.99,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#c9c2ba",
+   "needs_accessories": true,
+   "corner_price": 1.95,
+   "cap_price": 1.84
+  },
+  {
+   "id": "55.230",
+   "name": "IDEAL Классик Дуб айсберг",
+   "price": 5.99,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#c8c5bf",
+   "needs_accessories": true,
+   "corner_price": 1.95,
+   "cap_price": 1.84
+  },
+  {
+   "id": "55.218",
+   "name": "IDEAL Классик Дуб европейский",
+   "price": 5.99,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#d3c3a6",
+   "needs_accessories": true,
+   "corner_price": 1.95,
+   "cap_price": 1.84
+  },
+  {
+   "id": "55.213",
+   "name": "IDEAL Классик Дуб северный",
+   "price": 5.99,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#c6b697",
+   "needs_accessories": true,
+   "corner_price": 1.95,
+   "cap_price": 1.84
+  },
+  {
+   "id": "55.251",
+   "name": "IDEAL Классик Ясень",
+   "price": 5.99,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#c4bbb3",
+   "needs_accessories": true,
+   "corner_price": 1.95,
+   "cap_price": 1.84
+  },
+  {
+   "id": "55.229",
+   "name": "IDEAL Классик Дуб латте",
+   "price": 5.99,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#b8afa1",
+   "needs_accessories": true,
+   "corner_price": 1.95,
+   "cap_price": 1.95
+  },
+  {
+   "id": "55.216",
+   "name": "IDEAL Классик Дуб сафари",
+   "price": 5.69,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#baa68c",
+   "needs_accessories": true,
+   "corner_price": 1.84,
+   "cap_price": 1.84
+  },
+  {
+   "id": "55.253",
+   "name": "IDEAL Классик Ясень серый",
+   "price": 5.99,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#b0ada7",
+   "needs_accessories": true,
+   "corner_price": 1.95,
+   "cap_price": 1.84
+  },
+  {
+   "id": "55.415",
+   "name": "IDEAL Классик Дуб палена",
+   "price": 5.99,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#aca397",
+   "needs_accessories": true,
+   "corner_price": 1.95,
+   "cap_price": 1.84
+  },
+  {
+   "id": "55.206",
+   "name": "IDEAL Классик Дуб коньячный",
+   "price": 5.99,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#ac8f6e",
+   "needs_accessories": true,
+   "corner_price": 1.95,
+   "cap_price": 1.84
+  },
+  {
+   "id": "55.208",
+   "name": "IDEAL Классик Дуб мокко",
+   "price": 5.99,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#9f937b",
+   "needs_accessories": true,
+   "corner_price": 1.95,
+   "cap_price": 1.84
+  },
+  {
+   "id": "55.210",
+   "name": "IDEAL Классик Дуб пепельный",
+   "price": 5.99,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#8e8683",
+   "needs_accessories": true,
+   "corner_price": 1.95,
+   "cap_price": 1.84
+  },
+  {
+   "id": "55.291",
+   "name": "IDEAL Классик Орех",
+   "price": 5.69,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#776654",
+   "needs_accessories": true,
+   "corner_price": 1.84,
+   "cap_price": 1.84
+  },
+  {
+   "id": "55.007",
+   "name": "IDEAL Классик Чёрный",
+   "price": 5.99,
+   "length_m": 2.2,
+   "height_mm": 55,
+   "color": "#2b2925",
+   "needs_accessories": true,
+   "corner_price": 1.95,
+   "cap_price": 1.84
+  },
+  {
+   "id": "70.001",
+   "name": "IDEAL Деконика 70 Белый",
+   "price": 9.99,
+   "length_m": 2.2,
+   "height_mm": 70,
+   "color": "#f2f1ee",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "70.033",
+   "name": "IDEAL Деконика 70 Кремово-белый",
+   "price": 9.99,
+   "length_m": 2.2,
+   "height_mm": 70,
+   "color": "#ece6da",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "70.255",
+   "name": "IDEAL Деконика 70 Ясень бьянко",
+   "price": 9.99,
+   "length_m": 2.2,
+   "height_mm": 70,
+   "color": "#d1ccce",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "70.265",
+   "name": "IDEAL Деконика 70 Клён патина",
+   "price": 9.99,
+   "length_m": 2.2,
+   "height_mm": 70,
+   "color": "#d0ccc8",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "70.274",
+   "name": "IDEAL Деконика 70 Сосна северная",
+   "price": 9.99,
+   "length_m": 2.2,
+   "height_mm": 70,
+   "color": "#c5bcb7",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "70.253",
+   "name": "IDEAL Деконика 70 Ясень серый",
+   "price": 9.99,
+   "length_m": 2.2,
+   "height_mm": 70,
+   "color": "#b9b5b2",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "70.294",
+   "name": "IDEAL Деконика 70 Орех антик",
+   "price": 9.99,
+   "length_m": 2.2,
+   "height_mm": 70,
+   "color": "#b8b0ab",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "70.213",
+   "name": "IDEAL Деконика 70 Дуб северный",
+   "price": 9.99,
+   "length_m": 2.2,
+   "height_mm": 70,
+   "color": "#b8a28f",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "70.221",
+   "name": "IDEAL Деконика 70 Дуб янтарный",
+   "price": 9.99,
+   "length_m": 2.2,
+   "height_mm": 70,
+   "color": "#b29173",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "70.186",
+   "name": "IDEAL Деконика 70 Алюминий",
+   "price": 9.99,
+   "length_m": 2.2,
+   "height_mm": 70,
+   "color": "#b1b1b1",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "70.296",
+   "name": "IDEAL Деконика 70 Орех серый",
+   "price": 9.99,
+   "length_m": 2.2,
+   "height_mm": 70,
+   "color": "#8e877a",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "70.211",
+   "name": "IDEAL Деконика 70 Дуб рустик",
+   "price": 9.99,
+   "length_m": 2.2,
+   "height_mm": 70,
+   "color": "#8e7559",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "70.187",
+   "name": "IDEAL Деконика 70 Алюминий тёмный",
+   "price": 9.99,
+   "length_m": 2.2,
+   "height_mm": 70,
+   "color": "#6d6d6d",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "70.291",
+   "name": "IDEAL Деконика 70 Орех",
+   "price": 9.99,
+   "length_m": 2.2,
+   "height_mm": 70,
+   "color": "#695346",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "70.352",
+   "name": "IDEAL Деконика 70 Каштан серый",
+   "price": 9.99,
+   "length_m": 2.2,
+   "height_mm": 70,
+   "color": "#534e4b",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "85.001",
+   "name": "IDEAL Деконика 85 Белый",
+   "price": 11.99,
+   "length_m": 2.2,
+   "height_mm": 85,
+   "color": "#f2f1ee",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "85.001-G",
+   "name": "IDEAL Деконика 85 Белый глянец",
+   "price": 11.99,
+   "length_m": 2.2,
+   "height_mm": 85,
+   "color": "#f5f5f5",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "85.255",
+   "name": "IDEAL Деконика 85 Ясень бьянко",
+   "price": 11.99,
+   "length_m": 2.2,
+   "height_mm": 85,
+   "color": "#d0cccd",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "85.265",
+   "name": "IDEAL Деконика 85 Клён патина",
+   "price": 11.99,
+   "length_m": 2.2,
+   "height_mm": 85,
+   "color": "#cfcbc8",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "85.229",
+   "name": "IDEAL Деконика 85 Дуб латте",
+   "price": 11.99,
+   "length_m": 2.2,
+   "height_mm": 85,
+   "color": "#baaca4",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "85.253",
+   "name": "IDEAL Деконика 85 Ясень серый",
+   "price": 11.99,
+   "length_m": 2.2,
+   "height_mm": 85,
+   "color": "#b8b4b2",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "85.002",
+   "name": "IDEAL Деконика 85 Светло-серый",
+   "price": 11.99,
+   "length_m": 2.2,
+   "height_mm": 85,
+   "color": "#b7b7b7",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "85.294",
+   "name": "IDEAL Деконика 85 Орех антик",
+   "price": 11.99,
+   "length_m": 2.2,
+   "height_mm": 85,
+   "color": "#b5b0ac",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "85.210",
+   "name": "IDEAL Деконика 85 Дуб пепельный",
+   "price": 11.99,
+   "length_m": 2.2,
+   "height_mm": 85,
+   "color": "#918d8a",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "85.303",
+   "name": "IDEAL Деконика 85 Венге тёмный",
+   "price": 11.99,
+   "length_m": 2.2,
+   "height_mm": 85,
+   "color": "#393533",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "80.001",
+   "name": "COMFORT Классик Софт Белый",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#f2f1ee",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "80.424",
+   "name": "COMFORT Классик Софт Акация",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#c9bcaa",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "80.438",
+   "name": "COMFORT Классик Софт Лофт светло-серый",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#c1beb2",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "80.270",
+   "name": "COMFORT Классик Софт Дуб латте",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#c3a681",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "80.063",
+   "name": "COMFORT Классик Софт Дуб винтажный",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#b5afa4",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "80.204",
+   "name": "COMFORT Классик Софт Дуб мокка",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#b39b7f",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "80.406",
+   "name": "COMFORT Классик Софт Дуб серый",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#b2b0ab",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "80.421",
+   "name": "COMFORT Классик Софт Ясень серый",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#b1afaa",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "80.219",
+   "name": "COMFORT Классик Софт Дуб капучино",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#9c8f7a",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "80.435",
+   "name": "COMFORT Классик Софт Секвойя серая",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#9b9387",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "80.437",
+   "name": "COMFORT Классик Софт Лофт серый",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#8a8580",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "80.401",
+   "name": "COMFORT Классик Софт Дуб пепельный",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#867f74",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "80.100",
+   "name": "COMFORT Классик Софт Дуб имперский",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#8c6a39",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "80.220",
+   "name": "COMFORT Классик Софт Дуб рустик",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#7e7260",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "80.224",
+   "name": "COMFORT Классик Софт Орех",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#7b5e48",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "80.217",
+   "name": "COMFORT Классик Софт Дуб тёмный",
+   "price": 12.49,
+   "length_m": 2.2,
+   "height_mm": 80,
+   "color": "#714d2c",
+   "needs_accessories": true,
+   "corner_price": 3.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "70.01",
+   "name": "INDO 70 Белый глосс",
+   "price": 11.99,
+   "length_m": 2.5,
+   "height_mm": 70,
+   "color": "#f2f1ee",
+   "needs_accessories": true,
+   "corner_price": 2.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "70.02",
+   "name": "INDO 70 Ясень северный",
+   "price": 11.99,
+   "length_m": 2.5,
+   "height_mm": 70,
+   "color": "#adacab",
+   "needs_accessories": true,
+   "corner_price": 2.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "70.25",
+   "name": "INDO 70 Каштан гирона",
+   "price": 11.99,
+   "length_m": 2.5,
+   "height_mm": 70,
+   "color": "#b0b0af",
+   "needs_accessories": true,
+   "corner_price": 2.5,
+   "cap_price": 2.5
+  },
+  {
+   "id": "70.19",
+   "name": "INDO 70 Дуб онтарио",
+   "price": 13.99,
+   "length_m": 2.5,
+   "height_mm": 70,
+   "color": "#afafad",
+   "needs_accessories": true,
+   "corner_price": 3,
+   "cap_price": 3
+  },
+  {
+   "id": "70.135",
+   "name": "INDO 70 Дуб платиновый",
+   "price": 13.99,
+   "length_m": 2.5,
+   "height_mm": 70,
+   "color": "#a59f95",
+   "needs_accessories": true,
+   "corner_price": 3,
+   "cap_price": 3
+  },
+  {
+   "id": "INTEGRA-03",
+   "name": "INTEGRA Ясень снежный",
+   "price": 33.39,
+   "length_m": 2.4,
+   "height_mm": 80,
+   "color": "#dfdfde",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "INTEGRA-06",
+   "name": "INTEGRA Ясень аляска",
+   "price": 33.39,
+   "length_m": 2.4,
+   "height_mm": 80,
+   "color": "#d5ccc1",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "INTEGRA-07",
+   "name": "INTEGRA Дуб алобама",
+   "price": 33.39,
+   "length_m": 2.4,
+   "height_mm": 80,
+   "color": "#cbc7c1",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "INTEGRA-14",
+   "name": "INTEGRA Дуб орегон",
+   "price": 33.39,
+   "length_m": 2.4,
+   "height_mm": 80,
+   "color": "#aeaeaa",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "M089",
+   "name": "CEZAR Hi Line Белый мат",
+   "price": 20.9,
+   "length_m": 2.5,
+   "height_mm": 60,
+   "color": "#f2f1ee",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "M266",
+   "name": "CEZAR Hi Line Алюминий браш белый",
+   "price": 20.9,
+   "length_m": 2.5,
+   "height_mm": 60,
+   "color": "#e4e2dc",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "M319",
+   "name": "CEZAR Hi Line Дуб серый органик",
+   "price": 20.9,
+   "length_m": 2.5,
+   "height_mm": 60,
+   "color": "#d6d8d1",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "M283",
+   "name": "CEZAR Hi Line Дуб найк",
+   "price": 20.9,
+   "length_m": 2.5,
+   "height_mm": 60,
+   "color": "#d1cfc7",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "M285",
+   "name": "CEZAR Hi Line Платан малибу",
+   "price": 20.9,
+   "length_m": 2.5,
+   "height_mm": 60,
+   "color": "#c2c3bf",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "M301",
+   "name": "CEZAR Hi Line Дуб тоскания",
+   "price": 20.9,
+   "length_m": 2.5,
+   "height_mm": 60,
+   "color": "#bbb09d",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "M256",
+   "name": "CEZAR Hi Line Готический",
+   "price": 20.9,
+   "length_m": 2.5,
+   "height_mm": 60,
+   "color": "#abaaa6",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "M201",
+   "name": "CEZAR Hi Line Алюминий браш",
+   "price": 20.9,
+   "length_m": 2.5,
+   "height_mm": 60,
+   "color": "#929596",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "M088",
+   "name": "CEZAR Hi Line Серый мат",
+   "price": 20.9,
+   "length_m": 2.5,
+   "height_mm": 60,
+   "color": "#929292",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "M253",
+   "name": "CEZAR Hi Line Камень",
+   "price": 20.9,
+   "length_m": 2.5,
+   "height_mm": 60,
+   "color": "#807e77",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "M090",
+   "name": "CEZAR Hi Line Чёрный мат",
+   "price": 20.9,
+   "length_m": 2.5,
+   "height_mm": 60,
+   "color": "#3a3b3e",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "60.04",
+   "name": "VIGO Антрацит",
+   "price": 23.99,
+   "length_m": 2.2,
+   "height_mm": 60,
+   "color": "#4b5052",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "VEGA-P0811",
+   "name": "White Design VEGA P0811 белый, под покраску",
+   "price": 32.99,
+   "length_m": 2.4,
+   "height_mm": 80,
+   "color": "#f2f1ee",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "VEGA-P1030",
+   "name": "White Design VEGA P1030 белый, под покраску",
+   "price": 38.99,
+   "length_m": 2.4,
+   "height_mm": 100,
+   "color": "#f2f1ee",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "SOLID-02-60",
+   "name": "SOLID 02/60 полистирол белый",
+   "price": 20.39,
+   "length_m": 2.4,
+   "height_mm": 60,
+   "color": "#f2f1ee",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "SOLID-09-60D",
+   "name": "SOLID плинтус-молдинг 09/60D белый",
+   "price": 21.49,
+   "length_m": 2.4,
+   "height_mm": 60,
+   "color": "#f2f1ee",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "SOLID-01-80",
+   "name": "SOLID 01/80 полистирол белый",
+   "price": 22.99,
+   "length_m": 2.4,
+   "height_mm": 80,
+   "color": "#f2f1ee",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "SOLID-05-80",
+   "name": "SOLID 05/80 полистирол белый",
+   "price": 22.99,
+   "length_m": 2.4,
+   "height_mm": 80,
+   "color": "#f2f1ee",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "SOLID-19-80C",
+   "name": "SOLID 19/80С полистирол белый",
+   "price": 26.69,
+   "length_m": 2.4,
+   "height_mm": 80,
+   "color": "#f2f1ee",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "SOLID-07-95C",
+   "name": "SOLID 07/95C полистирол белый",
+   "price": 28.29,
+   "length_m": 2.4,
+   "height_mm": 95,
+   "color": "#f2f1ee",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "SOLID-11-100C",
+   "name": "SOLID 11/100C полистирол белый",
+   "price": 26.89,
+   "length_m": 2.4,
+   "height_mm": 100,
+   "color": "#f2f1ee",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "SOLID8-ALU",
+   "name": "SOLID 05/80 Алюминий",
+   "price": 23.99,
+   "length_m": 2.4,
+   "height_mm": 80,
+   "color": "#8c9091",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "SOLID8-TITAN",
+   "name": "SOLID 05/80 Титан",
+   "price": 23.99,
+   "length_m": 2.4,
+   "height_mm": 80,
+   "color": "#858687",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "SOLID8-CEMENT",
+   "name": "SOLID 05/80 Микроцемент",
+   "price": 23.99,
+   "length_m": 2.4,
+   "height_mm": 80,
+   "color": "#a6adb8",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "SOLID8-BLACK",
+   "name": "SOLID 05/80 Чёрный",
+   "price": 23.99,
+   "length_m": 2.4,
+   "height_mm": 80,
+   "color": "#3a3a3b",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  },
+  {
+   "id": "SOLID8-OLIVE",
+   "name": "SOLID 05/80 Олива зелёная",
+   "price": 23.99,
+   "length_m": 2.4,
+   "height_mm": 80,
+   "color": "#767d76",
+   "needs_accessories": false,
+   "corner_price": 0,
+   "cap_price": 0
+  }
+ ]
 }

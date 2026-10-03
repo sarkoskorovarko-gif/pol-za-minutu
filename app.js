@@ -1,7 +1,7 @@
 // Главный файл интерфейса. Формулы расчёта — в calc.js, 3D — в interior.js.
 import { initInterior, setFloor, preload, setRoom, setWall, setTheme, setFurniture, setLight,
-         setWindow, getWindow, placeholderWood, PRESETS, WALLS, THEMES } from './interior.js?v=14';
-import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight } from './photo.js?v=14';
+         setWindow, getWindow, placeholderWood, PRESETS, WALLS, THEMES } from './interior.js?v=15';
+import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting } from './photo.js?v=15';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -42,6 +42,7 @@ const state = {
   rooms: [{ length: '', width: '', doors: 1, diagonal: false, type: 'living' }],
   use: { underlay: true, skirting: true, accessories: true },
   decorId: null,
+  ul: null, sk: null,  // выбранные подложка и плинтус (по умолчанию — из меню промоутера)
   number: calcNumber(),
   shared: false,       // после отправки следующее изменение получает новый номер
   view: 'living',      // пресет или 'my'
@@ -241,7 +242,7 @@ function showView() {
   $('#myBar').hidden = k !== 'my';
   if (isPhoto) {
     const p = PHOTOS.find(x => 'photo:' + x.id === k);
-    if (!photoReady) { initPhoto($('#photoView')); photoReady = true; applyLight(); }
+    if (!photoReady) { initPhoto($('#photoView')); photoReady = true; applyLight(); photoSkirting(); }
     if (current()) photoFloor(current());
     showPhoto(p).catch(() => toast('Не удалось загрузить фото'));
   } else if (k === 'my') showMyRoom(state.myRoom);
@@ -351,6 +352,7 @@ let lastResult = null;
 function changed() {
   if (state.shared) { state.number = calcNumber(); state.shared = false; }
   update();
+  photoSkirting();
   refreshMyRoom();
 }
 
@@ -374,8 +376,7 @@ function update() {
   }
 
   const decor = { ...d, price_m2: decorPrice(d) };
-  const underlayItem = catalog.underlay.find(u => u.id === S.underlay) || catalog.underlay[0];
-  const skirtingItem = catalog.skirting.find(u => u.id === S.skirting) || catalog.skirting[0];
+  const underlayItem = underlayNow(), skirtingItem = skirtingNow();
   const underlay = state.use.underlay && underlayItem ? underlayItem : null;
   let skirting = state.use.skirting && skirtingItem ? { ...skirtingItem } : null;
   if (skirting && !state.use.accessories) skirting.needs_accessories = false;
@@ -420,6 +421,38 @@ function update() {
     }
     $('#lines').appendChild(li);
   }
+}
+
+function underlayNow() {
+  const id = state.ul || S.underlay;
+  return catalog.underlay.find(u => u.id === id) || catalog.underlay[0];
+}
+function skirtingNow() {
+  const id = state.sk || S.skirting;
+  return catalog.skirting.find(u => u.id === id) || catalog.skirting[0];
+}
+
+// Выбор подложки и плинтуса прямо в расчёте
+function fillPicks() {
+  // по сериям (первое слово названия), чтобы длинный список было легко листать
+  const opt = (list, cur) => {
+    const groups = {};
+    list.forEach(u => (groups[u.name.split(' ')[0]] ||= []).push(u));
+    return Object.entries(groups).map(([g, items]) => `<optgroup label="${esc(g)}">` + items.map(u =>
+      `<option value="${u.id}"${u.id === cur?.id ? ' selected' : ''}>${esc(u.name)} — ${rub(u.price)} руб.</option>`).join('') + '</optgroup>').join('');
+  };
+  $('#pickUnderlay').innerHTML = opt(catalog.underlay, underlayNow());
+  $('#pickSkirting').innerHTML = opt(catalog.skirting, skirtingNow());
+  $('#picks').hidden = !catalog.underlay.length && !catalog.skirting.length;
+}
+$('#pickUnderlay').onchange = e => { state.ul = e.target.value; changed(); };
+$('#pickSkirting').onchange = e => { state.sk = e.target.value; changed(); };
+
+// Плинтус на фото комнаты: выбранный цвет; снята галочка — остаётся плинтус с фото
+function photoSkirting() {
+  if (!photoReady || !catalog) return;
+  const s = skirtingNow();
+  setPhotoSkirting(state.use.skirting && s ? s : null);
 }
 
 function lineDetail(l, decor, underlay, skirting) {
@@ -564,8 +597,8 @@ $('#promoClose').onclick = () => {
 
 // Сохраняем сразу при изменении
 $('#hideOut').onchange = e => { S.hideOut = e.target.checked; saveSettings(); renderDecorAdmin(); };
-$('#setUnderlay').onchange = e => { S.underlay = e.target.value; saveSettings(); };
-$('#setSkirting').onchange = e => { S.skirting = e.target.value; saveSettings(); };
+$('#setUnderlay').onchange = e => { S.underlay = e.target.value; saveSettings(); fillPicks(); changed(); };
+$('#setSkirting').onchange = e => { S.skirting = e.target.value; saveSettings(); fillPicks(); changed(); };
 $('#wasteS').onchange = e => { const v = parseNum(e.target.value); if (v >= 0 && v < 50) S.waste.straight = v; e.target.value = S.waste.straight; saveSettings(); };
 $('#wasteD').onchange = e => { const v = parseNum(e.target.value); if (v >= 0 && v < 50) S.waste.diagonal = v; e.target.value = S.waste.diagonal; saveSettings(); };
 $('#setRoom').onchange = e => { S.defaultRoom = e.target.value; saveSettings(); };
@@ -674,8 +707,8 @@ function applyViewerParams() {
   state.use = { underlay: u[0] === '1', skirting: u[1] === '1', accessories: u[2] === '1' };
   const [ws, wd] = (params.get('w') || '').split(',').map(parseNum);
   if (ws >= 0 && wd >= 0) S.waste = { straight: ws, diagonal: wd };
-  if (params.get('ul')) S.underlay = params.get('ul');
-  if (params.get('sk')) S.skirting = params.get('sk');
+  if (params.get('ul')) S.underlay = state.ul = params.get('ul');
+  if (params.get('sk')) S.skirting = state.sk = params.get('sk');
   state.number = params.get('n') || state.number;
   state.decorId = params.get('d');
   // Цена — та, что была в расчёте у промоутера
@@ -723,6 +756,8 @@ Promise.all([
     state.decorId = state.decorId || S.defaultDecor;
     renderRibbon();
     renderRooms();
+    fillPicks();
+    photoSkirting();
   })
   .catch(err => {
     console.error(err);
