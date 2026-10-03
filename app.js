@@ -1,7 +1,5 @@
-// Главный файл интерфейса. Формулы расчёта — в calc.js, 3D — в interior.js.
-import { initInterior, setSkirting, setFloor, preload, setRoom, setWall, setTheme, setFurniture, setLight,
-         setWindow, getWindow, PRESETS, WALLS, THEMES } from './interior.js?v=18';
-import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting } from './photo.js?v=18';
+// Главный файл интерфейса. Формулы расчёта — в calc.js, фото комнат — в photo.js.
+import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting } from './photo.js?v=19';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -39,14 +37,13 @@ const saveLog = () => store.set('log', LOG);
 // ================= Состояние экрана =================
 let catalog = null;
 const state = {
-  rooms: [{ length: '', width: '', doors: 1, diagonal: false, type: 'living' }],
+  rooms: [{ length: '', width: '', doors: 1, diagonal: false }],
   use: { underlay: true, skirting: true, accessories: true },
   decorId: null,
   ul: null, sk: null,  // выбранные подложка и плинтус (по умолчанию — из меню промоутера)
   number: calcNumber(),
   shared: false,       // после отправки следующее изменение получает новый номер
-  view: 'living',      // пресет или 'my'
-  myRoom: 0,           // какая комната расчёта показана в «Моей комнате»
+  view: null,          // 'photo:<id>' — какое фото комнаты показано
   filter: { color: null, cls: null, water: false },
 };
 
@@ -83,7 +80,6 @@ function pickDecor(id) {
   state.decorId = id;
   const d = current();
   if (!d) return;
-  setFloor(d);
   photoFloor(d);
   $('#decorName').textContent = d.name;
   $('#decorInfo').textContent = `${d.id} · ${rub(decorPrice(d))} руб/м² · класс ${d.class ?? '—'}`
@@ -179,10 +175,6 @@ function renderRooms() {
     const el = $('#roomTpl').content.firstElementChild.cloneNode(true);
     el.querySelector('.room-title').textContent = 'Комната ' + (i + 1);
     el.querySelector('.del').hidden = state.rooms.length === 1 || VIEWER;
-    const sel = el.querySelector('.rtype');
-    sel.innerHTML = Object.entries(PRESETS).map(([k, p]) => `<option value="${k}">${p.name}</option>`).join('');
-    sel.value = r.type;
-    sel.onchange = () => { r.type = sel.value; if (state.view === 'my') showMyRoom(i); changed(); };
     const len = el.querySelector('.len'), wid = el.querySelector('.wid');
     len.value = r.length; wid.value = r.width;
     len.oninput = () => { r.length = len.value; changed(); };
@@ -196,7 +188,6 @@ function renderRooms() {
     });
     el.querySelector('.del').onclick = () => {
       state.rooms.splice(i, 1);
-      state.myRoom = Math.min(state.myRoom, state.rooms.length - 1);
       renderRooms();
     };
     if (VIEWER) el.querySelectorAll('input, button, select').forEach(x => x.disabled = true);
@@ -212,42 +203,32 @@ function roomNums(r) {
 }
 
 $('#addRoom').onclick = () => {
-  state.rooms.push({ length: '', width: '', doors: 1, diagonal: false, type: 'bedroom' });
+  state.rooms.push({ length: '', width: '', doors: 1, diagonal: false });
   renderRooms();
   $$('.len')[state.rooms.length - 1].focus();
 };
 
-// ================= Интерьер: пресеты и «Моя комната» =================
+// ================= Фото комнат =================
 function renderRoomNav() {
   const nav = $('#roomsNav');
   nav.innerHTML = '';
-  const items = [...PHOTOS.map(p => ['photo:' + p.id, '', p.title, p.file]),
-    ...Object.entries(PRESETS).map(([k, p]) => [k, p.icon, p.name + ' 3D']), ['my', '📐', 'Моя комната']];
-  for (const [k, icon, name, file] of items) {
-    const b = document.createElement('button');
-    b.innerHTML = file ? `<img src="data/photos/thumbs/${file}" alt="">${name}` : `<span>${icon}</span>${name}`;
-    if (file) b.classList.add('ph');
+  for (const p of PHOTOS) {
+    const k = 'photo:' + p.id, b = document.createElement('button');
+    b.innerHTML = `<img src="data/photos/thumbs/${p.file}" alt="">${esc(p.title)}`;
+    b.classList.add('ph');
     b.classList.toggle('on', state.view === k);
     b.onclick = () => { state.view = k; renderRoomNav(); showView(); };
     nav.appendChild(b);
   }
 }
 
-// Показать выбранную комнату: фото или 3D
+// Показать выбранное фото комнаты
 function showView() {
-  const k = state.view, isPhoto = k.startsWith('photo:');
-  document.body.classList.toggle('photo-mode', isPhoto);
-  $('#scene').hidden = isPhoto;
-  $('#photoView').hidden = !isPhoto;
-  $('#myBar').hidden = k !== 'my';
-  if (isPhoto) {
-    const p = PHOTOS.find(x => 'photo:' + x.id === k);
-    if (!photoReady) { initPhoto($('#photoView')); photoReady = true; applyLight(); photoSkirting(); }
-    if (current()) photoFloor(current());
-    showPhoto(p).catch(() => toast('Не удалось загрузить фото'));
-  } else if (k === 'my') showMyRoom(state.myRoom);
-  else setRoom(k);
-  syncWindowUI();
+  const p = PHOTOS.find(x => 'photo:' + x.id === state.view);
+  if (!p) return;
+  if (!photoReady) { initPhoto($('#photoView')); photoReady = true; applyLight(); photoSkirting(); }
+  if (current()) photoFloor(current());
+  showPhoto(p).catch(() => toast('Не удалось загрузить фото'));
 }
 
 // Пол на фото: фото декора с Материка или временная нарисованная текстура
@@ -268,66 +249,9 @@ function photoFloor(d) {
   }
 }
 
-// Комната из расчёта: тип и размеры клиента
-function showMyRoom(i) {
-  state.myRoom = i;
-  const r = state.rooms[i], n = roomNums(r);
-  setRoom(r.type, n?.length, n?.width);
-  $('#myBar').hidden = false;
-  $('#myRooms').innerHTML = '';
-  state.rooms.forEach((room, j) => {
-    const b = document.createElement('button');
-    const nn = roomNums(room);
-    b.className = 'chip' + (j === i ? ' on' : '');
-    b.textContent = `${j + 1}. ${PRESETS[room.type].name}` + (nn ? ` ${nn.length}×${nn.width}` : '');
-    b.onclick = () => showMyRoom(j);
-    $('#myRooms').appendChild(b);
-  });
-  if (!n) $('#myRooms').insertAdjacentHTML('beforeend', '<span class="muted small">Введите размеры ниже</span>');
-}
-$('#furnOn').onchange = e => setFurniture(e.target.checked);
-
-// Перестраивать «Мою комнату» при вводе размеров — не чаще раза в 0,4 с
-let myTimer;
-function refreshMyRoom() {
-  if (state.view !== 'my') return;
-  clearTimeout(myTimer);
-  myTimer = setTimeout(() => showMyRoom(Math.min(state.myRoom, state.rooms.length - 1)), 400);
-}
-
-// ================= Стены, мебель, свет =================
-function buttons(box, items, onPick, first, render) {
-  box.innerHTML = '';
-  for (const [id, it] of items) {
-    const b = document.createElement('button');
-    render(b, it);
-    b.classList.toggle('on', id === first);
-    b.onclick = () => { box.querySelectorAll('button').forEach(x => x.classList.remove('on')); b.classList.add('on'); onPick(id); };
-    box.appendChild(b);
-  }
-}
-buttons($('#walls'), WALLS.map(w => [w.id, w]), setWall, 'milk',
-  (b, w) => { b.className = 'swatch' + (w.pattern ? ' pat-' + w.pattern : ''); b.style.background = w.color; b.title = w.name; b.setAttribute('aria-label', w.name); });
-buttons($('#themes'), Object.entries(THEMES), setTheme, 'wood', (b, t) => b.textContent = t.name);
-
-// Окно: стена и место вдоль стены
-function syncWindowUI() {
-  const [wall, pos] = getWindow();
-  $$('#winWall button').forEach(b => b.classList.toggle('on', b.dataset.w === wall));
-  $('#winPos').value = pos * 100;
-  $('#winPosRow').hidden = wall === 'none';
-}
-$$('#winWall button').forEach(b => b.onclick = () => { setWindow(b.dataset.w); syncWindowUI(); });
-let winTimer;
-$('#winPos').oninput = e => {
-  clearTimeout(winTimer); // перестраиваем не чаще 10 раз в секунду
-  winTimer = setTimeout(() => setWindow(getWindow()[0], e.target.value / 100), 100);
-};
-
 // Ползунок «Свет»: слева тёплый, справа холодный
 const applyLight = () => {
   const b = $('#bright').value / 100, w = -$('#lwarm').value / 100;
-  setLight(b, w);
   if (photoReady) setPhotoLight(b, w);
 };
 $('#bright').oninput = $('#lwarm').oninput = applyLight;
@@ -353,7 +277,6 @@ function changed() {
   if (state.shared) { state.number = calcNumber(); state.shared = false; }
   update();
   photoSkirting();
-  refreshMyRoom();
 }
 
 function update() {
@@ -450,10 +373,9 @@ $('#pickSkirting').onchange = e => { state.sk = e.target.value; changed(); };
 
 // Плинтус на фото комнаты: выбранный цвет; снята галочка — остаётся плинтус с фото
 function photoSkirting() {
-  if (!catalog) return;
-  const s = skirtingNow(), on = state.use.skirting && s ? s : null;
-  setSkirting(on);
-  if (photoReady) setPhotoSkirting(on);
+  if (!photoReady || !catalog) return;
+  const s = skirtingNow();
+  if (photoReady) setPhotoSkirting(state.use.skirting && s ? s : null);
 }
 
 function lineDetail(l, decor, underlay, skirting) {
@@ -470,13 +392,13 @@ function shareUrl() {
   const p = new URLSearchParams();
   p.set('d', state.decorId);
   p.set('pm', decorPrice(current()));
-  p.set('r', state.rooms.map(r => [parseNum(r.length), parseNum(r.width), r.doors, r.diagonal ? 1 : 0, r.type].join(',')).join(';'));
+  p.set('r', state.rooms.map(r => [parseNum(r.length), parseNum(r.width), r.doors, r.diagonal ? 1 : 0].join(',')).join(';'));
   p.set('u', [state.use.underlay, state.use.skirting, state.use.accessories].map(Number).join(''));
   if (lastResult?.underlay) p.set('ul', lastResult.underlay.id);
   if (lastResult?.skirting) p.set('sk', lastResult.skirting.id);
   p.set('w', S.waste.straight + ',' + S.waste.diagonal);
   p.set('n', state.number);
-  if (state.view.startsWith('photo:')) p.set('v', state.view.slice(6));
+  if (state.view) p.set('v', state.view.slice(6));
   if (S.name) p.set('pn', S.name);
   if (S.phone) p.set('pp', S.phone);
   return location.origin + location.pathname + '?' + p.toString();
@@ -582,7 +504,7 @@ function openPromo() {
   $('#setSkirting').value = S.skirting || catalog.skirting[0]?.id;
   $('#wasteS').value = S.waste.straight;
   $('#wasteD').value = S.waste.diagonal;
-  $('#setRoom').innerHTML = [...PHOTOS.map(p => ['photo:' + p.id, '📷 ' + p.title]), ...Object.entries(PRESETS).map(([k, p]) => [k, p.name + ' 3D'])]
+  $('#setRoom').innerHTML = [...PHOTOS.map(p => ['photo:' + p.id, p.title])]
     .map(([k, n]) => `<option value="${k}">${n}</option>`).join('');
   $('#setRoom').value = S.defaultRoom;
   $('#pName').value = S.name;
@@ -702,7 +624,7 @@ $('#importFile').onchange = async e => {
 // ================= Режим просмотра по ссылке =================
 function applyViewerParams() {
   const rooms = (params.get('r') || '').split(';').map(s => s.split(',')).filter(a => a.length >= 4)
-    .map(([l, w, dr, dg, t]) => ({ length: l, width: w, doors: +dr || 0, diagonal: dg === '1', type: PRESETS[t] ? t : 'living' }));
+    .map(([l, w, dr, dg, t]) => ({ length: l, width: w, doors: +dr || 0, diagonal: dg === '1' }));
   if (rooms.length) state.rooms = rooms;
   const u = params.get('u') || '111';
   state.use = { underlay: u[0] === '1', skirting: u[1] === '1', accessories: u[2] === '1' };
@@ -727,11 +649,10 @@ function applyViewerParams() {
   }
   $('#addRoom').hidden = true;
   const pv = params.get('v');
-  state.view = pv && PHOTOS.some(p => p.id === pv) ? 'photo:' + pv : 'my';
+  state.view = pv && PHOTOS.some(p => p.id === pv) ? 'photo:' + pv : null;
 }
 
 // ================= Запуск =================
-initInterior($('#scene'));
 applyLight();
 
 let PHOTOS = [];
@@ -743,16 +664,14 @@ Promise.all([
     PHOTOS = photos;
     catalog = c;
     $('#updated').textContent = new Date(c.updated).toLocaleDateString('ru-RU');
-    preload(c.decors);
     if (VIEWER) applyViewerParams();
     else {
-      const def = S.defaultRoom && (PRESETS[S.defaultRoom] || PHOTOS.some(p => 'photo:' + p.id === S.defaultRoom)) ? S.defaultRoom : null;
-      state.view = def || (PHOTOS[0] ? 'photo:' + PHOTOS[0].id : 'living');
-      if (PRESETS[state.view]) state.rooms[0].type = state.view;
+      const def = PHOTOS.some(p => 'photo:' + p.id === S.defaultRoom) ? S.defaultRoom : null;
+      state.view = def;
     }
+    state.view = state.view || (PHOTOS[0] && 'photo:' + PHOTOS[0].id);
     renderRoomNav();
     showView();
-    syncWindowUI();
     renderFilters();
     state.decorId = state.decorId || S.defaultDecor;
     renderRibbon();

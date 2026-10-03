@@ -42,7 +42,6 @@
 // Страница разметки фото-интерьеров. Не для покупателей — для подготовки данных.
 window.PHOTO_BASE = '../';
 import { initPhoto, showPhoto, refreshPhoto, setPhotoFloor, setPhotoLight, setGrid, resizePhoto } from '../photo.js';
-import { placeholderWood } from '../interior.js';
 const $ = s => document.querySelector(s);
 const HELP = {
   quad: 'Тяните 4 угла так, чтобы красная сетка 0,5 м лежала ровно по полу: линии параллельны стенам, клетки — квадратные. Ш и Г — размер прямоугольника в метрах.',
@@ -55,7 +54,6 @@ let photos = [], P = null, mode = 'quad', sel = null; // sel: [массив то
 photos = await (await fetch('../data/photos.json', { cache: 'no-cache' })).json();
 $('#pick').innerHTML = photos.map((p, i) => `<option value="${i}">${p.id} — ${p.title}</option>`).join('');
 initPhoto($('#cv'));
-setPhotoFloor(placeholderWood({ lightness: 70 }));
 // Демо-ламинат (Poly Haven, CC0) — чтобы оценивать вид честно, пока нет фото декоров
 { const im = new Image(); im.onload = () => setPhotoFloor(im, 1.6); im.src = '../data/demo/laminate_floor_02.jpg'; }
 setPhotoLight(0.8, 0);

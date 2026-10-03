@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=18">
+  <link rel="stylesheet" href="style.css?v=19">
 </head>
 <body>
   <header class="top">
@@ -21,14 +21,8 @@
 
   <!-- Переключатель комнат -->
   <nav class="rooms-nav" id="roomsNav"></nav>
-  <!-- «Моя комната»: какая из комнат расчёта и мебель вкл/выкл -->
-  <div id="myBar" class="my-bar" hidden>
-    <div id="myRooms" class="chips"></div>
-    <label class="switch"><input type="checkbox" id="furnOn" checked> Мебель</label>
-  </div>
-
-  <!-- Интерьер 3D -->
-  <div class="scene"><canvas id="scene"></canvas><canvas id="photoView" hidden></canvas></div>
+  <!-- Фото комнаты с выбранным полом -->
+  <div class="scene"><canvas id="photoView"></canvas></div>
   <p class="note">Цвет на экране может отличаться. Сравните с образцом на стенде.</p>
 
   <!-- Декоры: соседи по тону, лента, ползунки, фильтры -->
@@ -51,14 +45,9 @@
     </details>
   </section>
 
-  <!-- Вид комнаты: стены, мебель, свет -->
+  <!-- Свет в комнате -->
   <details class="look" open>
-    <summary>Стены, мебель, свет</summary>
-    <div class="look-row only3d"><span class="look-lbl">Стены</span><div id="walls" class="swatches"></div></div>
-    <div class="look-row only3d"><span class="look-lbl">Мебель</span><div id="themes" class="seg small-seg"></div></div>
-    <div class="look-row only3d"><span class="look-lbl">Окно</span>
-      <div class="seg small-seg" id="winWall"><button data-w="back">Сзади</button><button data-w="left">Слева</button><button data-w="none">Нет</button></div></div>
-    <div class="look-row only3d" id="winPosRow"><span class="look-lbl"></span><span class="small">◀</span><input type="range" id="winPos" min="0" max="100" value="50"><span class="small">▶</span></div>
+    <summary>Свет</summary>
     <div class="look-row"><span class="look-lbl">Яркость</span><input type="range" id="bright" min="0" max="100" value="80"></div>
     <div class="look-row"><span class="look-lbl">Свет</span><span class="small">тёплый</span><input type="range" id="lwarm" min="-100" max="100" value="20"><span class="small">холодный</span></div>
     <div class="look-row"><span class="look-lbl"></span>
@@ -154,7 +143,7 @@
 
   <template id="roomTpl">
     <div class="room">
-      <div class="room-head"><b class="room-title"></b><select class="rtype"></select><button class="del" title="Удалить комнату">✕</button></div>
+      <div class="room-head"><b class="room-title"></b><button class="del" title="Удалить комнату">✕</button></div>
       <div class="row">
         <label>Длина, м<input class="inp len" inputmode="decimal" placeholder="5"></label>
         <span class="x">×</span>
@@ -174,8 +163,8 @@
 
   <!-- three.js подключается по имени 'three' (так его ищут и дополнения) -->
   <script type="importmap">{ "imports": { "three": "./lib/three.module.min.js" } }</script>
-  <script src="lib/qrcode.js?v=18"></script>
-  <script src="calc.js?v=18"></script>
-  <script type="module" src="app.js?v=18"></script>
+  <script src="lib/qrcode.js?v=19"></script>
+  <script src="calc.js?v=19"></script>
+  <script type="module" src="app.js?v=19"></script>
 </body>
 </html>
