@@ -41,7 +41,7 @@
 <script type="module">
 // Страница разметки фото-интерьеров. Не для покупателей — для подготовки данных.
 window.PHOTO_BASE = '../';
-import { initPhoto, showPhoto, refreshPhoto, setPhotoFloor, setPhotoLight, setGrid } from '../photo.js';
+import { initPhoto, showPhoto, refreshPhoto, setPhotoFloor, setPhotoLight, setGrid, resizePhoto } from '../photo.js';
 import { placeholderWood } from '../interior.js';
 const $ = s => document.querySelector(s);
 const HELP = {
@@ -71,6 +71,7 @@ async function load(i) {
   wrap.style.height = Math.round(ih * s) + 'px';
   $('#ov').setAttribute('viewBox', `0 0 ${iw} ${ih}`);
   await showPhoto(P);
+  resizePhoto();
   $('#W').value = P.size[0]; $('#D').value = P.size[1]; $('#rot').checked = !!P.rotate;
   setGrid($('#grid').checked);
   draw();

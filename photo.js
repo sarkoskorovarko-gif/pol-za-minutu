@@ -280,5 +280,8 @@ export function setPhotoLight(b, w) {
   render();
 }
 
+// Пересчитать размер (если окно было скрыто и ResizeObserver не сработал)
+export function resizePhoto() { resize(); }
+
 export function setGrid(on) { mat.uniforms.showGrid.value = on ? 1 : 0; render(); }
 export function getCrop() { return mat.uniforms.crop.value; }
