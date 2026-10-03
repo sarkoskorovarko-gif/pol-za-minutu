@@ -1,7 +1,7 @@
 // Главный файл интерфейса. Формулы расчёта — в calc.js, 3D — в interior.js.
 import { initInterior, setSkirting, setFloor, preload, setRoom, setWall, setTheme, setFurniture, setLight,
-         setWindow, getWindow, placeholderWood, PRESETS, WALLS, THEMES } from './interior.js?v=17';
-import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting } from './photo.js?v=17';
+         setWindow, getWindow, PRESETS, WALLS, THEMES } from './interior.js?v=18';
+import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting } from './photo.js?v=18';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];

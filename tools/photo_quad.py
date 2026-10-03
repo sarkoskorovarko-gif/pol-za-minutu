@@ -34,11 +34,3 @@ def floor_quad(img_size, VA, VB, O, PA, PB, ref, ref_m):
     quad = [to_img(0, 0), to_img(sa * A, 0), to_img(sa * A, sb * B), to_img(0, sb * B)]
     return [[round(float(x), 1), round(float(y), 1)] for x, y in quad], [round(A * s, 2), round(B * s, 2)], round(float(f))
 
-
-if __name__ == '__main__':
-    # p05: пустая комната. A — вдоль правой стены, B — вдоль задней стены (с проёмом)
-    print('p05', floor_quad((1600, 1067), VA=(-248, 396), VB=(1567, 433), O=(650, 614),
-                            PA=(1600, 845), PB=(0, 742), ref=((95, 724), (590, 626)), ref_m=1.8))
-    # p11: гостиная. A — вдоль серой стены (ТВ), B — вдоль белой стены
-    print('p11', floor_quad((1600, 1068), VA=(-162, 502), VB=(2082, 400), O=(760, 686),
-                            PA=(1445, 822), PB=(440, 755), ref=((840, 708), (1150, 770)), ref_m=1.6))

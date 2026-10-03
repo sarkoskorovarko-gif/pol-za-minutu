@@ -362,7 +362,6 @@ export function setPhotoLight(b, w) {
 export function resizePhoto() { resize(); }
 
 export function setGrid(on) { mat.uniforms.showGrid.value = on ? 1 : 0; render(); }
-export function getCrop() { return mat.uniforms.crop.value; }
 
 // Плинтус на фото. sk: { color: '#rrggbb' или 'decor' (в тон пола), height_mm } или null — не рисовать
 export function setPhotoSkirting(sk) {
