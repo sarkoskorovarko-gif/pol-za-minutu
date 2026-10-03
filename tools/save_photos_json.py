@@ -8,7 +8,7 @@ def dump(d, path):
         for j, (key, v) in enumerate(items):
             if key in ('floor', 'quad', 'img', 'size', 'focus'):
                 s = json.dumps(v)
-            elif key in ('holes', 'windows'):
+            elif key in ('holes', 'windows', 'keep', 'base'):
                 s = '[' + (',\n   '.join(json.dumps(h) for h in v)).join(['\n   ', '\n  ']) + ']' if v else '[]'
             else:
                 s = json.dumps(v, ensure_ascii=False)

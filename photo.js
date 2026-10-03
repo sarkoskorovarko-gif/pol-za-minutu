@@ -182,8 +182,16 @@ function makeMask(d) {
     g.closePath(); g.fill();
   };
   g.fillStyle = '#000'; g.fillRect(0, 0, iw, ih);
-  poly(d.floor, '#f00');
-  (d.holes || []).forEach(h => poly(h, '#000'));
+  if (d._maskImg) {
+    // уточнённая маска (tools/refine_masks.py): белое — пол → в красный канал
+    g.filter = 'none';
+    g.drawImage(d._maskImg, 0, 0, iw, ih);
+    g.globalCompositeOperation = 'multiply'; g.fillStyle = '#f00'; g.fillRect(0, 0, iw, ih);
+    g.globalCompositeOperation = 'source-over'; g.filter = `blur(${1.5 / s}px)`;
+  } else {
+    poly(d.floor, '#f00');
+    (d.holes || []).forEach(h => poly(h, '#000'));
+  }
   g.globalCompositeOperation = 'lighter';         // окна — в зелёный канал, пол не трогаем
   (d.windows || []).forEach(h => poly(h, '#0f0'));
   const band = skirtBand(d, c.width, c.height, s);
@@ -284,7 +292,14 @@ export function showPhoto(data) {
     if (cache[data.id] && cache[data.id].skH !== (skirt && skirt.h)) delete cache[data.id]; // другая высота плинтуса
     if (cache[data.id]) return done({ ...cache[data.id], data });
     const img = new Image();
-    img.onload = () => {
+    let left = 2;          // ждём фото и уточнённую маску
+    const mk = new Image();
+    mk.onload = () => { data._maskImg = mk; ready(); };
+    mk.onerror = () => ready(); // маски нет — режем по многоугольникам
+    mk.src = (window.PHOTO_BASE || '') + 'data/photos/masks/' + data.id + '.png?v=' + (data.maskV || 1);
+    const ready = () => { if (--left === 0) build(); };
+    img.onload = () => ready();
+    const build = () => {
       data.img = data.img || [img.width, img.height];
       const mask = makeMask(data), light = makeLight(img, mask);
       const c = { photoTex: tex(img), blurTex: tex(light.canvas), maskTex: tex(mask), meanL: light.meanL,
@@ -301,6 +316,7 @@ export function showPhoto(data) {
 export function refreshPhoto(data) {
   if (!cur) return;
   const c = cache[data.id];
+  data._maskImg = null; // разметку правят — режем по многоугольникам
   const mask = makeMask(data), light = makeLight(c.img, mask);
   c.maskTex.dispose(); c.blurTex.dispose();
   c.maskTex = tex(mask); c.blurTex = tex(light.canvas); c.meanL = light.meanL; c.meanC = light.meanC; c.tint = light.tint; c.skL = light.skL;
