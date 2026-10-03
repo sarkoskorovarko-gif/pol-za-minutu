@@ -1,3 +1,4 @@
 raw/
 .claude/
 __pycache__/
+tools/check/

@@ -85,10 +85,10 @@ export function initPhoto(canvas) {
         }
         // Плинтус: синий канал маски — полоса над линией пола у стен.
         // Свет берём с фото (где старый плинтус в тени — новый тоже), ночью — как пол.
-        float sk = mk.b * skOn;
+        float sk = mk.b * skOn * (1.0 - smoothstep(0.2, 0.8, m)); // на пол плинтус не заходит
         if (sk > 0.001) {
           float Ls = lum(toLin(texture2D(blurP, uv).rgb)) / skL;
-          float lt = mix(clamp(Ls, 0.35, 1.3), 0.8, night * 0.6);
+          float lt = mix(clamp(Ls, 0.3, 1.0) * 0.9, 0.7, night * 0.6); // не ярче, чем было на фото — иначе «светится»
           col = mix(col, skCol * lt, sk);
         }
         // Вечер: яркие окна (не пол) становятся тёмным вечерним небом
