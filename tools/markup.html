@@ -25,10 +25,13 @@
   <button data-mode="floor">Контур пола</button>
   <button data-mode="holes">Вырезы (мебель)</button>
   <button id="newHole">+ вырез</button>
+  <button data-mode="windows">Окна</button>
+  <button id="newWin">+ окно</button>
   <button id="delPt">Удалить точку</button>
   Ш <input id="W" type="number" step="0.05"> Г <input id="D" type="number" step="0.05"> м
   <label><input type="checkbox" id="rot"> доски поперёк</label>
   <label><input type="checkbox" id="grid" checked> сетка 0,5 м</label>
+  свет <input type="range" id="lt" min="0" max="100" value="80">
   <button id="out">Готово → JSON</button>
 </div>
 <div class="help" id="help"></div>
@@ -45,6 +48,7 @@ const HELP = {
   quad: 'Тяните 4 угла так, чтобы красная сетка 0,5 м лежала ровно по полу: линии параллельны стенам, клетки — квадратные. Ш и Г — размер прямоугольника в метрах.',
   floor: 'Контур всего пола (вместе с местом под мебелью). Тяните точки; клик по линии — новая точка.',
   holes: 'Вырезы — где пол закрыт мебелью, ковром и т. п. Клик по линии — новая точка; «+ вырез» — новый.',
+  windows: 'Окна — обведите стекло. Вечером там будет тёмное небо. «+ окно» — новое.',
 };
 let photos = [], P = null, mode = 'quad', sel = null; // sel: [массив точек, индекс]
 
@@ -52,6 +56,8 @@ photos = await (await fetch('../data/photos.json', { cache: 'no-cache' })).json(
 $('#pick').innerHTML = photos.map((p, i) => `<option value="${i}">${p.id} — ${p.title}</option>`).join('');
 initPhoto($('#cv'));
 setPhotoFloor(placeholderWood({ lightness: 70 }));
+// Демо-ламинат (Poly Haven, CC0) — чтобы оценивать вид честно, пока нет фото декоров
+{ const im = new Image(); im.onload = () => setPhotoFloor(im, 1.6); im.src = '../data/demo/laminate_floor_02.jpg'; }
 setPhotoLight(0.8, 0);
 
 async function load(i) {
@@ -76,9 +82,11 @@ function draw() {
   const path = (pts, color, closed = true) =>
     `<polyline points="${pts.map(p => p.join(',')).join(' ')}${closed ? ' ' + pts[0].join(',') : ''}" fill="none" stroke="${color}" stroke-width="${r / 2}" />`;
   let h = '';
-  const groups = mode === 'quad' ? [P.quad] : mode === 'floor' ? [P.floor] : P.holes;
+  P.windows = P.windows || [];
+  const groups = mode === 'quad' ? [P.quad] : mode === 'floor' ? [P.floor] : mode === 'windows' ? P.windows : P.holes;
   if (mode !== 'quad') h += path(P.floor, '#0f0');
   P.holes.forEach(hole => h += path(hole, '#f0f'));
+  P.windows.forEach(w => h += path(w, '#0cf'));
   h += path(P.quad, '#ff0');
   groups.forEach((g, gi) => g.forEach((p, i) => {
     const active = sel && sel[0] === g && sel[1] === i;
@@ -92,7 +100,7 @@ const toImg = e => {
   const b = $('#ov').getBoundingClientRect();
   return [Math.round((e.clientX - b.left) / b.width * P.img[0]), Math.round((e.clientY - b.top) / b.height * P.img[1])];
 };
-const groups = () => mode === 'quad' ? [P.quad] : mode === 'floor' ? [P.floor] : P.holes;
+const groups = () => mode === 'quad' ? [P.quad] : mode === 'floor' ? [P.floor] : mode === 'windows' ? P.windows : P.holes;
 let drag = null;
 $('#ov').addEventListener('pointerdown', e => {
   const t = e.target;
@@ -137,17 +145,25 @@ $('#newHole').onclick = () => {
   P.holes.push([[w * .4, h * .7], [w * .6, h * .7], [w * .6, h * .85], [w * .4, h * .85]].map(p => p.map(Math.round)));
   document.querySelector('[data-mode=holes]').click(); update();
 };
+$('#newWin').onclick = () => {
+  const [w, h] = P.img;
+  P.windows = P.windows || [];
+  P.windows.push([[w * .4, h * .2], [w * .55, h * .2], [w * .55, h * .5], [w * .4, h * .5]].map(p => p.map(Math.round)));
+  document.querySelector('[data-mode=windows]').click(); update();
+};
 $('#delPt').onclick = () => {
   if (!sel || mode === 'quad') return;
   const [g, i] = sel;
   if (g.length > 3) g.splice(i, 1);
   else if (mode === 'holes') P.holes.splice(P.holes.indexOf(g), 1);
+  else if (mode === 'windows') P.windows.splice(P.windows.indexOf(g), 1);
   sel = null; update();
 };
 $('#W').oninput = () => { P.size[0] = +$('#W').value || 1; refreshPhoto(P); };
 $('#D').oninput = () => { P.size[1] = +$('#D').value || 1; refreshPhoto(P); };
 $('#rot').onchange = () => { P.rotate = $('#rot').checked; refreshPhoto(P); };
 $('#grid').onchange = () => setGrid($('#grid').checked);
+$('#lt').oninput = () => { const b = $('#lt').value / 100; setPhotoLight(b, b < 0.5 ? (0.5 - b) * 1.6 : 0); };
 $('#pick').onchange = () => load(+$('#pick').value);
 $('#out').onclick = () => {
   const clean = photos.map(({ data, ...p }) => p);

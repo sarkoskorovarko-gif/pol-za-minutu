@@ -1,7 +1,7 @@
 // Главный файл интерфейса. Формулы расчёта — в calc.js, 3D — в interior.js.
 import { initInterior, setFloor, preload, setRoom, setWall, setTheme, setFurniture, setLight,
-         setWindow, getWindow, placeholderWood, PRESETS, WALLS, THEMES } from './interior.js?v=6';
-import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight } from './photo.js?v=6';
+         setWindow, getWindow, placeholderWood, PRESETS, WALLS, THEMES } from './interior.js?v=7';
+import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight } from './photo.js?v=7';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -86,7 +86,7 @@ function pickDecor(id) {
   photoFloor(d);
   $('#decorName').textContent = d.name;
   $('#decorInfo').textContent = `${d.id} · ${rub(decorPrice(d))} руб/м² · класс ${d.class ?? '—'}`
-    + (d.in_stock ? '' : ' · нет в наличии');
+    + (d.in_stock ? '' : ' · нет в наличии') + (d.texture ? '' : ' · фото декора пока нет');
   $$('#ribbon .tile').forEach(t => t.classList.toggle('on', t.dataset.id === id));
   $('#ribbon .tile.on')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
   renderNeighbours();
@@ -260,8 +260,10 @@ function photoFloor(d) {
     img.onload = () => { decorImg[d.id] = img; if (state.decorId === d.id) setPhotoFloor(img, d.texture_scale_m); };
     img.src = 'data/' + d.texture;
   } else {
-    decorImg[d.id] = placeholderWood(d);
-    setPhotoFloor(decorImg[d.id], d.texture_scale_m);
+    // Фото декора ещё нет — временно демо-ламинат (Poly Haven, CC0), чтобы было видно качество
+    const img = new Image();
+    img.onload = () => { decorImg[d.id] = img; if (state.decorId === d.id) setPhotoFloor(img, 1.6); };
+    img.src = 'data/demo/laminate_floor_02.jpg';
   }
 }
 

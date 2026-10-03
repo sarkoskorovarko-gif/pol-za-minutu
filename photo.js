@@ -26,6 +26,7 @@ export function initPhoto(canvas) {
       photo: { value: null }, blurP: { value: null }, mask: { value: null }, decor: { value: null },
       Hinv: { value: new THREE.Matrix3() }, imgSize: { value: new THREE.Vector2(1, 1) },
       texM: { value: new THREE.Vector2(1.3, 0.8) }, meanL: { value: 0.5 }, rot: { value: 0 },
+      meanC: { value: new THREE.Vector3(0.3, 0.3, 0.3) }, roomTint: { value: new THREE.Vector3(1, 1, 1) },
       exposure: { value: 1 }, tint: { value: new THREE.Vector3(1, 1, 1) }, night: { value: 0 },
       showGrid: { value: 0 }, crop: { value: new THREE.Vector4(0, 0, 1, 1) },
     },
@@ -35,7 +36,7 @@ export function initPhoto(canvas) {
       varying vec2 vUv;
       uniform sampler2D photo, blurP, mask, decor;
       uniform mat3 Hinv; uniform vec2 imgSize, texM; uniform float meanL, rot, exposure, night, showGrid;
-      uniform vec3 tint; uniform vec4 crop;
+      uniform vec3 tint, meanC, roomTint; uniform vec4 crop;
       // sRGB <-> линейный свет (тени и свет умножаем в линейном пространстве)
       vec3 toLin(vec3 c){ return pow(c, vec3(2.2)); }
       vec3 toSrgb(vec3 c){ return pow(max(c, 0.0), vec3(1.0/2.2)); }
@@ -44,21 +45,32 @@ export function initPhoto(canvas) {
         vec2 uv = crop.xy + vUv * crop.zw;              // какая часть фото на экране
         vec2 px = vec2(uv.x, 1.0 - uv.y) * imgSize;      // пиксели фото (y вниз)
         vec3 src = toLin(texture2D(photo, uv).rgb);
-        float m = texture2D(mask, uv).r;
+        vec4 mk = texture2D(mask, uv);
+        float m = mk.r;                                  // красный канал — пол, зелёный — окна
         vec3 col = src;
         if (m > 0.001) {
           vec3 f = Hinv * vec3(px, 1.0);
           vec2 fm = f.xy / f.z;                          // точка пола в метрах
           if (rot > 0.5) fm = fm.yx;
           vec3 d = toLin(texture2D(decor, fm / texM).rgb);
-          float L = lum(toLin(texture2D(blurP, uv).rgb)) / meanL;  // свет и тень с фото
-          vec3 fl = d * min(L, 1.4) + vec3(max(L - 1.4, 0.0) * 0.5); // яркие блики — белые
+          // Свет с фото: размытый цвет пола / средний цвет пола — где светлее, где тень,
+          // где тёплое солнечное пятно. Плюс общий оттенок света в комнате (по стенам).
+          vec3 B = toLin(texture2D(blurP, uv).rgb);
+          vec3 sh = B / max(meanC, vec3(0.001));
+          float L = lum(B) / meanL;
+          vec3 light = mix(vec3(L), sh, 0.25) * roomTint;
+          vec3 fl = d * min(light, vec3(1.4));
+          fl += vec3(max(L - 1.4, 0.0) * 0.5) * (1.0 - night); // блики от окон; вечером гаснут
           if (showGrid > 0.5) {                          // сетка 0,5 м — для разметки
             vec2 g = abs(fract(fm / 0.5 + 0.5) - 0.5) / fwidth(fm / 0.5);
             fl = mix(vec3(1.0, 0.1, 0.1), fl, clamp(min(g.x, g.y), 0.0, 1.0));
           }
           col = mix(src, fl, m);
         }
+        // Вечер: яркие окна (не пол) становятся тёмным вечерним небом
+        // вечером в окнах — тёмное небо; рамы (тёмные на фото) остаются
+        float glass = mk.g * smoothstep(0.25, 0.6, lum(src));
+        col = mix(col, vec3(0.015, 0.025, 0.06), glass * night);
         // Свет: яркость и оттенок; вечером — темнее, теплее, края темнее
         col *= exposure * tint;
         vec2 q = vUv - 0.5;
@@ -141,8 +153,10 @@ function makeMask(d) {
     g.closePath(); g.fill();
   };
   g.fillStyle = '#000'; g.fillRect(0, 0, iw, ih);
-  poly(d.floor, '#fff');
+  poly(d.floor, '#f00');
   (d.holes || []).forEach(h => poly(h, '#000'));
+  g.globalCompositeOperation = 'lighter';         // окна — в зелёный канал, пол не трогаем
+  (d.windows || []).forEach(h => poly(h, '#0f0'));
   return c;
 }
 
@@ -159,12 +173,20 @@ function makeLight(img, maskCanvas) {
   const mc = document.createElement('canvas'); mc.width = c.width; mc.height = c.height;
   const mg = mc.getContext('2d'); mg.drawImage(maskCanvas, 0, 0, c.width, c.height);
   const mp = mg.getImageData(0, 0, c.width, c.height).data;
-  let sum = 0, n = 0;
   const lin = v => Math.pow(v / 255, 2.2);
-  for (let i = 0; i < px.length; i += 4) if (mp[i] > 128) {
-    sum += 0.2126 * lin(px[i]) + 0.7152 * lin(px[i + 1]) + 0.0722 * lin(px[i + 2]); n++;
+  const fl = [0, 0, 0], rest = [0, 0, 0];
+  let n = 0, nr = 0;
+  for (let i = 0; i < px.length; i += 4) {
+    const r = lin(px[i]), g2 = lin(px[i + 1]), b = lin(px[i + 2]);
+    if (mp[i] > 128) { fl[0] += r; fl[1] += g2; fl[2] += b; n++; }
+    else if (r + g2 + b > 0.3 && r + g2 + b < 2.7) { rest[0] += r; rest[1] += g2; rest[2] += b; nr++; } // светлые стены, без окон
   }
-  return { canvas: c, meanL: n ? sum / n : 0.3 };
+  const meanC = n ? fl.map(v => v / n) : [0.3, 0.3, 0.3];
+  const L = c3 => 0.2126 * c3[0] + 0.7152 * c3[1] + 0.0722 * c3[2];
+  const wall = nr ? rest.map(v => v / nr) : [1, 1, 1];
+  // Стены бывают крашеные (персиковые, серые), поэтому берём только малую часть их оттенка
+  const tint = wall.map(v => Math.min(1.08, Math.max(0.92, 1 + (v / L(wall) - 1) * 0.15)));
+  return { canvas: c, meanL: L(meanC), meanC, tint };
 }
 
 function tex(src) {
@@ -183,6 +205,7 @@ export function showPhoto(data) {
       Object.assign(mat.uniforms, {});
       mat.uniforms.photo.value = c.photoTex; mat.uniforms.blurP.value = c.blurTex;
       mat.uniforms.mask.value = c.maskTex; mat.uniforms.meanL.value = c.meanL;
+      mat.uniforms.meanC.value.set(...c.meanC); mat.uniforms.roomTint.value.set(...c.tint);
       updateGeometry(); fitCrop(); render(); ok();
     };
     if (cache[data.id]) return done({ ...cache[data.id], data });
@@ -190,7 +213,8 @@ export function showPhoto(data) {
     img.onload = () => {
       data.img = data.img || [img.width, img.height];
       const mask = makeMask(data), light = makeLight(img, mask);
-      const c = { photoTex: tex(img), blurTex: tex(light.canvas), maskTex: tex(mask), meanL: light.meanL, img };
+      const c = { photoTex: tex(img), blurTex: tex(light.canvas), maskTex: tex(mask), meanL: light.meanL,
+                  meanC: light.meanC, tint: light.tint, img };
       cache[data.id] = c;
       done({ ...c, data });
     };
@@ -205,7 +229,8 @@ export function refreshPhoto(data) {
   const c = cache[data.id];
   const mask = makeMask(data), light = makeLight(c.img, mask);
   c.maskTex.dispose(); c.blurTex.dispose();
-  c.maskTex = tex(mask); c.blurTex = tex(light.canvas); c.meanL = light.meanL;
+  c.maskTex = tex(mask); c.blurTex = tex(light.canvas); c.meanL = light.meanL; c.meanC = light.meanC; c.tint = light.tint;
+  mat.uniforms.meanC.value.set(...c.meanC); mat.uniforms.roomTint.value.set(...c.tint);
   cur = { ...c, data };
   mat.uniforms.mask.value = c.maskTex; mat.uniforms.blurP.value = c.blurTex; mat.uniforms.meanL.value = c.meanL;
   updateGeometry(); render();
