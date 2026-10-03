@@ -1,5 +1,5 @@
 // Главный файл интерфейса. Формулы расчёта — в calc.js, фото комнат — в photo.js.
-import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting } from './photo.js?v=23';
+import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting } from './photo.js?v=25';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -236,10 +236,10 @@ let photoReady = false;
 const decorImg = {};
 function photoFloor(d) {
   if (!photoReady) return;
-  if (decorImg[d.id]) return setPhotoFloor(decorImg[d.id], d.texture_scale_m);
+  if (decorImg[d.id]) return setPhotoFloor(decorImg[d.id], d.texture_scale_m, d);
   if (d.texture) {
     const img = new Image();
-    img.onload = () => { decorImg[d.id] = img; if (state.decorId === d.id) setPhotoFloor(img, d.texture_scale_m); };
+    img.onload = () => { decorImg[d.id] = img; if (state.decorId === d.id) setPhotoFloor(img, d.texture_scale_m, d); };
     img.src = 'data/' + d.texture;
   } else {
     // Фото декора ещё нет — временно демо-ламинат (Poly Haven, CC0), чтобы было видно качество

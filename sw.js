@@ -1,8 +1,8 @@
 // Работа без интернета. После первого открытия файлы сайта хранятся в телефоне.
 // При изменении сайта увеличить номер версии — телефоны скачают новые файлы.
-const VERSION = 'v23';
-const FILES = ['./', 'index.html', 'style.css?v=23', 'calc.js?v=23', 'app.js?v=23', 'photo.js?v=23', 'data/photos.json', 'data/demo/laminate_floor_02.jpg',
-  'lib/three.module.min.js', 'lib/qrcode.js?v=23', 'manifest.json', 'icons/icon-192.png', 'data/catalog.json'];
+const VERSION = 'v25';
+const FILES = ['./', 'index.html', 'style.css?v=25', 'calc.js?v=25', 'app.js?v=25', 'photo.js?v=25', 'data/photos.json', 'data/demo/laminate_floor_02.jpg',
+  'lib/three.module.min.js', 'lib/qrcode.js?v=25', 'manifest.json', 'icons/icon-192.png', 'data/catalog.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

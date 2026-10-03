@@ -32,6 +32,8 @@ export function initPhoto(canvas) {
       lampFloor: { value: new THREE.Vector2(1.5, 1.5) }, hasLamp: { value: 0 },
       exposure: { value: 1 }, tint: { value: new THREE.Vector3(1, 1, 1) }, night: { value: 0 },
       skCol: { value: new THREE.Vector3(1, 1, 1) }, skOn: { value: 0 }, skL: { value: 0.5 },
+      boardOn: { value: 0 }, board: { value: new THREE.Vector2(1.29, 0.193) },
+      rows: { value: new THREE.Vector2(0, 0.2) }, bevel: { value: 0 },
       showGrid: { value: 0 }, crop: { value: new THREE.Vector4(0, 0, 1, 1) },
     },
     vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy * 2.0, 0.0, 1.0); }`,
@@ -42,6 +44,34 @@ export function initPhoto(canvas) {
       uniform mat3 Hinv; uniform vec2 imgSize, texM; uniform float meanL, rot, exposure, night, showGrid;
       uniform vec3 tint, meanC, roomTint; uniform vec4 crop; uniform vec2 lampFloor; uniform float hasLamp;
       uniform vec3 skCol; uniform float skOn, skL;
+      uniform float boardOn, bevel; uniform vec2 board, rows;
+      float h1(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+      // Цвет пола в точке fm (метры). Доски кладём по-настоящему: ряды со смещением,
+      // каждая доска — из случайного места фото декора (нет повторов и «зеркал»), фаска на стыках.
+      vec3 floorColor(vec2 fm){
+        vec2 uvc = fm / texM;                              // непрерывные координаты — для резкости
+        if (boardOn < 0.5) return texture2D(decor, uvc).rgb;
+        float L = board.x, W = board.y;
+        float row = floor(fm.y / W);
+        float x = fm.x + h1(vec2(row, 7.0)) * L;           // смещение ряда
+        float col = floor(x / L);
+        vec2 loc = vec2(x - col * L, fm.y - row * W);      // место внутри доски, м
+        float nr = max(1.0, floor((1.0 - rows.x) / rows.y + 0.01));
+        float k = floor(h1(vec2(row, col)) * nr);          // какой ряд фото декора берём
+        float u0 = h1(vec2(col, row + 31.0)) * max(0.0, 1.0 - L / texM.x);
+        vec2 uv = vec2(u0 + loc.x / texM.x, 1.0 - (rows.x + (k + loc.y / W) * rows.y));
+        vec3 c = textureGrad(decor, uv, dFdx(uvc), dFdy(uvc)).rgb;
+        // лёгкая разница тона между досками — как в жизни
+        c *= 0.96 + 0.08 * h1(vec2(col * 3.1, row * 1.7));
+        // фаска / стык: тонкая тёмная линия, сглаженная по размеру пикселя
+        float e = min(min(loc.x, L - loc.x), min(loc.y, W - loc.y));
+        float aa = max(fwidth(fm.x), fwidth(fm.y));
+        float wl = mix(0.0006, 0.0022, bevel);             // ширина линии, м
+        float seam = 1.0 - smoothstep(wl, wl + aa, e);
+        // вдали стык тоньше пикселя — делаем его бледнее, а не толще
+        seam *= clamp(wl / aa, 0.0, 1.0);
+        return c * (1.0 - seam * mix(0.18, 0.35, bevel));
+      }
       // sRGB <-> линейный свет (тени и свет умножаем в линейном пространстве)
       vec3 toLin(vec3 c){ return pow(c, vec3(2.2)); }
       vec3 toSrgb(vec3 c){ return pow(max(c, 0.0), vec3(1.0/2.2)); }
@@ -58,7 +88,7 @@ export function initPhoto(canvas) {
           vec2 fm = f.xy / f.z;                          // точка пола в метрах
           float r = length(fm - lampFloor);              // расстояние до точки под люстрой
           if (rot > 0.5) fm = fm.yx;
-          vec3 d = toLin(texture2D(decor, fm / texM).rgb);
+          vec3 d = toLin(floorColor(fm));
           // Свет с фото: размытый цвет пола / средний цвет пола — где светлее, где тень,
           // где тёплое солнечное пятно. Плюс общий оттенок света в комнате (по стенам).
           vec3 B = toLin(texture2D(blurP, uv).rgb);
@@ -327,17 +357,28 @@ export function refreshPhoto(data) {
 }
 
 // Декор на полу: картинка (или нарисованная временная текстура)
-export function setPhotoFloor(image, texWidthM) {
+// decor (из каталога) — для раскладки досками: размер доски, ряды на фото, фаска
+export function setPhotoFloor(image, texWidthM, decor) {
   if (decorTex) decorTex.dispose();
   decorTex = new THREE.Texture(image);
   decorTex.colorSpace = THREE.NoColorSpace;
-  decorTex.wrapS = decorTex.wrapT = THREE.MirroredRepeatWrapping;
+  decorTex.wrapS = decorTex.wrapT = THREE.RepeatWrapping;
   decorTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
   decorTex.needsUpdate = true;
   const w = texWidthM || DEFAULT_TEX_W_M;
   decorSize = [w, w * image.height / image.width];
   mat.uniforms.decor.value = decorTex;
   mat.uniforms.texM.value.set(...decorSize);
+  const boards = decor && !decor.pattern && decor.board_len_mm && decor.board_w_mm;
+  mat.uniforms.boardOn.value = boards ? 1 : 0;
+  if (boards) {
+    const Wb = decor.board_w_mm / 1000;
+    mat.uniforms.board.value.set(decor.board_len_mm / 1000, Wb);
+    // ряды на фото декора: найденные стыки или (если их не видно) просто по ширине доски
+    const r = decor.tex_rows || [0, Math.min(1, Wb / decorSize[1])];
+    mat.uniforms.rows.value.set(r[0], r[1]);
+    mat.uniforms.bevel.value = decor.chamfer ? 1 : 0;
+  }
   // средний цвет декора — для плинтуса «в тон пола»
   const t = document.createElement('canvas'); t.width = t.height = 1;
   const g = t.getContext('2d'); g.drawImage(image, 0, 0, 1, 1);

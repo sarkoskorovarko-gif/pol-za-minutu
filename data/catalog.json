@@ -21,9 +21,14 @@
    "texture_ok": true,
    "lightness": 91.3,
    "warmth": 6.8,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 1.979,
    "image_src": "https://diy.by/upload/iblock/638/61036634.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-21-32-ehl098-h2965-dub-toskolanno-uayt-c-it-classic-n-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-21-32-ehl098-h2965-dub-toskolanno-uayt-c-it-classic-n-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.0847,
+    0.1573
+   ]
   },
   {
    "id": "EHL132",
@@ -47,7 +52,9 @@
    "warmth": 21.5,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/3ed/61036674.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-21-32-ehl132-h2830-dub-stavern-c-it-classic-d/"
+   "url": "https://diy.by/laminat/laminat-egger-home-21-32-ehl132-h2830-dub-stavern-c-it-classic-d/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL145",
@@ -71,7 +78,9 @@
    "warmth": 5.3,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/0d9/61036636.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-21-32-ehl145-h2081-dub-elva-grey-c-it-classic-n-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-21-32-ehl145-h2081-dub-elva-grey-c-it-classic-n-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL038",
@@ -95,7 +104,9 @@
    "warmth": 11.6,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/b66/61036646.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-32-epl038-h1062-dub-melovoy-c-it-classic-o/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-32-epl038-h1062-dub-melovoy-c-it-classic-o/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL039",
@@ -119,7 +130,9 @@
    "warmth": 11.0,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/529/61036643.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-32-epl039-h1067-vud-ashkroft-c-it-classic-o/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-32-epl039-h1067-vud-ashkroft-c-it-classic-o/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL095",
@@ -143,7 +156,9 @@
    "warmth": 16.2,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/258/61036644.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-32-epl095-h2709-dub-bruklin-uayt-c-it-classic-o/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-32-epl095-h2709-dub-bruklin-uayt-c-it-classic-o/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL177",
@@ -165,9 +180,14 @@
    "texture_ok": true,
    "lightness": 73.9,
    "warmth": 7.5,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.033,
    "image_src": "https://diy.by/upload/resize_cache/slam/520/863/827_900_100/61036652.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-32-epl177-h2062-dub-soriya-uayt-c-it-classic-n-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-32-epl177-h2062-dub-soriya-uayt-c-it-classic-n-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1946,
+    0.2034
+   ]
   },
   {
    "id": "EPL179",
@@ -189,9 +209,14 @@
    "texture_ok": true,
    "lightness": 65.6,
    "warmth": 28.2,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.038,
    "image_src": "https://diy.by/upload/resize_cache/slam/286/746/835_900_100/61037281.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-32-epl179-h2064-dub-soria-1/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-32-epl179-h2064-dub-soria-1/",
+   "pattern": false,
+   "tex_rows": [
+    0.0027,
+    0.2005
+   ]
   },
   {
    "id": "EPL205",
@@ -213,9 +238,14 @@
    "texture_ok": true,
    "lightness": 58.9,
    "warmth": 3.8,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.029,
    "image_src": "https://diy.by/upload/resize_cache/slam/157/031/835_900_100/61036598.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-32-epl205-h2406-dub-sherman-layt-1/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-32-epl205-h2406-dub-sherman-layt-1/",
+   "pattern": false,
+   "tex_rows": [
+    0.1988,
+    0.2022
+   ]
   },
   {
    "id": "EPL051",
@@ -239,7 +269,9 @@
    "warmth": 9.2,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/cea/61036607.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl051-h2040-dub-korton-uayt-c-it-classic-n/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl051-h2040-dub-korton-uayt-c-it-classic-n/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL074",
@@ -261,9 +293,14 @@
    "texture_ok": true,
    "lightness": 60.5,
    "warmth": 17.2,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.029,
    "image_src": "https://diy.by/upload/resize_cache/slam/335/885/836_900_100/61036660.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl074-h2102-dub-dannington-layt-c-it-classic-o-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl074-h2102-dub-dannington-layt-c-it-classic-o-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1999,
+    0.2019
+   ]
   },
   {
    "id": "EPL089",
@@ -287,7 +324,9 @@
    "warmth": 27.4,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/099/61036658.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl089-h2634-dub-grouv-c-it-classic-d/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl089-h2634-dub-grouv-c-it-classic-d/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL139",
@@ -309,9 +348,14 @@
    "texture_ok": true,
    "lightness": 75.2,
    "warmth": 13.8,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 1.967,
    "image_src": "https://diy.by/upload/iblock/164/60678684.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl139-h2834-dub-murom-c-it-classic-o-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl139-h2834-dub-murom-c-it-classic-o-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.0847,
+    0.1583
+   ]
   },
   {
    "id": "EPL153",
@@ -333,9 +377,14 @@
    "texture_ok": true,
    "lightness": 78.5,
    "warmth": 5.5,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.033,
    "image_src": "https://diy.by/upload/resize_cache/slam/126/108/832_900_100/61036620.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl153-h2860-dub-azgil-uayt-c-it-classic-n-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl153-h2860-dub-azgil-uayt-c-it-classic-n-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.198,
+    0.202
+   ]
   },
   {
    "id": "EPL178",
@@ -357,9 +406,14 @@
    "texture_ok": true,
    "lightness": 67.8,
    "warmth": 4.6,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.033,
    "image_src": "https://diy.by/upload/resize_cache/slam/414/329/831_900_100/61036664.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl178-h2063-dub-soria-layt-grey-c-it-classic-n-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl178-h2063-dub-soria-layt-grey-c-it-classic-n-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1962,
+    0.2023
+   ]
   },
   {
    "id": "EPL180",
@@ -381,9 +435,14 @@
    "texture_ok": true,
    "lightness": 53.0,
    "warmth": 14.5,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.036,
    "image_src": "https://diy.by/upload/resize_cache/slam/773/681/828_900_100/61036619.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl180-h2065-dub-soria-grey-c-it-classic-n-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl180-h2065-dub-soria-grey-c-it-classic-n-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1984,
+    0.2024
+   ]
   },
   {
    "id": "EPL182",
@@ -405,9 +464,14 @@
    "texture_ok": true,
    "lightness": 63.5,
    "warmth": 19.8,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.036,
    "image_src": "https://diy.by/upload/resize_cache/slam/280/152/829_900_100/61036665.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl182-h2067-dub-vild-natur-c-it-classic-o-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl182-h2067-dub-vild-natur-c-it-classic-o-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1967,
+    0.2022
+   ]
   },
   {
    "id": "EPL189",
@@ -429,9 +493,14 @@
    "texture_ok": true,
    "lightness": 62.5,
    "warmth": 13.8,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.029,
    "image_src": "https://diy.by/upload/resize_cache/slam/506/603/832_900_100/61036661.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl189-h2416-dub-melba-bezh-c-it-classic-d-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl189-h2416-dub-melba-bezh-c-it-classic-d-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1986,
+    0.2027
+   ]
   },
   {
    "id": "EPL198",
@@ -455,7 +524,9 @@
    "warmth": 25.9,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/8d8/61036613.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl198-h2428-dub-predaya-natur-c-it-classic-n-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-21-33-epl198-h2428-dub-predaya-natur-c-it-classic-n-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPC020",
@@ -477,9 +548,14 @@
    "texture_ok": true,
    "lightness": 84.4,
    "warmth": 3.5,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 1.979,
    "image_src": "https://diy.by/upload/iblock/566/61070038.jpg",
-   "url": "https://diy.by/laminat/laminat-probkovyy-egger-31-epc020-d1035-dub-villanger-classic-d-v4-clic-it/"
+   "url": "https://diy.by/laminat/laminat-probkovyy-egger-31-epc020-d1035-dub-villanger-classic-d-v4-clic-it/",
+   "pattern": false,
+   "tex_rows": [
+    0.0847,
+    0.1573
+   ]
   },
   {
    "id": "EHL015",
@@ -501,9 +577,14 @@
    "texture_ok": true,
    "lightness": 74.2,
    "warmth": 9.1,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 1.979,
    "image_src": "https://diy.by/upload/iblock/832/ia3vdb2agw2kpxb3e3ruiuoocuxz3kn7/61138447.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl015-dub-toskolano-layt-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl015-dub-toskolano-layt-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.0847,
+    0.1573
+   ]
   },
   {
    "id": "EHL016",
@@ -527,7 +608,9 @@
    "warmth": 24.5,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/39e/hy9w544vys979zcygs1jchx921qml31t/61138448.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl016-dub-toskolano-natur-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl016-dub-toskolano-natur-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL105",
@@ -551,7 +634,9 @@
    "warmth": 8.7,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/673/m18m26nlq2y5873zvmlty7gdlcu6jkkj/61138451.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl105-dub-kreston-uayt-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl105-dub-kreston-uayt-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL210",
@@ -575,7 +660,9 @@
    "warmth": 6.6,
    "texture_scale_m": 1.42,
    "image_src": "https://diy.by/upload/resize_cache/slam/342/716/833_900_100/61144988.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-32-epl210-dub-gidlevik-bezh-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-32-epl210-dub-gidlevik-bezh-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL194",
@@ -599,7 +686,9 @@
    "warmth": 20.1,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/co2/cea/idh1ums2ccczeja3ty09umsgfvdramrr.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-32-ehl194-dub-manyara-natur-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-32-ehl194-dub-manyara-natur-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL212",
@@ -623,7 +712,9 @@
    "warmth": 1.9,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/913/427/1000_900_100/gzybfhhp8mi6gnnpmqlwchhi33ka8ud2.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl212-sosna-katskhi-uayt-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl212-sosna-katskhi-uayt-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL249",
@@ -645,9 +736,14 @@
    "texture_ok": true,
    "lightness": 78.6,
    "warmth": -0.3,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.097,
    "image_src": "https://diy.by/upload/resize_cache/slam/911/923/829_900_100/61169246.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl249-dub-marchena-uayt-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl249-dub-marchena-uayt-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.0071,
+    0.191
+   ]
   },
   {
    "id": "EPL242",
@@ -671,7 +767,9 @@
    "warmth": 7.9,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/279/699/1200_900_100/61169573.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl242l-dub-krestinkort-shampan-large-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl242l-dub-krestinkort-shampan-large-v4/",
+   "pattern": true,
+   "tex_rows": null
   },
   {
    "id": "EPL243",
@@ -695,7 +793,9 @@
    "warmth": 2.4,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/340/498/1200_900_100/61169575.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl243l-dub-krestinkort-pepel-large-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl243l-dub-krestinkort-pepel-large-v4/",
+   "pattern": true,
+   "tex_rows": null
   },
   {
    "id": "EPL240",
@@ -719,7 +819,9 @@
    "warmth": 6.5,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/260/594/1200_900_100/61169577.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl240l-dub-krestinkort-shokolad-large-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl240l-dub-krestinkort-shokolad-large-v4/",
+   "pattern": true,
+   "tex_rows": null
   },
   {
    "id": "EPL208",
@@ -743,7 +845,9 @@
    "warmth": 17.2,
    "texture_scale_m": 1.42,
    "image_src": "https://diy.by/upload/resize_cache/slam/174/745/831_900_100/61169579.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl208-dub-rongbuk-natur-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl208-dub-rongbuk-natur-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL212",
@@ -765,9 +869,14 @@
    "texture_ok": true,
    "lightness": 78.7,
    "warmth": 2.0,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.033,
    "image_src": "https://diy.by/upload/resize_cache/slam/381/205/835_900_100/61169581.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl212-dub-vud-fbord-uyat-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl212-dub-vud-fbord-uyat-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.0027,
+    0.2015
+   ]
   },
   {
    "id": "EPL236",
@@ -789,9 +898,14 @@
    "texture_ok": true,
    "lightness": 60.3,
    "warmth": 18.6,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.036,
    "image_src": "https://diy.by/upload/resize_cache/slam/312/726/829_900_100/61169582.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl236-dub-garden-natur-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl236-dub-garden-natur-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1967,
+    0.2022
+   ]
   },
   {
    "id": "EPL237",
@@ -813,9 +927,14 @@
    "texture_ok": true,
    "lightness": 65.7,
    "warmth": 11.0,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.04,
    "image_src": "https://diy.by/upload/resize_cache/slam/295/920/833_900_100/61169583.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl237-dub-garden-layt-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl237-dub-garden-layt-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1993,
+    0.2007
+   ]
   },
   {
    "id": "EPL223",
@@ -837,9 +956,14 @@
    "texture_ok": true,
    "lightness": 73.0,
    "warmth": 20.6,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 1.883,
    "image_src": "https://diy.by/upload/resize_cache/slam/304/551/1200_900_100/61174646.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl223-dub-pleygrin-natur-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl223-dub-pleygrin-natur-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.09,
+    0.1367
+   ]
   },
   {
    "id": "EPL246",
@@ -863,7 +987,9 @@
    "warmth": 0.2,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/678/093/1200_900_100/60147099.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl246-kamen-petra-gridzhia-chernyy-aquaplus-large-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl246-kamen-petra-gridzhia-chernyy-aquaplus-large-v4/",
+   "pattern": true,
+   "tex_rows": null
   },
   {
    "id": "EPL168",
@@ -887,7 +1013,9 @@
    "warmth": 7.6,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/815/469/1000_900_100/60154708.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl168-khromiks-uayt-aquaplus-large-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl168-khromiks-uayt-aquaplus-large-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL245",
@@ -911,7 +1039,9 @@
    "warmth": 2.5,
    "texture_scale_m": 1.29,
    "image_src": "https://diy.by/upload/resize_cache/slam/355/760/1000_900_100/60161440.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl245-mramor-levanto-uayt-aquaplus-large-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl245-mramor-levanto-uayt-aquaplus-large-v4/",
+   "pattern": true,
+   "tex_rows": null
   },
   {
    "id": "EPL213",
@@ -933,9 +1063,14 @@
    "texture_ok": true,
    "lightness": 84.6,
    "warmth": 14.1,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 1.883,
    "image_src": "https://diy.by/upload/resize_cache/slam/340/497/1200_900_100/60161625.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl213-dub-valendi-pesok-aquaplus-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl213-dub-valendi-pesok-aquaplus-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.09,
+    0.1367
+   ]
   },
   {
    "id": "EPL216",
@@ -957,9 +1092,14 @@
    "texture_ok": true,
    "lightness": 77.6,
    "warmth": 1.5,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 1.883,
    "image_src": "https://diy.by/upload/resize_cache/slam/889/984/1200_900_100/60168872.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl216-dub-metiko-bezhevyy-aquaplus-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl216-dub-metiko-bezhevyy-aquaplus-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.09,
+    0.1367
+   ]
   },
   {
    "id": "EPL239",
@@ -981,9 +1121,14 @@
    "texture_ok": true,
    "lightness": 71.6,
    "warmth": 7.9,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 1.417,
    "image_src": "https://diy.by/upload/resize_cache/slam/361/982/1000_900_100/oyp01yjj0347jxx40goi45rgz1wchcm2.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl239-sosna-modro-grey-aquaplus-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl239-sosna-modro-grey-aquaplus-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.0444,
+    0.1514
+   ]
   },
   {
    "id": "EPL159",
@@ -1007,7 +1152,9 @@
    "warmth": 23.2,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/6d1/z3hk17ig5fjix1euh7o7cg7k4ii6z6bx/61176227.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl159-dub-velli-natur-aquaplus-large-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl159-dub-velli-natur-aquaplus-large-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL135",
@@ -1031,7 +1178,9 @@
    "warmth": 11.1,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/cd7/lujc54t3pjwbb4avotm7djpkn5k6arzk/60133510.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-32-ehl135-dub-repino-classic/"
+   "url": "https://diy.by/laminat/laminat-egger-home-32-ehl135-dub-repino-classic/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL185",
@@ -1055,7 +1204,9 @@
    "warmth": 24.9,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/907/ecihgaysitbiz7wuq185n6pgevlr200q/60133511.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-32-ehl185-dub-matera-khani-classic/"
+   "url": "https://diy.by/laminat/laminat-egger-home-32-ehl185-dub-matera-khani-classic/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL158",
@@ -1079,7 +1230,9 @@
    "warmth": 23.2,
    "texture_scale_m": 1.42,
    "image_src": "https://diy.by/upload/resize_cache/slam/224/208/707_900_100/60180160.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl158-chester-natur-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl158-chester-natur-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL159",
@@ -1103,7 +1256,9 @@
    "warmth": 25.3,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/afb/28tq8usnihqz074zoihhmqd0px10xu0h/60180161.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl159-chester-korichnevyy-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl159-chester-korichnevyy-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL039",
@@ -1127,7 +1282,9 @@
    "warmth": 8.4,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/975/3shzilqpj8zcx3omhhp3q55srchntk2m/60309366.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-32-ehl039-dub-parketnyy-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-32-ehl039-dub-parketnyy-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL032",
@@ -1151,7 +1308,9 @@
    "warmth": 8.8,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/iblock/af3/b8l5ggc3pu17xgfgnci11skiar2dt1ju/60548720.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl032-dub-alvados-classic/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl032-dub-alvados-classic/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL103",
@@ -1173,9 +1332,14 @@
    "texture_ok": true,
    "lightness": 57.0,
    "warmth": 20.9,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 0.702,
    "image_src": "https://diy.by/upload/resize_cache/slam/805/973/1200_900_100/60067675.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl103-dub-bruks-medovyy-aquaplus-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl103-dub-bruks-medovyy-aquaplus-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.0433,
+    0.3667
+   ]
   },
   {
    "id": "EPL204",
@@ -1197,9 +1361,14 @@
    "texture_ok": true,
    "lightness": 63.3,
    "warmth": 20.0,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.036,
    "image_src": "https://diy.by/upload/resize_cache/slam/173/184/828_900_100/60226947.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-32-epl204-dub-sherman-layt-braun-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-32-epl204-dub-sherman-layt-braun-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.197,
+    0.2024
+   ]
   },
   {
    "id": "EHL229",
@@ -1223,7 +1392,9 @@
    "warmth": 3.1,
    "texture_scale_m": 1.29,
    "image_src": "https://diy.by/upload/resize_cache/slam/123/806/1152_900_100/60062236.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl229-mramor-kandela-svetlo-seryy-large-v4-aqua/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl229-mramor-kandela-svetlo-seryy-large-v4-aqua/",
+   "pattern": true,
+   "tex_rows": null
   },
   {
    "id": "EHL228",
@@ -1247,7 +1418,9 @@
    "warmth": 2.0,
    "texture_scale_m": 1.29,
    "image_src": "https://diy.by/upload/resize_cache/slam/351/636/1200_658_100/60062248.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl228-mramor-kristall-large-v4-aqua/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl228-mramor-kristall-large-v4-aqua/",
+   "pattern": true,
+   "tex_rows": null
   },
   {
    "id": "EHL017",
@@ -1269,9 +1442,14 @@
    "texture_ok": true,
    "lightness": 86.9,
    "warmth": 2.9,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 1.979,
    "image_src": "https://diy.by/upload/iblock/177/ea74qsernns2hfgtd0dqy738uni0qd3v/60062259.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl017-sosna-kastsina-classic-v4-aqua/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl017-sosna-kastsina-classic-v4-aqua/",
+   "pattern": false,
+   "tex_rows": [
+    0.0847,
+    0.1573
+   ]
   },
   {
    "id": "EHL248",
@@ -1295,7 +1473,9 @@
    "warmth": 17.7,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/348/825/1000_900_100/60072192.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-32-ehl248-vud-aura-braun-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-32-ehl248-vud-aura-braun-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL247",
@@ -1319,7 +1499,9 @@
    "warmth": 26.0,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/556/336/1000_900_100/60072207.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-32-ehl247-vud-aura-natur-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-32-ehl247-vud-aura-natur-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL232",
@@ -1343,7 +1525,9 @@
    "warmth": 2.5,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/179/644/1000_900_100/60072403.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl232-drevesina-atlant-classic/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl232-drevesina-atlant-classic/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL211",
@@ -1367,7 +1551,9 @@
    "warmth": 28.3,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/221/034/996_900_100/60072405.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl211-dub-kreydl-braun-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl211-dub-kreydl-braun-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL240",
@@ -1391,7 +1577,9 @@
    "warmth": 26.7,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/402/973/1000_900_100/60072409.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl240-dub-kandi-natur-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl240-dub-kandi-natur-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL244",
@@ -1415,7 +1603,9 @@
    "warmth": 7.8,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/342/791/1000_900_100/60143025.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl244-kamen-burgasbraun-aquaplus-large-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl244-kamen-burgasbraun-aquaplus-large-v4/",
+   "pattern": true,
+   "tex_rows": null
   },
   {
    "id": "EHL241",
@@ -1439,7 +1629,9 @@
    "warmth": 16.9,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/157/582/996_900_100/60143026.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl241-dub-baroniya-send-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl241-dub-baroniya-send-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL242",
@@ -1463,7 +1655,9 @@
    "warmth": 1.6,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/312/691/1000_900_100/60143028.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl242-dub-baroniya-grey-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl242-dub-baroniya-grey-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL251",
@@ -1487,7 +1681,9 @@
    "warmth": 5.6,
    "texture_scale_m": 1.29,
    "image_src": "https://diy.by/upload/resize_cache/slam/649/159/998_900_100/60155709.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl251-mramor-yurskiy-grey-aquaplus-large-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl251-mramor-yurskiy-grey-aquaplus-large-v4/",
+   "pattern": true,
+   "tex_rows": null
   },
   {
    "id": "EHL243",
@@ -1511,7 +1707,9 @@
    "warmth": 22.4,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/268/199/1000_900_100/60175781.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl243-pikhta-sitsiliya-rustik-aquaplus-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl243-pikhta-sitsiliya-rustik-aquaplus-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL238",
@@ -1535,7 +1733,9 @@
    "warmth": 22.7,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/145/950/996_900_100/60062354.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl238-dub-rumchorr-natur-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl238-dub-rumchorr-natur-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL239",
@@ -1559,7 +1759,9 @@
    "warmth": 16.4,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/231/925/996_900_100/60062392.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl239-dub-kandi-braun-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl239-dub-kandi-braun-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL233",
@@ -1583,7 +1785,9 @@
    "warmth": 14.5,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/284/370/1000_900_100/60227471.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl233-dub-orotava-send-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl233-dub-orotava-send-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL225",
@@ -1607,7 +1811,9 @@
    "warmth": 7.2,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/341/937/1000_900_100/60232815.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl225-dub-san-tadeo-natur-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl225-dub-san-tadeo-natur-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL235",
@@ -1631,7 +1837,9 @@
    "warmth": 10.7,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/242/663/996_900_100/60232816.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl235-dub-baroniya-layt-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl235-dub-baroniya-layt-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL276",
@@ -1653,9 +1861,14 @@
    "texture_ok": true,
    "lightness": 65.7,
    "warmth": 17.7,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.029,
    "image_src": "https://diy.by/upload/resize_cache/slam/275/016/835_900_100/60066130.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl276-dub-zhorzhina-natur-layt-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl276-dub-zhorzhina-natur-layt-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.0027,
+    0.2022
+   ]
   },
   {
    "id": "EPL269",
@@ -1677,9 +1890,14 @@
    "texture_ok": true,
    "lightness": 57.4,
    "warmth": 20.1,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.035,
    "image_src": "https://diy.by/upload/resize_cache/slam/393/835/832_900_100/60063073.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl269-dub-pollino-send-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl269-dub-pollino-send-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.0027,
+    0.2017
+   ]
   },
   {
    "id": "EPL270",
@@ -1701,9 +1919,14 @@
    "texture_ok": true,
    "lightness": 51.6,
    "warmth": 19.4,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.029,
    "image_src": "https://diy.by/upload/resize_cache/slam/287/547/834_900_100/60063074.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl270-dub-pollino-natur-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl270-dub-pollino-natur-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1997,
+    0.2024
+   ]
   },
   {
    "id": "EPL273",
@@ -1727,7 +1950,9 @@
    "warmth": 18.5,
    "texture_scale_m": 1.42,
    "image_src": "https://diy.by/upload/resize_cache/slam/909/069/832_900_100/60063454.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl273-orekh-tortona-braun-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl273-orekh-tortona-braun-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL272",
@@ -1749,9 +1974,14 @@
    "texture_ok": true,
    "lightness": 39.0,
    "warmth": 17.2,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.029,
    "image_src": "https://diy.by/upload/resize_cache/slam/227/146/835_900_100/60063457.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl272-dub-monte-braun-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl272-dub-monte-braun-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.0027,
+    0.2022
+   ]
   },
   {
    "id": "EPL253",
@@ -1773,9 +2003,14 @@
    "texture_ok": true,
    "lightness": 78.1,
    "warmth": 6.0,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.312,
    "image_src": "https://diy.by/upload/resize_cache/slam/247/948/829_900_100/60066139.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl253-travertin-tibur-bezh-aquaplus-large-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl253-travertin-tibur-bezh-aquaplus-large-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1995,
+    0.2035
+   ]
   },
   {
    "id": "EPL252",
@@ -1797,9 +2032,14 @@
    "texture_ok": true,
    "lightness": 77.4,
    "warmth": 2.3,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.308,
    "image_src": "https://diy.by/upload/resize_cache/slam/315/950/833_900_100/60066140.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl252-travertin-tibur-layt-aquaplus-large-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl252-travertin-tibur-layt-aquaplus-large-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1986,
+    0.2034
+   ]
   },
   {
    "id": "EPL259",
@@ -1821,9 +2061,14 @@
    "texture_ok": true,
    "lightness": 43.5,
    "warmth": 6.7,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.038,
    "image_src": "https://diy.by/upload/resize_cache/slam/151/608/829_900_100/60066167.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl259-oliviya-bezh-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl259-oliviya-bezh-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.2001,
+    0.2018
+   ]
   },
   {
    "id": "EPL265",
@@ -1847,7 +2092,9 @@
    "warmth": 25.2,
    "texture_scale_m": 0.6,
    "image_src": "https://diy.by/upload/resize_cache/slam/180/668/1000_900_100/60066218.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl265r-dub-ueno-ayvori-large/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl265r-dub-ueno-ayvori-large/",
+   "pattern": true,
+   "tex_rows": null
   },
   {
    "id": "EPL267",
@@ -1871,7 +2118,9 @@
    "warmth": 20.9,
    "texture_scale_m": 0.6,
    "image_src": "https://diy.by/upload/resize_cache/slam/846/864/1000_900_100/60066235.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl267r-dub-ueno-nyud-large/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl267r-dub-ueno-nyud-large/",
+   "pattern": true,
+   "tex_rows": null
   },
   {
    "id": "EPL280",
@@ -1895,7 +2144,9 @@
    "warmth": 24.2,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/417/673/944_900_100/60098886.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-32-epl280-orekh-tortona-layt-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-32-epl280-orekh-tortona-layt-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL258",
@@ -1919,7 +2170,9 @@
    "warmth": 2.9,
    "texture_scale_m": 1.42,
    "image_src": "https://diy.by/upload/resize_cache/slam/226/921/831_900_100/60098212.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl258-klen-kioto-grey-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl258-klen-kioto-grey-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL255",
@@ -1943,7 +2196,9 @@
    "warmth": 10.1,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/332/715/995_900_100/60114055.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl255-klen-kioto-natur-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl255-klen-kioto-natur-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL129",
@@ -1967,7 +2222,9 @@
    "warmth": 3.3,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/374/280/1000_900_100/60135278.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl129-kashtan-pyagola-belyy-classic/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl129-kashtan-pyagola-belyy-classic/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL271",
@@ -1989,9 +2246,14 @@
    "texture_ok": true,
    "lightness": 55.4,
    "warmth": 23.0,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.029,
    "image_src": "https://diy.by/upload/resize_cache/slam/190/100/828_900_100/60135280.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl271-dub-monte-khani-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl271-dub-monte-khani-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1984,
+    0.2038
+   ]
   },
   {
    "id": "EPL262",
@@ -2013,9 +2275,14 @@
    "texture_ok": true,
    "lightness": 54.1,
    "warmth": 10.8,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.036,
    "image_src": "https://diy.by/upload/resize_cache/slam/154/440/835_900_100/60135282.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl262-vyaz-nikko-bezh-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl262-vyaz-nikko-bezh-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.0027,
+    0.2008
+   ]
   },
   {
    "id": "EPL288",
@@ -2039,7 +2306,9 @@
    "warmth": 19.1,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/225/488/1000_900_100/60231220.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl288-dub-luara-nyud-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl288-dub-luara-nyud-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL263",
@@ -2063,7 +2332,9 @@
    "warmth": 19.4,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/723/199/1000_900_100/60228802.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl263-vyaz-nikko-natur-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl263-vyaz-nikko-natur-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL111",
@@ -2087,7 +2358,9 @@
    "warmth": 10.9,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/325/358/996_900_100/60247141.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl111-dub-ravenna-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl111-dub-ravenna-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL014",
@@ -2111,7 +2384,9 @@
    "warmth": 9.7,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/343/646/1000_900_100/60144473.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl014-dub-kurimo-classic-v4-/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl014-dub-kurimo-classic-v4-/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL140",
@@ -2135,7 +2410,9 @@
    "warmth": 1.5,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/251/005/996_900_100/60144474.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl140-dub-tsermatt-layt-classic-v4-/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl140-dub-tsermatt-layt-classic-v4-/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL146",
@@ -2159,7 +2436,9 @@
    "warmth": 15.3,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/258/264/1200_900_100/60140797.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl146-dub-elva-natur-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl146-dub-elva-natur-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL128",
@@ -2181,9 +2460,14 @@
    "texture_ok": true,
    "lightness": 69.3,
    "warmth": 10.3,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 0.705,
    "image_src": "https://diy.by/upload/resize_cache/slam/477/145/1200_900_100/60140805.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl128-dub-apalona-classic-/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl128-dub-apalona-classic-/",
+   "pattern": false,
+   "tex_rows": [
+    0.07,
+    0.365
+   ]
   },
   {
    "id": "EHL038",
@@ -2207,7 +2491,9 @@
    "warmth": 1.0,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/191/492/1000_900_100/60140810.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl038-dub-sedan-classic-v4-/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl038-dub-sedan-classic-v4-/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL201",
@@ -2231,7 +2517,9 @@
    "warmth": -0.1,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/360/794/1200_900_100/60140822.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl201-dub-madzhuro-layt-classic-v4-/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl201-dub-madzhuro-layt-classic-v4-/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL185",
@@ -2255,7 +2543,9 @@
    "warmth": 7.2,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/408/169/1000_900_100/60140832.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-32-epl185-dub-sherman-grey-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-32-epl185-dub-sherman-grey-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL261",
@@ -2279,7 +2569,9 @@
    "warmth": 2.1,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/318/779/1000_900_100/60140839.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl261-vyaz-nikko-smouk-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl261-vyaz-nikko-smouk-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL186",
@@ -2303,7 +2595,9 @@
    "warmth": 3.6,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/133/863/1000_900_100/60140848.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-32-epl186-dub-sherman-antratsit-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-32-epl186-dub-sherman-antratsit-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL268",
@@ -2325,9 +2619,14 @@
    "texture_ok": true,
    "lightness": 56.7,
    "warmth": 23.8,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 0.706,
    "image_src": "https://diy.by/upload/resize_cache/slam/300/054/1200_900_100/60235355.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-ehl268-dub-velvet-send-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-ehl268-dub-velvet-send-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.0508,
+    0.3646
+   ]
   },
   {
    "id": "EPL260",
@@ -2349,9 +2648,14 @@
    "texture_ok": true,
    "lightness": 73.8,
    "warmth": -0.3,
-   "texture_scale_m": 1.87,
+   "texture_scale_m": 0.706,
    "image_src": "https://diy.by/upload/resize_cache/slam/286/309/1200_900_100/60138907.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl260-oliviya-smouk-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl260-oliviya-smouk-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.0575,
+    0.3646
+   ]
   },
   {
    "id": "EPL266",
@@ -2375,7 +2679,9 @@
    "warmth": 28.6,
    "texture_scale_m": 0.6,
    "image_src": "https://diy.by/upload/iblock/9c6/wf10v4sao6hmlecmm0g10it7y3ln80cq/60142980.jpeg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl266r-dub-ueno-karamelnyy-large/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl266r-dub-ueno-karamelnyy-large/",
+   "pattern": true,
+   "tex_rows": null
   },
   {
    "id": "EPL250",
@@ -2399,7 +2705,9 @@
    "warmth": 4.2,
    "texture_scale_m": 1.29,
    "image_src": "https://diy.by/upload/iblock/a54/sw7lapg6y4duuji1t8bi94jfbigftrfn/60142981.jpeg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl250-mramor-voklyuz-aquaplus-large-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl250-mramor-voklyuz-aquaplus-large-v4/",
+   "pattern": true,
+   "tex_rows": null
   },
   {
    "id": "EPL251",
@@ -2423,7 +2731,9 @@
    "warmth": 12.0,
    "texture_scale_m": 1.29,
    "image_src": "https://diy.by/upload/iblock/f0a/h4hdxlq8ki7m3dah7nrlwyse38m0mjd4/60142983.jpeg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl251-mramor-yurskiy-send-aquaplus-large-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl251-mramor-yurskiy-send-aquaplus-large-v4/",
+   "pattern": true,
+   "tex_rows": null
   },
   {
    "id": "EPL257",
@@ -2445,9 +2755,14 @@
    "texture_ok": true,
    "lightness": 49.6,
    "warmth": 22.5,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.56,
    "image_src": "https://diy.by/upload/iblock/12c/bhar3hbqxeb76p1r57zs3j5fcqr5u9ma/60141293.jpeg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl257-klen-kioto-braun-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl257-klen-kioto-braun-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1259,
+    0.1484
+   ]
   },
   {
    "id": "EPL254",
@@ -2469,9 +2784,14 @@
    "texture_ok": true,
    "lightness": 75.3,
    "warmth": 2.5,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.56,
    "image_src": "https://diy.by/upload/iblock/1fd/ayw19slqxv60wwz0xixhjgcel6pvzspy/60141297.jpeg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl254-klen-kioto-layt-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl254-klen-kioto-layt-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1289,
+    0.1484
+   ]
   },
   {
    "id": "EPL285",
@@ -2495,7 +2815,9 @@
    "warmth": 23.0,
    "texture_scale_m": 1.42,
    "image_src": "https://diy.by/upload/iblock/2b0/ek0h2cwadcv5p8eujo5sr24ufzkx4exg/60141298.jpeg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl285-dub-tronse-natur-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl285-dub-tronse-natur-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EPL279",
@@ -2517,9 +2839,14 @@
    "texture_ok": true,
    "lightness": 42.7,
    "warmth": 19.4,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.56,
    "image_src": "https://diy.by/upload/iblock/a05/bkdjxf13np7d2522dv9aequ2rw9ri9m4/60141299.jpeg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl279-dub-baltimor-braun-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl279-dub-baltimor-braun-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1289,
+    0.1484
+   ]
   },
   {
    "id": "EPL256",
@@ -2541,9 +2868,14 @@
    "texture_ok": true,
    "lightness": 71.9,
    "warmth": 16.8,
-   "texture_scale_m": 1.42,
+   "texture_scale_m": 1.536,
    "image_src": "https://diy.by/upload/iblock/808/8a7ehuhjtc4bfboon5ro1q0g38lwp39i/60141300.jpeg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl256-klen-kioto-send-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl256-klen-kioto-send-classic-v4/",
+   "pattern": false,
+   "tex_rows": [
+    0.1237,
+    0.1507
+   ]
   },
   {
    "id": "EPL191",
@@ -2567,7 +2899,9 @@
    "warmth": 21.3,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/153/103/1200_900_100/60144475.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl191-dub-melba-braun-aquaplus-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-pro-33-epl191-dub-melba-braun-aquaplus-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   },
   {
    "id": "EHL204",
@@ -2591,7 +2925,9 @@
    "warmth": 8.5,
    "texture_scale_m": 1.87,
    "image_src": "https://diy.by/upload/resize_cache/slam/142/400/1097_900_100/60139240.jpg",
-   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl204-dub-kreydl-grey-classic-v4/"
+   "url": "https://diy.by/laminat/laminat-egger-home-33-ehl204-dub-kreydl-grey-classic-v4/",
+   "pattern": false,
+   "tex_rows": null
   }
  ],
  "underlay": [
