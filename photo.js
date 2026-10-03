@@ -27,6 +27,7 @@ export function initPhoto(canvas) {
       Hinv: { value: new THREE.Matrix3() }, imgSize: { value: new THREE.Vector2(1, 1) },
       texM: { value: new THREE.Vector2(1.3, 0.8) }, meanL: { value: 0.5 }, rot: { value: 0 },
       meanC: { value: new THREE.Vector3(0.3, 0.3, 0.3) }, roomTint: { value: new THREE.Vector3(1, 1, 1) },
+      lampFloor: { value: new THREE.Vector2(1.5, 1.5) },
       exposure: { value: 1 }, tint: { value: new THREE.Vector3(1, 1, 1) }, night: { value: 0 },
       showGrid: { value: 0 }, crop: { value: new THREE.Vector4(0, 0, 1, 1) },
     },
@@ -36,7 +37,7 @@ export function initPhoto(canvas) {
       varying vec2 vUv;
       uniform sampler2D photo, blurP, mask, decor;
       uniform mat3 Hinv; uniform vec2 imgSize, texM; uniform float meanL, rot, exposure, night, showGrid;
-      uniform vec3 tint, meanC, roomTint; uniform vec4 crop;
+      uniform vec3 tint, meanC, roomTint; uniform vec4 crop; uniform vec2 lampFloor;
       // sRGB <-> линейный свет (тени и свет умножаем в линейном пространстве)
       vec3 toLin(vec3 c){ return pow(c, vec3(2.2)); }
       vec3 toSrgb(vec3 c){ return pow(max(c, 0.0), vec3(1.0/2.2)); }
@@ -51,6 +52,7 @@ export function initPhoto(canvas) {
         if (m > 0.001) {
           vec3 f = Hinv * vec3(px, 1.0);
           vec2 fm = f.xy / f.z;                          // точка пола в метрах
+          float r = length(fm - lampFloor);              // расстояние до точки под люстрой
           if (rot > 0.5) fm = fm.yx;
           vec3 d = toLin(texture2D(decor, fm / texM).rgb);
           // Свет с фото: размытый цвет пола / средний цвет пола — где светлее, где тень,
@@ -58,9 +60,16 @@ export function initPhoto(canvas) {
           vec3 B = toLin(texture2D(blurP, uv).rgb);
           vec3 sh = B / max(meanC, vec3(0.001));
           float L = lum(B) / meanL;
-          vec3 light = mix(vec3(L), sh, 0.25) * roomTint;
+          vec3 dayLight = mix(vec3(L), sh, 0.25) * roomTint;
+          // Вечер: дневной рисунок света (солнце, блики окон) убираем совсем.
+          // Остаются только мягкие тени (где на фото темнее среднего), светит люстра.
+          float ao = mix(1.0, clamp(L, 0.35, 1.0), 0.6);
+          float lampL = 0.3 + 1.1 / (1.0 + r * r / 3.0);  // ярче под люстрой, к углам темнее
+          vec3 nightLight = vec3(ao * lampL);
+          vec3 light = mix(dayLight, nightLight, night);
           vec3 fl = d * min(light, vec3(1.4));
-          fl += vec3(max(L - 1.4, 0.0) * 0.5) * (1.0 - night); // блики от окон; вечером гаснут
+          fl += vec3(max(L - 1.4, 0.0) * 0.5) * (1.0 - night); // блики от окон днём
+          fl += vec3(0.10 * exp(-r * r / 0.35)) * night * ao;   // отражение люстры в ламинате
           if (showGrid > 0.5) {                          // сетка 0,5 м — для разметки
             vec2 g = abs(fract(fm / 0.5 + 0.5) - 0.5) / fwidth(fm / 0.5);
             fl = mix(vec3(1.0, 0.1, 0.1), fl, clamp(min(g.x, g.y), 0.0, 1.0));
@@ -135,6 +144,10 @@ function updateGeometry() {
   const d = cur.data, [W, D] = d.size;
   const h = homography(d.quad, [[0, 0], [W, 0], [W, D], [0, D]]); // фото → метры
   mat.uniforms.Hinv.value.set(...h);
+  if (d.lamp) {
+    const [x, y] = d.lamp, z = h[6] * x + h[7] * y + h[8];
+    mat.uniforms.lampFloor.value.set((h[0] * x + h[1] * y + h[2]) / z, (h[3] * x + h[4] * y + h[5]) / z);
+  } else mat.uniforms.lampFloor.value.set(W / 2, D / 2);
   mat.uniforms.imgSize.value.set(...d.img);
   mat.uniforms.rot.value = d.rotate ? 1 : 0;
 }
@@ -254,7 +267,7 @@ export function setPhotoFloor(image, texWidthM) {
 // Свет на фото: brightness 0…1, warmth −1 (холодный) … +1 (тёплый)
 export function setPhotoLight(b, w) {
   Object.assign(grade, { b, w });
-  const night = Math.min(1, Math.max(0, (0.6 - b) / 0.45));
+  const night = Math.min(1, Math.max(0, (0.65 - b) / 0.35)); // кнопка «Вечер» (30%) — полная ночь
   mat.uniforms.exposure.value = 0.35 + 0.75 * b;
   const warm = [1.0, 0.86, 0.66], cold = [0.86, 0.93, 1.06];
   const t = w > 0 ? warm : cold, k = Math.abs(w);
