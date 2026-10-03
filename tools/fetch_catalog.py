@@ -56,7 +56,8 @@ def srgb_to_lab(r, g, b):
 def process_image(content, out_path):
     """Сжимает до 800 px, сохраняет jpg 80%. Возвращает (lightness, warmth, texture_ok)."""
     img = Image.open(io.BytesIO(content)).convert("RGB")
-    if img.height > img.width:  # доски вертикально — кладём горизонтально, как остальные
+    rotated = img.height > img.width
+    if rotated:  # доски вертикально — кладём горизонтально, как остальные
         img = img.rotate(90, expand=True)
     w, h = img.size
     # Средний цвет без краёв (по 10% с каждой стороны)
@@ -68,7 +69,7 @@ def process_image(content, out_path):
     ok = 1.3 <= ratio <= 2.0 and not all(c > 245 for c in border)
     img.thumbnail((800, 800))
     img.save(out_path, "JPEG", quality=80)
-    return round(L, 1), round(b, 1), ok
+    return round(L, 1), round(b, 1), ok or rotated, rotated
 
 
 def make_decor(it):
@@ -153,8 +154,11 @@ def main():
         try:
             r = requests.get(d["image_src"], headers={"User-Agent": "Mozilla/5.0"}, timeout=30)
             r.raise_for_status()
-            L, w, ok = process_image(r.content, path)
+            L, w, ok, rotated = process_image(r.content, path)
             d.update(texture=f"textures/{d['id']}.jpg", texture_ok=ok, lightness=L, warmth=w)
+            # Ширина картинки в метрах — примерно по длине доски (на повёрнутых видно меньше)
+            if not d["texture_scale_m"] and d["board_len_mm"]:
+                d["texture_scale_m"] = round(d["board_len_mm"] / 1000 * (1.1 if rotated else 1.45), 2)
             done += 1
         except Exception as e:
             problems.append(f"{d['id']}: картинка не скачалась ({e})")
