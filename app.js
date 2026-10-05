@@ -1,5 +1,5 @@
 // Главный файл интерфейса. Формулы расчёта — в calc.js, фото комнат — в photo.js.
-import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting } from './photo.js?v=25';
+import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting } from './photo.js?v=26';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -375,8 +375,11 @@ $('#pickSkirting').onchange = e => { state.sk = e.target.value; changed(); };
 function photoSkirting() {
   if (!photoReady || !catalog) return;
   const s = skirtingNow();
-  if (photoReady) setPhotoSkirting(state.use.skirting && s ? s : null);
+  // по умолчанию на фото — настоящий плинтус с фото; нарисованный — по галочке
+  if (photoReady) setPhotoSkirting($('#skOnPhoto').checked && state.use.skirting && s ? s : null);
 }
+
+$('#skOnPhoto').onchange = () => photoSkirting();
 
 function lineDetail(l, decor, underlay, skirting) {
   let s = `${l.qty} ${l.unit}`;

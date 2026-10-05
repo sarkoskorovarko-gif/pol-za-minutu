@@ -72,6 +72,14 @@ def solve(img, floor, cam_h, vps=None):
     H, W = img.shape[:2]
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     segs = segments(gray)
+    # только линии на полу и у его краёв (доски, низ стен) — потолок и окна сбивают
+    fm = np.zeros(gray.shape, np.uint8)
+    cv2.fillPoly(fm, [np.int32(floor)], 255)
+    fm = cv2.dilate(fm, np.ones((41, 41), np.uint8))
+    mids = ((segs[:, :2] + segs[:, 2:]) / 2).astype(int)
+    ok = fm[np.clip(mids[:, 1], 0, gray.shape[0] - 1), np.clip(mids[:, 0], 0, gray.shape[1] - 1)] > 0
+    if ok.sum() > 20:
+        segs = segs[ok]
     c = np.array([W / 2, H / 2])
     # вертикальные (почти отвесные) убираем — нужны горизонтальные направления
     ang = np.degrees(np.arctan2(segs[:, 3] - segs[:, 1], segs[:, 2] - segs[:, 0])) % 180
