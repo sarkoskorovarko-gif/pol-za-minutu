@@ -6,7 +6,7 @@
 //  3) Свет и тени берём с исходного фото: размытая яркость пола / средняя яркость пола.
 import * as THREE from 'three';
 
-const MASK_V = 'v30'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
+const MASK_V = 'v31'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
 const DEFAULT_TEX_W_M = 1.3; // м пола по ширине фото декора (как в 3D)
 
 let renderer, scene, camera, mat, mesh, canvasEl;
@@ -208,7 +208,7 @@ function updateGeometry() {
 
 // ---------- Маска пола и карта света ----------
 function makeMask(d) {
-  const [iw, ih] = d.img, s = 1024 / Math.max(iw, ih);
+  const [iw, ih] = d.img, s = Math.min(1, 2048 / Math.max(iw, ih)); // полный размер — края без ступенек
   const c = document.createElement('canvas');
   c.width = Math.round(iw * s); c.height = Math.round(ih * s);
   const g = c.getContext('2d');

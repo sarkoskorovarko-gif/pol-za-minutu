@@ -28,6 +28,63 @@ def poly_mask(d, shape):
     return m
 
 
+def straight_walls(d, m, W, H):
+    """Стороны контура пола у стен — прямые, проведённые через точную (но волнистую) границу
+    GrabCut: и точно по краю на фото, и ровно. Сторона без надёжной опоры остаётся как в разметке."""
+    P = np.array(d["floor"], float)
+    n = len(P)
+    edge = cv2.morphologyEx((m > 127).astype(np.uint8), cv2.MORPH_GRADIENT, np.ones((3, 3), np.uint8))
+    ys, xs = np.nonzero(edge)
+    E = np.stack([xs, ys], 1).astype(float)
+    e = 3
+    on_border = lambda a: a[0] <= e or a[0] >= W - e or a[1] >= H - e or a[1] <= e
+    rng = np.random.default_rng(1)
+    lines = []
+    for i in range(n):
+        p, q = P[i], P[(i + 1) % n]
+        L = np.linalg.norm(q - p)
+        if L < 60 or (on_border(p) and on_border(q)):
+            lines.append(None); continue
+        u = (q - p) / L; nv = np.array([-u[1], u[0]])
+        rel = E - p
+        t, o = rel @ u, rel @ nv
+        S = E[(t > 0.05 * L) & (t < 0.95 * L) & (np.abs(o) < 14)]
+        if len(S) < 0.3 * L:
+            lines.append(None); continue
+        best, bi = None, 0
+        for _ in range(300):
+            a, b = S[rng.choice(len(S), 2, replace=False)]
+            v = b - a; lv = np.linalg.norm(v)
+            if lv < 0.2 * L:
+                continue
+            v /= lv; nn = np.array([-v[1], v[0]])
+            inl = np.abs((S - a) @ nn) < 1.5
+            if inl.sum() > bi:
+                bi, best = inl.sum(), inl
+        if best is None or bi < 0.4 * L:
+            lines.append(None); continue
+        Q = S[best]; mq = Q.mean(0)
+        dv = np.linalg.eigh(np.cov((Q - mq).T))[1][:, 1]
+        lines.append((mq, dv) if abs(dv @ u) > np.cos(np.radians(5)) else None)
+    out = []
+    for i in range(n):
+        a, b = lines[i - 1], lines[i]
+        pt = P[i]
+        if a is not None and b is not None:
+            A = np.array([a[1], -b[1]]).T
+            if abs(np.linalg.det(A)) > 1e-6:
+                x = a[0] + np.linalg.solve(A, b[0] - a[0])[0] * a[1]
+                if np.linalg.norm(x - pt) < 30:
+                    pt = x
+        elif a is not None or b is not None:
+            mq, dv = a if a is not None else b
+            x = mq + ((pt - mq) @ dv) * dv
+            if np.linalg.norm(x - pt) < 20:
+                pt = x
+        out.append(pt)
+    return np.array(out), sum(l is not None for l in lines)
+
+
 def refine(d):
     img = cv2.imdecode(np.fromfile(PHOTOS / d["file"], np.uint8), cv2.IMREAD_COLOR)  # путь с кириллицей
     H, W = img.shape[:2]
@@ -69,21 +126,41 @@ def refine(d):
     cv2.fillPoly(floor_full, [np.int32(np.round(d["floor"]))], 255)
     zone = cv2.dilate(floor_full, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * BAND + 1,) * 2))
     # Границы со стенами уже прямые (tools/snap_floor.py) — по цвету их не трогаем:
-    # "exact_floor": true — уточнять только вокруг мебели (вырезов).
+    # По умолчанию — только вокруг мебели (вырезов); "exact_floor": false — уточнять и стены.
     if d.get("exact_floor", False):
         hz = np.zeros_like(base)
         for h in d.get("holes", []):
             cv2.fillPoly(hz, [np.int32(np.round(h))], 255)
         zone = cv2.dilate(hz, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * BAND + 1,) * 2))
-    out = np.where(zone > 0, m, base)
+    # Стены — прямые через точную границу GrabCut (ровно и по краю)
+    floor_poly, nfit = straight_walls(d, m, W, H) if not d.get("exact_floor", False) else (np.array(d["floor"], float), 0)
+    # GrabCut дальше нужен только вокруг мебели
+    hz = np.zeros_like(base)
+    for h in d.get("holes", []):
+        cv2.fillPoly(hz, [np.int32(np.round(h))], 255)
+    zone = cv2.dilate(hz, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * BAND + 1,) * 2))
+    # Края мебели после GrabCut рваные — сглаживаем (убираем «зубчики», форма остаётся)
+    ms = cv2.GaussianBlur(m.astype(np.float32), (0, 0), 2.0)
+    m = np.where(ms > 127, 255, 0).astype(np.uint8)
+    # Пол у стен — точный многоугольник с гладким краем: рисуем в 4 раза крупнее и уменьшаем
+    big = np.zeros((H * 4, W * 4), np.uint8)
+    cv2.fillPoly(big, [np.int32(np.round(floor_poly * 4))], 255, lineType=cv2.LINE_AA)
+    smooth = cv2.resize(big, (W, H), interpolation=cv2.INTER_AREA).astype(np.float32)
+    for h in d.get("holes", []):
+        hb = np.zeros((H * 4, W * 4), np.uint8)
+        cv2.fillPoly(hb, [np.int32(np.round(np.array(h) * 4))], 255, lineType=cv2.LINE_AA)
+        smooth = np.minimum(smooth, 255 - cv2.resize(hb, (W, H), interpolation=cv2.INTER_AREA).astype(np.float32))
+    out = np.where(zone > 0, m.astype(np.float32), smooth)
     # "keep" — места, где пол точно не рисуем: ковёр или деревянная ножка цвета пола.
     # В обучение GrabCut их не даём (собьют его), применяем в самом конце.
     for k in d.get("keep", []):
-        cv2.fillPoly(out, [np.int32(np.round(k))], 0)
-    out = cv2.GaussianBlur(out, (3, 3), 0)
-    # 1024 по длинной стороне — как маска на сайте
-    t = 1024 / max(W, H)
-    out = cv2.resize(out, (round(W * t), round(H * t)), interpolation=cv2.INTER_AREA)
+        kb = np.zeros((H * 4, W * 4), np.uint8)
+        cv2.fillPoly(kb, [np.int32(np.round(np.array(k) * 4))], 255, lineType=cv2.LINE_AA)
+        out = np.minimum(out, 255 - cv2.resize(kb, (W, H), interpolation=cv2.INTER_AREA).astype(np.float32))
+    # края мебели — чуть мягче (1 px), края стен уже гладкие
+    soft = cv2.GaussianBlur(out, (0, 0), 0.7)
+    out = np.where(zone > 0, soft, out)
+    out = np.clip(out, 0, 255).astype(np.uint8)        # полный размер фото — без ступенек
     OUT.mkdir(exist_ok=True)
     cv2.imencode(".png", out)[1].tofile(OUT / f"{d['id']}.png")
     changed = np.mean(np.abs(m.astype(int) - base.astype(int)) > 128) * 100

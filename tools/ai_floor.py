@@ -80,15 +80,15 @@ def make(d):
     cv2.imencode(".png", m * 255)[1].tofile(raw / f"{d['id']}.png")
     path = ROOT / "data" / "photos" / "masks" / f"{d['id']}.png"
     own = cv2.imdecode(np.fromfile(path, np.uint8), 0)
-    own = cv2.resize(own, (W, H), interpolation=cv2.INTER_LINEAR) > 127
+    own_soft = cv2.resize(own, (W, H), interpolation=cv2.INTER_LINEAR).astype(np.float32)
+    own = own_soft > 127
     ai = cv2.dilate(m, np.ones((11, 11), np.uint8)) > 0
-    if d.get("ai_trim", True) is False:          # блики/плитка сбивают нейросеть — не режем
+    if not d.get("ai_trim", False):               # по умолчанию не режем: её край грубый          # блики/плитка сбивают нейросеть — не режем
         ai = np.ones_like(ai)
     cut = own & ~ai
     final = (own & ai).astype(np.float32)
     out = cv2.GaussianBlur(final * 255, (3, 3), 0)
-    t = 1024 / max(W, H)
-    out = cv2.resize(out, (round(W * t), round(H * t)), interpolation=cv2.INTER_AREA).astype(np.uint8)
+    out = np.where(ai, own_soft, own_soft * 0).astype(np.uint8)
     cv2.imencode(".png", out)[1].tofile(path)
     return round(final.mean() * 100, 1), round(cut.mean() * 100, 2)
 
