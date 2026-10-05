@@ -6,7 +6,7 @@
 //  3) Свет и тени берём с исходного фото: размытая яркость пола / средняя яркость пола.
 import * as THREE from 'three';
 
-const MASK_V = 'v28'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
+const MASK_V = 'v30'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
 const DEFAULT_TEX_W_M = 1.3; // м пола по ширине фото декора (как в 3D)
 
 let renderer, scene, camera, mat, mesh, canvasEl;
@@ -26,7 +26,7 @@ export function initPhoto(canvas) {
   camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, 0, 1);
   mat = new THREE.ShaderMaterial({
     uniforms: {
-      photo: { value: null }, blurP: { value: null }, mask: { value: null }, decor: { value: null },
+      photo: { value: null }, blurP: { value: null }, medP: { value: null }, gloss: { value: 0.35 }, mask: { value: null }, decor: { value: null },
       Hinv: { value: new THREE.Matrix3() }, imgSize: { value: new THREE.Vector2(1, 1) },
       texM: { value: new THREE.Vector2(1.3, 0.8) }, meanL: { value: 0.5 }, rot: { value: 0 },
       meanC: { value: new THREE.Vector3(0.3, 0.3, 0.3) }, roomTint: { value: new THREE.Vector3(1, 1, 1) },
@@ -41,7 +41,7 @@ export function initPhoto(canvas) {
     fragmentShader: `
       precision highp float;
       varying vec2 vUv;
-      uniform sampler2D photo, blurP, mask, decor;
+      uniform sampler2D photo, blurP, medP, mask, decor; uniform float gloss;
       uniform mat3 Hinv; uniform vec2 imgSize, texM; uniform float meanL, rot, exposure, night, showGrid;
       uniform vec3 tint, meanC, roomTint; uniform vec4 crop; uniform vec2 lampFloor; uniform float hasLamp;
       uniform vec3 skCol; uniform float skOn, skL;
@@ -54,7 +54,8 @@ export function initPhoto(canvas) {
         if (boardOn < 0.5) return texture2D(decor, uvc).rgb;
         float L = board.x, W = board.y;
         float row = floor(fm.y / W);
-        float x = fm.x + h1(vec2(row, 7.0)) * L;           // смещение ряда
+        // разбег стыков соседних рядов — не меньше ~1/3 доски, как при укладке
+        float x = fm.x + fract(row * 0.382 + h1(vec2(row, 7.0)) * 0.25) * L;
         float col = floor(x / L);
         vec2 loc = vec2(x - col * L, fm.y - row * W);      // место внутри доски, м
         float nr = max(1.0, floor((1.0 - rows.x) / rows.y + 0.01));
@@ -83,37 +84,43 @@ export function initPhoto(canvas) {
         vec3 src = toLin(texture2D(photo, uv).rgb);
         vec4 mk = texture2D(mask, uv);
         float m = mk.r;                                  // красный канал — пол, зелёный — окна
-        vec3 col = src;
-        if (m > 0.001) {
-          vec3 f = Hinv * vec3(px, 1.0);
-          vec2 fm = f.xy / f.z;                          // точка пола в метрах
-          float r = length(fm - lampFloor);              // расстояние до точки под люстрой
-          if (rot > 0.5) fm = fm.yx;
-          vec3 d = toLin(floorColor(fm));
-          // Свет с фото: размытый цвет пола / средний цвет пола — где светлее, где тень,
-          // где тёплое солнечное пятно. Плюс общий оттенок света в комнате (по стенам).
-          vec3 B = toLin(texture2D(blurP, uv).rgb);
-          vec3 sh = B / max(meanC, vec3(0.001));
-          float L = lum(B) / meanL;
-          vec3 dayLight = mix(vec3(L), sh, 0.25) * roomTint;
-          // Вечер: дневной рисунок света (солнце, блики окон) убираем совсем.
-          // Остаются только мягкие тени (где на фото темнее среднего), светит люстра.
-          // тенью считаем только заметно тёмные места (у мебели, в углах);
-          // всё, что светлее, — ровный пол, чтобы дневные блики не проступали пятнами
-          float ao = mix(0.55, 1.0, smoothstep(0.2, 0.7, L));
-          // Свет люстры: мягкий спад к углам, без яркого пятна
-          float lampL = hasLamp > 0.5 ? 0.45 + 0.75 / (1.0 + r * r / 6.0) : 0.9;
-          vec3 nightLight = vec3(ao * lampL);
-          vec3 light = mix(dayLight, nightLight, night);
-          vec3 fl = d * min(light, vec3(1.4));
-          fl += vec3(min(max(L - 1.4, 0.0) * 0.2, 0.15)) * (1.0 - night); // блики от окон днём
-          fl += vec3(0.06 * exp(-r * r / 0.5)) * night * ao * hasLamp; // отражение люстры — только если она отмечена
-          if (showGrid > 0.5) {                          // сетка 0,5 м — для разметки
-            vec2 g = abs(fract(fm / 0.5 + 0.5) - 0.5) / fwidth(fm / 0.5);
-            fl = mix(vec3(1.0, 0.1, 0.1), fl, clamp(min(g.x, g.y), 0.0, 1.0));
-          }
-          col = mix(src, fl, m);
+        // Пол считаем для всех пикселей (без if): иначе производные (резкость, стыки)
+        // у края маски «искрят»
+        vec3 f = Hinv * vec3(px, 1.0);
+        vec2 fm = f.xy / f.z;                            // точка пола в метрах
+        float r = length(fm - lampFloor);                // расстояние до точки под люстрой
+        if (rot > 0.5) fm = fm.yx;
+        vec3 d = toLin(floorColor(fm));
+        // Свет с фото — только освещение, без рисунка и тона старого пола:
+        // крупный и средний размытый свет ПОЛА (стены не подмешаны), к «нормальной» яркости
+        vec4 BL = texture2D(blurP, uv), BM = texture2D(medP, uv);
+        float Ll = lum(toLin(BL.rgb)) / meanL, Lm = lum(toLin(BM.rgb)) / meanL;
+        float S = pow(clamp(mix(Ll, Lm, 0.45), 0.3, 2.4), 0.92);
+        // у стен и мебели пол чуть темнее (свет туда попадает меньше)
+        float occ = (1.0 - 0.22 * BM.a) * (1.0 - 0.10 * BL.a);
+        vec3 dayLight = vec3(S * occ) * roomTint;
+        // Вечер: дневной рисунок света (солнце, блики окон) убираем совсем.
+        // Остаются только мягкие тени (где на фото темнее среднего), светит люстра.
+        float ao = mix(0.55, 1.0, smoothstep(0.2, 0.7, Ll)) * occ;
+        float lampL = hasLamp > 0.5 ? 0.45 + 0.75 / (1.0 + r * r / 6.0) : 0.9;
+        vec3 light = mix(dayLight, vec3(ao * lampL), night);
+        vec3 fl = d * light;
+        // отражения окон и ламп: где старый пол ярче общего света (средний минус крупный);
+        // сильнее к дальней части комнаты — под скользящим углом пол блестит больше
+        float refl = max(lum(toLin(BM.rgb)) - lum(toLin(BL.rgb)) * 1.08, 0.0);
+        float fres = mix(0.5, 1.3, smoothstep(0.0, 0.6, vUv.y));
+        fl += vec3(refl * gloss * fres) * (1.0 - night);
+        fl += vec3(0.06 * exp(-r * r / 0.5)) * night * ao * hasLamp; // отражение люстры — если отмечена
+        // мягкое «плечо»: яркое не выгорает в белое пятно
+        fl = mix(fl, 0.6 + 0.4 * (1.0 - exp(-(fl - 0.6) / 0.4)), step(0.6, fl));
+        // зерно как у фото — слишком чистый пол выглядит наклеенным
+        fl *= 1.0 + (h1(px) + h1(px + 17.3) - 1.0) * 0.03;
+        if (showGrid > 0.5) {                            // сетка 0,5 м — для разметки
+          vec2 gq = abs(fract(fm / 0.5 + 0.5) - 0.5) / fwidth(fm / 0.5);
+          fl = mix(vec3(1.0, 0.1, 0.1), fl, clamp(min(gq.x, gq.y), 0.0, 1.0));
         }
+        // тонкий край маски: без полупрозрачной полосы старого пола
+        vec3 col = mix(src, fl, smoothstep(0.3, 0.7, m));
         // Плинтус: синий канал маски — полоса над линией пола у стен.
         // Свет берём с фото (где старый плинтус в тени — новый тоже), ночью — как пол.
         float sk = mk.b * skOn * (1.0 - smoothstep(0.2, 0.8, m)); // на пол плинтус не заходит
@@ -271,34 +278,91 @@ function skirtBand(d, w, h, s) {
   return c;
 }
 
-function makeLight(img, maskCanvas) {
-  // Размытая копия фото: исчезает рисунок старых досок, остаются свет и тени
-  const s = 512 / Math.max(img.width, img.height);
-  const c = document.createElement('canvas');
-  c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
-  const g = c.getContext('2d');
-  g.filter = 'blur(5px)';
-  g.drawImage(img, 0, 0, c.width, c.height);
-  // Средняя яркость пола (по маске) — «нормальный» свет
-  const px = g.getImageData(0, 0, c.width, c.height).data;
-  const mc = document.createElement('canvas'); mc.width = c.width; mc.height = c.height;
-  const mg = mc.getContext('2d'); mg.drawImage(maskCanvas, 0, 0, c.width, c.height);
-  const mp = mg.getImageData(0, 0, c.width, c.height).data;
-  const lin = v => Math.pow(v / 255, 2.2);
-  const fl = [0, 0, 0], rest = [0, 0, 0];
-  let n = 0, nr = 0, sl = 0, ns = 0;
-  for (let i = 0; i < px.length; i += 4) {
-    const r = lin(px[i]), g2 = lin(px[i + 1]), b = lin(px[i + 2]);
-    if (mp[i + 2] > 128) { sl += 0.2126 * r + 0.7152 * g2 + 0.0722 * b; ns++; }
-    if (mp[i] > 128) { fl[0] += r; fl[1] += g2; fl[2] += b; n++; }
-    else if (r + g2 + b > 0.3 && r + g2 + b < 2.7) { rest[0] += r; rest[1] += g2; rest[2] += b; nr++; } // светлые стены, без окон
+// Размытие «коробкой» (3 прохода ≈ гаусс) с повтором края; a — массив w*h
+function boxBlur(a, w, h, r) {
+  let src = a;
+  const tmp = new Float32Array(w * h);
+  for (let pass = 0; pass < 3; pass++) {
+    const out = new Float32Array(w * h);
+    for (let y = 0; y < h; y++) {                 // по строкам
+      let acc = 0; const o = y * w;
+      for (let k = -r; k <= r; k++) acc += src[o + Math.min(w - 1, Math.max(0, k))];
+      for (let x = 0; x < w; x++) {
+        tmp[o + x] = acc / (2 * r + 1);
+        acc += src[o + Math.min(w - 1, x + r + 1)] - src[o + Math.max(0, x - r)];
+      }
+    }
+    for (let x = 0; x < w; x++) {                 // по столбцам
+      let acc = 0;
+      for (let k = -r; k <= r; k++) acc += tmp[Math.min(h - 1, Math.max(0, k)) * w + x];
+      for (let y = 0; y < h; y++) {
+        out[y * w + x] = acc / (2 * r + 1);
+        acc += tmp[Math.min(h - 1, y + r + 1) * w + x] - tmp[Math.max(0, y - r) * w + x];
+      }
+    }
+    src = out;
   }
+  return src;
+}
+
+// Карта света пола. Размываем ТОЛЬКО пол (стены и мебель не «натекают» на край — нет каймы):
+// blur(фото·маска) / blur(маска), в линейном свете. Две ширины: крупная — общий свет и тени,
+// средняя — пятна солнца и отражения окон. Плюс затенение у стен и мебели (по маске).
+function makeLight(img, maskCanvas) {
+  const s = 512 / Math.max(img.width, img.height);
+  const w = Math.round(img.width * s), h = Math.round(img.height * s), N = w * h;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  g.drawImage(img, 0, 0, w, h);
+  const px = g.getImageData(0, 0, w, h).data;
+  const mc = document.createElement('canvas'); mc.width = w; mc.height = h;
+  const mg = mc.getContext('2d'); mg.drawImage(maskCanvas, 0, 0, w, h);
+  const mp = mg.getImageData(0, 0, w, h).data;
+  const LUT = new Float32Array(256).map((_, v) => Math.pow(v / 255, 2.2));
+  const m = new Float32Array(N), ch = [0, 1, 2].map(() => new Float32Array(N));
+  const rest = [0, 0, 0]; let nr = 0, sl = 0, ns = 0;
+  for (let i = 0; i < N; i++) {
+    const r = LUT[px[4 * i]], g2 = LUT[px[4 * i + 1]], b = LUT[px[4 * i + 2]];
+    const mm = mp[4 * i] / 255; m[i] = mm;
+    ch[0][i] = r * mm; ch[1][i] = g2 * mm; ch[2][i] = b * mm;
+    if (mp[4 * i + 2] > 128) { sl += 0.2126 * r + 0.7152 * g2 + 0.0722 * b; ns++; }
+    if (mm < 0.5 && r + g2 + b > 0.3 && r + g2 + b < 2.7) { rest[0] += r; rest[1] += g2; rest[2] += b; nr++; } // светлые стены
+  }
+  const masked = rad => {
+    const den = boxBlur(m, w, h, rad);
+    return ch.map(a => { const b = boxBlur(a, w, h, rad); for (let i = 0; i < N; i++) b[i] /= Math.max(den[i], 1e-3); return b; });
+  };
+  const SL = masked(14), SM = masked(4);
+  // затенение: сколько «не пола» вокруг (стены, мебель)
+  const nf = new Float32Array(N); for (let i = 0; i < N; i++) nf[i] = 1 - m[i];
+  const aoN = boxBlur(nf, w, h, 3), aoF = boxBlur(nf, w, h, 12);
+  // «нормальная» яркость пола — 60-й процентиль (солнечные пятна не тянут всё вниз)
+  const ls = [], fl = [0, 0, 0];
+  for (let i = 0; i < N; i++) if (m[i] > 0.5) {
+    ls.push(0.2126 * SM[0][i] + 0.7152 * SM[1][i] + 0.0722 * SM[2][i]);
+    fl[0] += SM[0][i]; fl[1] += SM[1][i]; fl[2] += SM[2][i];
+  }
+  const n = ls.length;
+  ls.sort((a, b) => a - b);
+  const meanL = n ? ls[Math.floor(n * 0.6)] : 0.3;
   const meanC = n ? fl.map(v => v / n) : [0.3, 0.3, 0.3];
+  // в текстуры: RGB = свет (в sRGB — тени не теряют точность), A = затенение; снизу вверх, как фото
+  const pack = (S, ao) => {
+    const out = new Uint8Array(N * 4);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = y * w + x, o = ((h - 1 - y) * w + x) * 4;
+      for (let k = 0; k < 3; k++) out[o + k] = Math.min(255, Math.round(Math.pow(Math.max(S[k][i], 0), 1 / 2.2) * 255));
+      out[o + 3] = Math.round(Math.min(1, ao[i]) * 255);
+    }
+    const t = new THREE.DataTexture(out, w, h, THREE.RGBAFormat);
+    t.colorSpace = THREE.NoColorSpace; t.minFilter = t.magFilter = THREE.LinearFilter; t.needsUpdate = true;
+    return t;
+  };
   const L = c3 => 0.2126 * c3[0] + 0.7152 * c3[1] + 0.0722 * c3[2];
   const wall = nr ? rest.map(v => v / nr) : [1, 1, 1];
   // Стены бывают крашеные (персиковые, серые), поэтому берём только малую часть их оттенка
   const tint = wall.map(v => Math.min(1.08, Math.max(0.92, 1 + (v / L(wall) - 1) * 0.15)));
-  return { canvas: c, meanL: L(meanC), meanC, tint, skL: ns ? sl / ns : 0.5 };
+  return { bigTex: pack(SL, aoF), medTex: pack(SM, aoN), meanL, meanC, tint, skL: ns ? sl / ns : 0.5 };
 }
 
 function tex(src) {
@@ -315,7 +379,7 @@ export function showPhoto(data) {
     const done = c => {
       cur = c;
       Object.assign(mat.uniforms, {});
-      mat.uniforms.photo.value = c.photoTex; mat.uniforms.blurP.value = c.blurTex;
+      mat.uniforms.photo.value = c.photoTex; mat.uniforms.blurP.value = c.blurTex; mat.uniforms.medP.value = c.medTex;
       mat.uniforms.mask.value = c.maskTex; mat.uniforms.meanL.value = c.meanL; mat.uniforms.skL.value = c.skL;
       mat.uniforms.meanC.value.set(...c.meanC); mat.uniforms.roomTint.value.set(...c.tint);
       updateGeometry(); fitCrop(); render(); ok();
@@ -333,7 +397,7 @@ export function showPhoto(data) {
     const build = () => {
       data.img = data.img || [img.width, img.height];
       const mask = makeMask(data), light = makeLight(img, mask);
-      const c = { photoTex: tex(img), blurTex: tex(light.canvas), maskTex: tex(mask), meanL: light.meanL,
+      const c = { photoTex: tex(img), blurTex: light.bigTex, medTex: light.medTex, maskTex: tex(mask), meanL: light.meanL,
                   meanC: light.meanC, tint: light.tint, skL: light.skL, img, skH: skirt && skirt.h };
       cache[data.id] = c;
       done({ ...c, data });
@@ -349,11 +413,11 @@ export function refreshPhoto(data) {
   const c = cache[data.id];
   data._maskImg = null; // разметку правят — режем по многоугольникам
   const mask = makeMask(data), light = makeLight(c.img, mask);
-  c.maskTex.dispose(); c.blurTex.dispose();
-  c.maskTex = tex(mask); c.blurTex = tex(light.canvas); c.meanL = light.meanL; c.meanC = light.meanC; c.tint = light.tint; c.skL = light.skL;
+  c.maskTex.dispose(); c.blurTex.dispose(); c.medTex.dispose();
+  c.maskTex = tex(mask); c.blurTex = light.bigTex; c.medTex = light.medTex; c.meanL = light.meanL; c.meanC = light.meanC; c.tint = light.tint; c.skL = light.skL;
   mat.uniforms.meanC.value.set(...c.meanC); mat.uniforms.roomTint.value.set(...c.tint);
   cur = { ...c, data };
-  mat.uniforms.mask.value = c.maskTex; mat.uniforms.blurP.value = c.blurTex; mat.uniforms.meanL.value = c.meanL; mat.uniforms.skL.value = c.skL;
+  mat.uniforms.mask.value = c.maskTex; mat.uniforms.blurP.value = c.blurTex; mat.uniforms.medP.value = c.medTex; mat.uniforms.meanL.value = c.meanL; mat.uniforms.skL.value = c.skL;
   updateGeometry(); render();
 }
 
