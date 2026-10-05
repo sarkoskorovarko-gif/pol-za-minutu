@@ -68,6 +68,13 @@ def refine(d):
     floor_full = np.zeros_like(base)
     cv2.fillPoly(floor_full, [np.int32(np.round(d["floor"]))], 255)
     zone = cv2.dilate(floor_full, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * BAND + 1,) * 2))
+    # Границы со стенами уже прямые (tools/snap_floor.py) — по цвету их не трогаем:
+    # "exact_floor": true — уточнять только вокруг мебели (вырезов).
+    if d.get("exact_floor", False):
+        hz = np.zeros_like(base)
+        for h in d.get("holes", []):
+            cv2.fillPoly(hz, [np.int32(np.round(h))], 255)
+        zone = cv2.dilate(hz, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * BAND + 1,) * 2))
     out = np.where(zone > 0, m, base)
     # "keep" — места, где пол точно не рисуем: ковёр или деревянная ножка цвета пола.
     # В обучение GrabCut их не даём (собьют его), применяем в самом конце.

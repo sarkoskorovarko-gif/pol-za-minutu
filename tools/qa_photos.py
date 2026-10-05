@@ -74,6 +74,15 @@ def check(d):
     bnd[:4, :] = bnd[-4:, :] = False; bnd[:, :4] = bnd[:, -4:] = False
     edge_ok = near_edge[bnd].mean() * 100 if bnd.any() else 100
     bad_edge = bnd & ~near_edge
+    # согласие с нейросетью (если её маска есть): граница не дальше 6 px от её границы
+    ai_ok = None
+    ap = Path(r"D:/pol-ai/ai_masks") / f"{d['id']}.png"
+    if ap.exists() and bnd.any():
+        am = cv2.resize(cv2.imdecode(np.fromfile(ap, np.uint8), 0), (W, H)) > 127
+        ae = cv2.morphologyEx(am.astype(np.uint8), cv2.MORPH_GRADIENT, np.ones((3, 3), np.uint8))
+        near_ai = cv2.dilate(ae, np.ones((13, 13), np.uint8)) > 0
+        ai_ok = near_ai[bnd].mean() * 100
+        bad_edge = bad_edge & ~near_ai     # на картинке — только места, где не согласны оба
 
     # 2. утечка старого пола: снаружи маски, рядом (до 40 px), цвет как у пола
     ring = (cv2.dilate(mu8, np.ones((81, 81), np.uint8)) > 0) & ~m
@@ -116,7 +125,7 @@ def check(d):
     inl = [e for e in errs if e < 15]
     persp = float(np.median(inl)) if len(inl) >= 5 else None
 
-    res = dict(edge=round(edge_ok, 1), leak=round(leak.mean() * 100, 2), over=round(over.mean() * 100, 2),
+    res = dict(edge=round(edge_ok, 1), ai=None if ai_ok is None else round(ai_ok, 1), leak=round(leak.mean() * 100, 2), over=round(over.mean() * 100, 2),
                persp=None if persp is None else round(persp, 1), lines=len(errs), size=[Wq, Dq],
                floor=round(m.mean() * 100))
 
@@ -143,7 +152,7 @@ def check(d):
 
 def verdict(r):
     bad = []
-    if r["edge"] < 80: bad.append("края")
+    if r["edge"] < 80 and (r["ai"] is None or r["ai"] < 85): bad.append("края")
     if r["leak"] > 1: bad.append("старый пол виден")
     if r["over"] > 1: bad.append("пол на мебели")
     if r["persp"] is not None and r["persp"] > 3: bad.append("перспектива")
@@ -159,5 +168,5 @@ if __name__ == "__main__":
             continue
         r = check(d)
         print(f"{d['id']:4} {d['title'][:26]:26} пол {r['floor']:3}%  края {r['edge']:5}%  "
-              f"утечка {r['leak']:5}%  на мебели {r['over']:5}%  персп. {r['persp']}° ({r['lines']} линий)  "
+              f"нейросеть {r['ai']}%  утечка {r['leak']:5}%  на мебели {r['over']:5}%  персп. {r['persp']}° ({r['lines']} линий)  "
               f"{r['size'][0]}×{r['size'][1]} м  → {verdict(r)}")

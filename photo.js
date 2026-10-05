@@ -6,6 +6,7 @@
 //  3) Свет и тени берём с исходного фото: размытая яркость пола / средняя яркость пола.
 import * as THREE from 'three';
 
+const MASK_V = 'v28'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
 const DEFAULT_TEX_W_M = 1.3; // м пола по ширине фото декора (как в 3D)
 
 let renderer, scene, camera, mat, mesh, canvasEl;
@@ -326,7 +327,7 @@ export function showPhoto(data) {
     const mk = new Image();
     mk.onload = () => { data._maskImg = mk; ready(); };
     mk.onerror = () => ready(); // маски нет — режем по многоугольникам
-    mk.src = (window.PHOTO_BASE || '') + 'data/photos/masks/' + data.id + '.png?v=' + (data.maskV || 1);
+    mk.src = (window.PHOTO_BASE || '') + 'data/photos/masks/' + data.id + '.png?v=' + MASK_V;
     const ready = () => { if (--left === 0) build(); };
     img.onload = () => ready();
     const build = () => {
