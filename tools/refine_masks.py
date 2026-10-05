@@ -139,6 +139,8 @@ def refine(d):
     for h in d.get("holes", []):
         cv2.fillPoly(hz, [np.int32(np.round(h))], 255)
     zone = cv2.dilate(hz, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * BAND + 1,) * 2))
+    if d.get("no_grabcut"):        # мебель обведена точно вручную, а цвет пола как у плинтуса — не уточняем
+        zone[:] = 0
     # Края мебели после GrabCut рваные — сглаживаем (убираем «зубчики», форма остаётся)
     ms = cv2.GaussianBlur(m.astype(np.float32), (0, 0), 2.0)
     m = np.where(ms > 127, 255, 0).astype(np.uint8)
