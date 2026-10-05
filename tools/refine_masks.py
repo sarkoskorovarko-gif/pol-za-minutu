@@ -146,7 +146,26 @@ def refine(d):
     m = np.where(ms > 127, 255, 0).astype(np.uint8)
     # Пол у стен — точный многоугольник с гладким краем: рисуем в 4 раза крупнее и уменьшаем
     big = np.zeros((H * 4, W * 4), np.uint8)
-    cv2.fillPoly(big, [np.int32(np.round(floor_poly * 4))], 255, lineType=cv2.LINE_AA)
+    # углы на краю кадра выносим за край — иначе у края фото остаётся полоска старого пола
+    # и стены, которые подходят к краю кадра «чуть не доходя», продлеваем за край вдоль стены
+    fp = floor_poly.copy()
+    n_ = len(fp)
+    on_b = lambda q: q[0] <= 0.5 or q[0] >= W - 0.5 or q[1] >= H - 0.5
+    for i in range(n_):
+        v = fp[i]
+        for k in (-1, 1):
+            nb = floor_poly[(i + k) % n_]
+            if on_b(nb) or on_b(v):
+                continue
+            dv = v - nb
+            for axis, lim in ((0, -6), (0, W + 6), (1, H + 6)):
+                near = v[axis] < 25 if lim < 0 else v[axis] > (W if axis == 0 else H) - 25
+                if near and abs(dv[axis]) > 1e-6 and np.sign(dv[axis]) == np.sign(lim - v[axis]):
+                    t = (lim - nb[axis]) / dv[axis]
+                    fp[i] = nb + dv * t
+    fp[fp[:, 0] <= 8, 0] = -6; fp[fp[:, 0] >= W - 8, 0] = W + 6
+    fp[fp[:, 1] >= H - 8, 1] = H + 6; fp[fp[:, 1] <= 8, 1] = -6
+    cv2.fillPoly(big, [np.int32(np.round(fp * 4))], 255, lineType=cv2.LINE_AA)
     smooth = cv2.resize(big, (W, H), interpolation=cv2.INTER_AREA).astype(np.float32)
     for h in d.get("holes", []):
         hb = np.zeros((H * 4, W * 4), np.uint8)
