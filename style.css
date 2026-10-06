@@ -142,3 +142,7 @@ h2 { margin: 0 0 12px; font-size: 20px; }
 .furn-btn { position: absolute; right: 12px; bottom: 12px; padding: 10px 16px; border: 0; border-radius: 22px;
   background: rgba(255,255,255,.92); color: var(--accent); font: inherit; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,.25); cursor: pointer; }
 .furn-btn.on { background: var(--accent); color: #fff; }
+.furn-menu { position: absolute; right: 12px; bottom: 62px; display: flex; flex-direction: column; gap: 6px;
+  background: rgba(255,255,255,.96); padding: 8px; border-radius: 14px; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+.furn-menu button { min-height: 44px; padding: 8px 16px; border: 0; border-radius: 10px; background: none; font: inherit; text-align: left; cursor: pointer; }
+.furn-menu button.on { background: var(--accent); color: #fff; }

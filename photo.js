@@ -5,8 +5,9 @@
 //  2) Маска пола (контур минус мебель) говорит, где менять пол, а где оставить фото.
 //  3) Свет и тени берём с исходного фото: размытая яркость пола / средняя яркость пола.
 import * as THREE from 'three';
+import { PRESETS, isBuilt, build } from './furniture.js?v=49';
 
-const MASK_V = 'v47'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
+const MASK_V = 'v49'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
 const DEFAULT_TEX_W_M = 1.3; // м пола по ширине фото декора (как в 3D)
 
 let renderer, scene, camera, mat, mesh, canvasEl;
@@ -193,7 +194,7 @@ export function render() {
 // По 4 точкам пола восстанавливаем камеру (фокус, положение, поворот) — модели рисуются
 // под тем же углом, что и фото. Мебель задаётся в photos.json: furniture: [{ m, x, y, rot }]
 // (x, y — метры в прямоугольнике пола, rot — градусы; модели в data/furniture/<m>/).
-let furnOn = false;
+let furnOn = null;          // название набора мебели («Гостиная»…) или null
 const furn = { scene: null, cam: null, group: null, models: {}, roomId: null, loader: null };
 
 function initFurniture() {
@@ -261,10 +262,71 @@ function solveCamera(d) {
 
 // Где на фото (x, пиксели) середина расставленной мебели
 function furnFocus(d) {
-  if (!d.furniture || !d.furniture.length || !d.size) return 0;
+  const items = layout(d, furnOn);
+  if (!items.length) return 0;
   const [W, D] = d.size, h = homography([[0, 0], [W, 0], [W, D], [0, D]], d.quad);
-  const xs = d.furniture.map(({ x, y }) => (h[0] * x + h[1] * y + h[2]) / (h[6] * x + h[7] * y + h[8]));
+  const xs = items.map(({ x, y }) => (h[0] * x + h[1] * y + h[2]) / (h[6] * x + h[7] * y + h[8]));
   return (Math.min(...xs) + Math.max(...xs)) / 2;
+}
+
+// Камера по 4 точкам пола (без three.js): фокус f, поворот R (столбцы), сдвиг t,
+// s — где «верх» (±), C — где камера стоит на полу (метры)
+const camCache = {};
+function camInfo(d) {
+  if (camCache[d.id]) return camCache[d.id];
+  const [W, D] = d.size, [iw, ih] = d.img, cx = iw / 2, cy = ih / 2;
+  const h = homography([[0, 0], [W, 0], [W, D], [0, D]], d.quad);
+  const M = [[h[0] - cx * h[6], h[1] - cx * h[7], h[2] - cx * h[8]],
+             [h[3] - cy * h[6], h[4] - cy * h[7], h[5] - cy * h[8]], [h[6], h[7], h[8]]];
+  const col = i => [M[0][i], M[1][i], M[2][i]];
+  const [a1, b1, g1] = col(0), [a2, b2, g2] = col(1);
+  const f2 = -(a1 * a2 + b1 * b2) / (g1 * g2);
+  if (!(f2 > 0)) return (camCache[d.id] = null);
+  const f = Math.sqrt(f2), kv = v => [v[0] / f, v[1] / f, v[2]], len = v => Math.hypot(...v);
+  const c1 = kv(col(0)), c2 = kv(col(1)), c3 = kv(col(2));
+  let lam = 2 / (len(c1) + len(c2));
+  if (c3[2] * lam < 0) lam = -lam;
+  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  const n = v => { const l = len(v); return v.map(x => x / l); };
+  const r1 = n(c1.map(v => v * lam)), t = c3.map(v => v * lam);
+  const r3 = n(cross(r1, c2.map(v => v * lam))), r2 = cross(r3, r1);
+  const R = [r1, r2, r3];
+  const C = [0, 1, 2].map(i => -(R[i][0] * t[0] + R[i][1] * t[1] + R[i][2] * t[2]));  // центр камеры в осях пола
+  return (camCache[d.id] = { f, R, t, s: C[2] > 0 ? 1 : -1, C, H: h });
+}
+
+// Набор мебели → предметы в метрах пола: { m, x, y, yaw }.
+// Набор ставится у дальней стены (куда смотрит камера) лицом к камере; не влезает — пропускаем
+function layout(d, name) {
+  const P = name && PRESETS[name], c = d.size && camInfo(d);
+  if (!P || !c) return [];
+  const [W, D] = d.size, { s, C, H } = c;
+  // точка у дальней стены: на фото — середина кадра (или stage_img), чуть ниже границы пола
+  const [iw, ih] = d.img;
+  const [sx, sy] = d.stage_img || (() => {
+    const x0 = d.stage_x || (d.focus ? d.focus[0] : iw / 2);         // stage_x — если в середине что-то мешает
+    let top = ih;
+    d.floor.forEach((p, i) => {
+      const q = d.floor[(i + 1) % d.floor.length];
+      if ((p[0] - x0) * (q[0] - x0) <= 0 && p[0] !== q[0]) top = Math.min(top, p[1] + (q[1] - p[1]) * (x0 - p[0]) / (q[0] - p[0]));
+    });
+    return [x0, top + ih * 0.03];
+  })();
+  const Hi = homography(d.quad, [[0, 0], [W, 0], [W, D], [0, D]]);
+  const z = Hi[6] * sx + Hi[7] * sy + Hi[8];
+  let a = [(Hi[0] * sx + Hi[1] * sy + Hi[2]) / z, (Hi[3] * sx + Hi[4] * sy + Hi[5]) / z];
+  let v = [C[0] - a[0], C[1] - a[1]];                                // от стены к камере
+  const dist = Math.hypot(...v); v = [v[0] / dist, v[1] / dist];
+  const far = 4.2;                                                  // дальше — мебель слишком мелкая
+  if (dist > far) a = [C[0] - v[0] * far, C[1] - v[1] * far];
+  let u = [-v[1], v[0]];
+  const px = (x, y) => (H[0] * x + H[1] * y + H[2]) / (H[6] * x + H[7] * y + H[8]);
+  if (px(a[0] + u[0], a[1] + u[1]) < px(a[0], a[1])) u = [-u[0], -u[1]];   // «вправо» — как видно на фото
+  const face = Math.atan2(v[0], -s * v[1]);                         // поворот модели лицом к камере
+  const m = 0.15;
+  return P.map(it => ({ m: it.m, x: a[0] + u[0] * it.u + v[0] * it.v, y: a[1] + u[1] * it.u + v[1] * it.v,
+                        yaw: face + (it.rot || 0) * Math.PI / 180 }))
+    .filter(it => it.x > m && it.x < W - m && it.y > m && it.y < D - m);
 }
 
 function fitFurnCrop() {
@@ -346,6 +408,7 @@ function lightRoom(d) {
 
 async function loadModel(m) {
   if (furn.models[m]) return furn.models[m];
+  if (isBuilt(m)) return (furn.models[m] = build(m));
   if (!furn.loader) {
     const { GLTFLoader } = await import('./lib/jsm/loaders/GLTFLoader.js');
     furn.loader = new GLTFLoader();
@@ -371,18 +434,18 @@ async function placeFurniture() {
   if (!furn.scene) initFurniture();
   furn.group.children.filter(o => o.userData.item).forEach(o => furn.group.remove(o));
   furn.roomId = d.id;
-  if (!furnOn || !d.furniture || !d.size) { render(); return; }
+  if (!furnOn || !d.size) { render(); return; }
   if (!solveCamera(d)) { render(); throw new Error('для этого фото не вычисляется камера'); }
   fitFurnCrop();
   lightRoom(d);
   const errs = [];
-  for (const it of d.furniture) {
+  for (const it of layout(d, furnOn)) {
     try {
       const proto = await loadModel(it.m);
       if (furn.roomId !== d.id) return;                              // пока грузили — сменили комнату
       const o = proto.clone();
       o.position.set(it.x, 0, -furn.s * it.y);                       // z модели → Y пола (см. матрицу группы)
-      o.rotation.y = (it.rot || 0) * Math.PI / 180;
+      o.rotation.y = it.yaw;
       o.userData.item = true;
       furn.group.add(o);
     } catch (e) { console.warn('мебель не загрузилась', it.m, e); errs.push(it.m + ': ' + (e && e.message || e)); }
@@ -392,8 +455,10 @@ async function placeFurniture() {
   if (errs.length) throw new Error(errs.join('; '));
 }
 
-export function setFurniture(on) { furnOn = on; fitCrop(); return placeFurniture(); }
-export function roomHasFurniture(d) { return !!(d && d.furniture && d.furniture.length); }
+// name — набор («Гостиная», «Спальня», «Столовая») или null — без мебели
+export function setFurniture(name) { furnOn = name || null; fitCrop(); return placeFurniture(); }
+export const FURN_PRESETS = Object.keys(PRESETS);
+export function roomCanFurnish(d) { return !!(d && d.size && d.quad && !d.no_furniture && camInfo(d)); }
 
 // ---------- Перспектива: 4 точки фото → прямоугольник W×D м ----------
 // Решаем систему 8×8 (классическое преобразование по 4 точкам)
