@@ -1,5 +1,5 @@
 // Главный файл интерфейса. Формулы расчёта — в calc.js, фото комнат — в photo.js.
-import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting, photoBlob } from './photo.js?v=40';
+import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting, photoBlob, setFurniture } from './photo.js?v=41';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -380,6 +380,7 @@ function photoSkirting() {
 }
 
 $('#skOnPhoto').onchange = () => photoSkirting();
+$('#furnOnPhoto').onchange = e => { if (photoReady) setFurniture(e.target.checked); };
 
 function lineDetail(l, decor, underlay, skirting) {
   let s = `${l.qty} ${l.unit}`;
