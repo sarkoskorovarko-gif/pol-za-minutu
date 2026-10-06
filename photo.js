@@ -6,7 +6,7 @@
 //  3) Свет и тени берём с исходного фото: размытая яркость пола / средняя яркость пола.
 import * as THREE from 'three';
 
-const MASK_V = 'v45'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
+const MASK_V = 'v46'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
 const DEFAULT_TEX_W_M = 1.3; // м пола по ширине фото декора (как в 3D)
 
 let renderer, scene, camera, mat, mesh, canvasEl;
@@ -201,10 +201,22 @@ const furn = { scene: null, cam: null, group: null, models: {}, roomId: null, lo
 
 function initFurniture() {
   furn.scene = new THREE.Scene();
-  furn.scene.add(new THREE.HemisphereLight(0xffffff, 0x8a7a6a, 2.2));
-  const sun = new THREE.DirectionalLight(0xffffff, 1.4); sun.position.set(1, 3, 2); furn.scene.add(sun);
   furn.group = new THREE.Group(); furn.group.matrixAutoUpdate = false;
   furn.scene.add(furn.group);
+  // свет комнаты: рассеянный (окрашен цветом фото) + свет из окна, который даёт тени
+  furn.amb = new THREE.HemisphereLight(0xffffff, 0x6f6458, 0.9); furn.group.add(furn.amb);
+  furn.sun = new THREE.DirectionalLight(0xffffff, 2.2);
+  furn.sun.castShadow = true;
+  furn.sun.shadow.mapSize.set(2048, 2048);
+  furn.sun.shadow.radius = 18; furn.sun.shadow.blurSamples = 25; furn.sun.shadow.bias = -0.0005;
+  Object.assign(furn.sun.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6, near: 0.1, far: 30 });
+  furn.group.add(furn.sun, furn.sun.target);
+  // «ловец» теней — прозрачный пол, на нём видны только тени
+  furn.catcher = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShadowMaterial({ opacity: 0.28 }));
+  furn.catcher.rotation.x = -Math.PI / 2; furn.catcher.receiveShadow = true;
+  furn.group.add(furn.catcher);
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.VSMShadowMap;
+  renderer.shadowMap.autoUpdate = true;
   furn.cam = new THREE.PerspectiveCamera();
   furn.cam.matrixAutoUpdate = false; furn.cam.matrixWorldAutoUpdate = false;
 }
@@ -268,9 +280,28 @@ function fitFurnCrop() {
 function shadowTex() {
   const c = document.createElement('canvas'); c.width = c.height = 128;
   const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 8, 64, 64, 64);
-  gr.addColorStop(0, 'rgba(0,0,0,0.55)'); gr.addColorStop(0.6, 'rgba(0,0,0,0.25)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  gr.addColorStop(0, 'rgba(0,0,0,0.6)'); gr.addColorStop(0.5, 'rgba(0,0,0,0.3)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
   g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
   return new THREE.CanvasTexture(c);
+}
+
+// Свет под комнату: цвет — средний цвет фото, окно — откуда свет (d.sun: [x, y, высота] в метрах пола)
+function lightRoom(d) {
+  const [W, D] = d.size, s = furn.s;
+  const [r, g, b] = cur.tint || [1, 1, 1];
+  const wall = new THREE.Color().setRGB(Math.min(1, 0.85 * r), Math.min(1, 0.85 * g), Math.min(1, 0.85 * b));
+  furn.amb.color.copy(wall); furn.amb.groundColor.setRGB(...decorAvg).multiplyScalar(0.8);
+  const [sx, sy, sh] = d.sun || [-2, D / 2, 7];   // рассеянный свет окна — высоко, тени короткие
+  furn.sun.position.set(sx, sh, -s * sy);
+  furn.sun.target.position.set(W / 2, 0, -s * D / 2);
+  furn.catcher.scale.set(W, D, 1);                  // тени — только на полу
+  furn.catcher.position.set(W / 2, 0.001, -s * D / 2);
+  if (!furn.env) {                                      // отражения — из самого фото
+    const pm = new THREE.PMREMGenerator(renderer), t = new THREE.Texture(cur.img);
+    t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true;
+    furn.scene.environment = pm.fromEquirectangular(t).texture; furn.scene.environmentIntensity = 0.6;
+    furn.envId = cur.data.id; furn.env = true; pm.dispose(); t.dispose();
+  } else if (furn.envId !== cur.data.id) { furn.env = false; lightRoom(d); }
 }
 
 async function loadModel(m) {
@@ -280,12 +311,14 @@ async function loadModel(m) {
     furn.loader = new GLTFLoader();
   }
   const gltf = await furn.loader.loadAsync(`${window.PHOTO_BASE || ''}data/furniture/${m}/${m}.gltf`);
-  const obj = gltf.scene, box = new THREE.Box3().setFromObject(obj), size = box.getSize(new THREE.Vector3());
+  const obj = gltf.scene;
+  obj.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  const box = new THREE.Box3().setFromObject(obj), size = box.getSize(new THREE.Vector3());
   obj.position.y -= box.min.y;                                       // ножки — на пол
   obj.position.x -= (box.min.x + box.max.x) / 2; obj.position.z -= (box.min.z + box.max.z) / 2;
   const holder = new THREE.Group(); holder.add(obj);
   // мягкая тень под мебелью
-  const sh = new THREE.Mesh(new THREE.PlaneGeometry(size.x * 1.25, size.z * 1.35),
+  const sh = new THREE.Mesh(new THREE.PlaneGeometry(size.x * 1.1, size.z * 1.15),
     new THREE.MeshBasicMaterial({ map: furn.shadow || (furn.shadow = shadowTex()), transparent: true, depthWrite: false }));
   sh.rotation.x = -Math.PI / 2; sh.position.y = 0.002; sh.renderOrder = -1;
   holder.add(sh);
@@ -296,11 +329,12 @@ async function placeFurniture() {
   if (!cur) return;
   const d = cur.data;
   if (!furn.scene) initFurniture();
-  furn.group.clear();
+  furn.group.children.filter(o => o.userData.item).forEach(o => furn.group.remove(o));
   furn.roomId = d.id;
   if (!furnOn || !d.furniture || !d.size) { render(); return; }
   if (!solveCamera(d)) { render(); throw new Error('для этого фото не вычисляется камера'); }
   fitFurnCrop();
+  lightRoom(d);
   const errs = [];
   for (const it of d.furniture) {
     try {
@@ -309,9 +343,11 @@ async function placeFurniture() {
       const o = proto.clone();
       o.position.set(it.x, 0, -furn.s * it.y);                       // z модели → Y пола (см. матрицу группы)
       o.rotation.y = (it.rot || 0) * Math.PI / 180;
+      o.userData.item = true;
       furn.group.add(o);
     } catch (e) { console.warn('мебель не загрузилась', it.m, e); errs.push(it.m + ': ' + (e && e.message || e)); }
   }
+  furn.ready = true;
   render();
   if (errs.length) throw new Error(errs.join('; '));
 }
