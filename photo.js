@@ -6,7 +6,7 @@
 //  3) Свет и тени берём с исходного фото: размытая яркость пола / средняя яркость пола.
 import * as THREE from 'three';
 
-const MASK_V = 'v34'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
+const MASK_V = 'v36'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
 const DEFAULT_TEX_W_M = 1.3; // м пола по ширине фото декора (как в 3D)
 
 let renderer, scene, camera, mat, mesh, canvasEl;
@@ -62,17 +62,29 @@ export function initPhoto(canvas) {
         float k = floor(h1(vec2(row, col)) * nr);          // какой ряд фото декора берём
         float u0 = h1(vec2(col, row + 31.0)) * max(0.0, 1.0 - L / texM.x);
         vec2 uv = vec2(u0 + loc.x / texM.x, 1.0 - (rows.x + (k + loc.y / W) * rows.y));
-        vec3 c = textureGrad(decor, uv, dFdx(uvc), dFdy(uvc)).rgb;
-        // лёгкая разница тона между досками — как в жизни
-        c *= 0.96 + 0.08 * h1(vec2(col * 3.1, row * 1.7));
+        vec2 gx = dFdx(uvc), gy = dFdy(uvc);
+        vec3 c = textureGrad(decor, uv, gx, gy).rgb;
+        // резкость: фото декора маленькое, вблизи оно мутнеет — возвращаем мелкий рисунок
+        vec3 cb = textureGrad(decor, uv, gx * 3.0, gy * 3.0).rgb;
+        float near = clamp(1.0 - length(gx) * 600.0, 0.0, 1.0);
+        c = max(c + (c - cb) * 0.45 * near, 0.0);
+        // разница тона и насыщенности между досками — как в жизни
+        float hv = h1(vec2(col * 3.1, row * 1.7));
+        c *= 0.94 + 0.12 * hv;
+        c = mix(vec3(dot(c, vec3(0.333))), c, 0.92 + 0.16 * h1(vec2(row * 2.3, col)));
         // фаска / стык: тонкая тёмная линия, сглаженная по размеру пикселя
         float e = min(min(loc.x, L - loc.x), min(loc.y, W - loc.y));
         float aa = max(fwidth(fm.x), fwidth(fm.y));
         float wl = mix(0.0006, 0.0022, bevel);             // ширина линии, м
-        float seam = 1.0 - smoothstep(wl, wl + aa, e);
-        // вдали стык тоньше пикселя — делаем его бледнее, а не толще
-        seam *= clamp(wl / aa, 0.0, 1.0);
-        return c * (1.0 - seam * mix(0.18, 0.35, bevel));
+        float fade = clamp(wl / aa, 0.0, 1.0);          // вдали стык тоньше пикселя — бледнее, не толще
+        float seam = (1.0 - smoothstep(wl, wl + aa, e)) * fade;
+        // фаска: у дальнего края доски (к камере смотрит «скат») — тонкий блик,
+        // у ближнего — тень; торцевые стыки слабее продольных
+        float lng = 1.0 - smoothstep(wl, wl + aa, min(loc.y, W - loc.y));
+        float hiE = W - loc.y;                            // дальний продольный край
+        float hl = (smoothstep(wl, wl + aa, hiE) - smoothstep(wl * 2.2, wl * 2.2 + aa, hiE)) * fade * bevel;
+        float sd = mix(0.12, 0.30, bevel) * mix(0.6, 1.0, lng);
+        return c * (1.0 - seam * sd) * (1.0 + hl * 0.18);
       }
       // sRGB <-> линейный свет (тени и свет умножаем в линейном пространстве)
       vec3 toLin(vec3 c){ return pow(c, vec3(2.2)); }
