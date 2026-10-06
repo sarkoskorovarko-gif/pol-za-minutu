@@ -1,5 +1,5 @@
 // Главный файл интерфейса. Формулы расчёта — в calc.js, фото комнат — в photo.js.
-import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting, photoBlob, setFurniture } from './photo.js?v=41';
+import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting, photoBlob, setFurniture } from './photo.js?v=42';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -228,6 +228,7 @@ function showView() {
   if (!p) return;
   if (!photoReady) { initPhoto($('#photoView')); photoReady = true; applyLight(); photoSkirting(); }
   if (current()) photoFloor(current());
+  $('#furnBtn').hidden = !(p.furniture && p.furniture.length); // кнопка — только где мебель расставлена
   showPhoto(p).catch(() => toast('Не удалось загрузить фото'));
 }
 
@@ -380,7 +381,7 @@ function photoSkirting() {
 }
 
 $('#skOnPhoto').onchange = () => photoSkirting();
-$('#furnOnPhoto').onchange = e => { if (photoReady) setFurniture(e.target.checked); };
+$('#furnBtn').onclick = e => { const on = e.currentTarget.classList.toggle('on'); if (photoReady) setFurniture(on); };
 
 function lineDetail(l, decor, underlay, skirting) {
   let s = `${l.qty} ${l.unit}`;

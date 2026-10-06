@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=41">
+  <link rel="stylesheet" href="style.css?v=42">
 </head>
 <body>
   <header class="top">
@@ -22,7 +22,7 @@
   <!-- Переключатель комнат -->
   <nav class="rooms-nav" id="roomsNav"></nav>
   <!-- Фото комнаты с выбранным полом -->
-  <div class="scene"><canvas id="photoView"></canvas></div>
+  <div class="scene"><canvas id="photoView"></canvas><button id="furnBtn" class="furn-btn" hidden>Мебель</button></div>
   <p class="note">Цвет на экране может отличаться. Сравните с образцом на стенде.</p>
 
   <!-- Декоры: соседи по тону, лента, ползунки, фильтры -->
@@ -51,8 +51,7 @@
     <div class="look-row"><span class="look-lbl">Яркость</span><input type="range" id="bright" min="0" max="100" value="80"></div>
     <div class="look-row"><span class="look-lbl">Свет</span><span class="small">тёплый</span><input type="range" id="lwarm" min="-100" max="100" value="20"><span class="small">холодный</span></div>
     <div class="look-row"><span class="look-lbl"></span>
-      <label class="switch small"><input type="checkbox" id="skOnPhoto"> Плинтус на фото</label>
-      <label class="switch small"><input type="checkbox" id="furnOnPhoto"> Мебель</label></div>
+      <label class="switch small"><input type="checkbox" id="skOnPhoto"> Плинтус на фото</label></div>
     <div class="look-row"><span class="look-lbl"></span>
       <div class="seg small-seg"><button id="day">☀️ День</button><button id="evening">🌙 Вечер</button></div></div>
   </details>
@@ -166,8 +165,8 @@
 
   <!-- three.js подключается по имени 'three' (так его ищут и дополнения) -->
   <script type="importmap">{ "imports": { "three": "./lib/three.module.min.js" } }</script>
-  <script src="lib/qrcode.js?v=41"></script>
-  <script src="calc.js?v=41"></script>
-  <script type="module" src="app.js?v=41"></script>
+  <script src="lib/qrcode.js?v=42"></script>
+  <script src="calc.js?v=42"></script>
+  <script type="module" src="app.js?v=42"></script>
 </body>
 </html>
