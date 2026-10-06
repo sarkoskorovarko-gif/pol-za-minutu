@@ -1,5 +1,5 @@
 // Главный файл интерфейса. Формулы расчёта — в calc.js, фото комнат — в photo.js.
-import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting, photoBlob, setFurniture } from './photo.js?v=46';
+import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting, photoBlob, setFurniture } from './photo.js?v=47';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];

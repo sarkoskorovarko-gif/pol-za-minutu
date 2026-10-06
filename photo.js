@@ -6,7 +6,7 @@
 //  3) Свет и тени берём с исходного фото: размытая яркость пола / средняя яркость пола.
 import * as THREE from 'three';
 
-const MASK_V = 'v46'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
+const MASK_V = 'v47'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
 const DEFAULT_TEX_W_M = 1.3; // м пола по ширине фото декора (как в 3D)
 
 let renderer, scene, camera, mat, mesh, canvasEl;
@@ -185,11 +185,8 @@ function fitCrop() {
 export function render() {
   if (!(renderer && cur && decorTex)) return;
   renderer.render(scene, camera);
-  if (furnOn && furn.group.children.length && furn.cam) {   // мебель — 3D поверх фото
-    renderer.autoClear = false; renderer.clearDepth();
-    renderer.render(furn.scene, furn.cam);
-    renderer.autoClear = true;
-  }
+  if (furnOn && furn.ready && furn.cam) drawFurniture();   // мебель — 3D поверх фото
+
 }
 
 // ---------- Мебель: 3D-модели, поставленные на пол фото ----------
@@ -285,6 +282,49 @@ function shadowTex() {
   return new THREE.CanvasTexture(c);
 }
 
+// Мебель рисуется отдельным слоем, затем ложится на фото «как снятая той же камерой»:
+// мягкие края, цвет и контраст под фото, лёгкое зерно
+function drawFurniture() {
+  const sz = renderer.getDrawingBufferSize(new THREE.Vector2());
+  if (!furn.rt) {
+    furn.rt = new THREE.WebGLRenderTarget(sz.x, sz.y, { type: THREE.HalfFloatType, samples: 4 });
+    furn.comp = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({
+      uniforms: { layer: { value: null }, px: { value: new THREE.Vector2() }, tint: { value: new THREE.Vector3(1, 1, 1) } },
+      vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy * 2.0, 0.0, 1.0); }`,
+      fragmentShader: `
+        varying vec2 vUv; uniform sampler2D layer; uniform vec2 px; uniform vec3 tint;
+        void main(){
+          // лёгкое размытие: края мебели мягкие, как на фото
+          vec4 c = texture2D(layer, vUv) * 0.4;
+          c += (texture2D(layer, vUv + vec2(px.x, 0.0)) + texture2D(layer, vUv - vec2(px.x, 0.0))
+              + texture2D(layer, vUv + vec2(0.0, px.y)) + texture2D(layer, vUv - vec2(0.0, px.y))) * 0.15;
+          if (c.a < 0.002) discard;
+          vec3 col = c.rgb / c.a;                                      // цвет без прозрачности
+          float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
+          col = mix(vec3(l), col, 0.82);                               // фото менее насыщенное
+          col = col * tint * 0.9;                                      // оттенок комнаты, чуть темнее — как в тени комнаты
+          col = 0.012 + col * 0.95;                                    // нет «чёрной» черноты — у фото дымка
+          col = pow(col, vec3(1.0 / 2.2));                             // линейный свет → экран
+          col += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * 0.025; // зерно
+          gl_FragColor = vec4(col * c.a, c.a);
+        }`,
+      transparent: true, depthTest: false, depthWrite: false,
+      blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
+    }));
+    furn.compScene = new THREE.Scene(); furn.compScene.add(furn.comp);
+  }
+  if (furn.rt.width !== sz.x || furn.rt.height !== sz.y) furn.rt.setSize(sz.x, sz.y);
+  const u = furn.comp.material.uniforms;
+  u.layer.value = furn.rt.texture; u.px.value.set(0.7 / sz.x, 0.7 / sz.y);
+  const t = cur.tint || [1, 1, 1], m = (t[0] + t[1] + t[2]) / 3;
+  u.tint.value.set(t[0] / m, t[1] / m, t[2] / m).lerp(new THREE.Vector3(1, 1, 1), 0.5);
+  const cc = renderer.getClearColor(new THREE.Color()), ca = renderer.getClearAlpha();
+  renderer.setRenderTarget(furn.rt); renderer.setClearColor(0x000000, 0); renderer.clear();
+  renderer.render(furn.scene, furn.cam);
+  renderer.setRenderTarget(null); renderer.setClearColor(cc, ca);
+  renderer.autoClear = false; renderer.render(furn.compScene, camera); renderer.autoClear = true;
+}
+
 // Свет под комнату: цвет — средний цвет фото, окно — откуда свет (d.sun: [x, y, высота] в метрах пола)
 function lightRoom(d) {
   const [W, D] = d.size, s = furn.s;
@@ -299,7 +339,7 @@ function lightRoom(d) {
   if (!furn.env) {                                      // отражения — из самого фото
     const pm = new THREE.PMREMGenerator(renderer), t = new THREE.Texture(cur.img);
     t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true;
-    furn.scene.environment = pm.fromEquirectangular(t).texture; furn.scene.environmentIntensity = 0.6;
+    furn.scene.environment = pm.fromEquirectangular(t).texture; furn.scene.environmentIntensity = 0.45;
     furn.envId = cur.data.id; furn.env = true; pm.dispose(); t.dispose();
   } else if (furn.envId !== cur.data.id) { furn.env = false; lightRoom(d); }
 }
