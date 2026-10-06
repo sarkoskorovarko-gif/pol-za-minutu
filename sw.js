@@ -1,8 +1,8 @@
 // Работа без интернета. После первого открытия файлы сайта хранятся в телефоне.
 // При изменении сайта увеличить номер версии — телефоны скачают новые файлы.
-const VERSION = 'v42';
-const FILES = ['./', 'index.html', 'style.css?v=42', 'calc.js?v=42', 'app.js?v=42', 'photo.js?v=42', 'data/photos.json', 'data/demo/laminate_floor_02.jpg',
-  'lib/three.module.min.js', 'lib/qrcode.js?v=42', 'manifest.json', 'icons/icon-192.png', 'data/catalog.json'];
+const VERSION = 'v43';
+const FILES = ['./', 'index.html', 'style.css?v=43', 'calc.js?v=43', 'app.js?v=43', 'photo.js?v=43', 'data/photos.json', 'data/demo/laminate_floor_02.jpg',
+  'lib/three.module.min.js', 'lib/qrcode.js?v=43', 'manifest.json', 'icons/icon-192.png', 'data/catalog.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -17,8 +17,8 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
-  // Каталог и страница — сначала из сети (свежие цены), без сети — из памяти
-  const fresh = url.pathname.endsWith('catalog.json') || url.pathname.endsWith('/') || url.pathname.endsWith('index.html');
+  // Каталог, комнаты и страница — сначала из сети (свежие цены), без сети — из памяти
+  const fresh = url.pathname.endsWith('catalog.json') || url.pathname.endsWith('photos.json') || url.pathname.endsWith('/') || url.pathname.endsWith('index.html');
   if (fresh) {
     e.respondWith(fetch(e.request).then(r => {
       const copy = r.clone();

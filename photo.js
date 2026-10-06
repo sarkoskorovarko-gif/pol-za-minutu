@@ -6,7 +6,7 @@
 //  3) Свет и тени берём с исходного фото: размытая яркость пола / средняя яркость пола.
 import * as THREE from 'three';
 
-const MASK_V = 'v42'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
+const MASK_V = 'v43'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
 const DEFAULT_TEX_W_M = 1.3; // м пола по ширине фото декора (как в 3D)
 
 let renderer, scene, camera, mat, mesh, canvasEl;
@@ -288,8 +288,10 @@ async function placeFurniture() {
   if (!furn.scene) initFurniture();
   furn.group.clear();
   furn.roomId = d.id;
-  if (!furnOn || !d.furniture || !d.size || !solveCamera(d)) { render(); return; }
+  if (!furnOn || !d.furniture || !d.size) { render(); return; }
+  if (!solveCamera(d)) { render(); throw new Error('для этого фото не вычисляется камера'); }
   fitFurnCrop();
+  const errs = [];
   for (const it of d.furniture) {
     try {
       const proto = await loadModel(it.m);
@@ -298,12 +300,13 @@ async function placeFurniture() {
       o.position.set(it.x, 0, -furn.s * it.y);                       // z модели → Y пола (см. матрицу группы)
       o.rotation.y = (it.rot || 0) * Math.PI / 180;
       furn.group.add(o);
-    } catch (e) { console.warn('мебель не загрузилась', it.m, e); }
+    } catch (e) { console.warn('мебель не загрузилась', it.m, e); errs.push(it.m + ': ' + (e && e.message || e)); }
   }
   render();
+  if (errs.length) throw new Error(errs.join('; '));
 }
 
-export function setFurniture(on) { furnOn = on; placeFurniture(); }
+export function setFurniture(on) { furnOn = on; return placeFurniture(); }
 export function roomHasFurniture(d) { return !!(d && d.furniture && d.furniture.length); }
 
 // ---------- Перспектива: 4 точки фото → прямоугольник W×D м ----------
@@ -519,7 +522,7 @@ export function showPhoto(data) {
       mat.uniforms.photo.value = c.photoTex; mat.uniforms.blurP.value = c.blurTex; mat.uniforms.medP.value = c.medTex;
       mat.uniforms.mask.value = c.maskTex; mat.uniforms.meanL.value = c.meanL; mat.uniforms.skL.value = c.skL;
       mat.uniforms.meanC.value.set(...c.meanC); mat.uniforms.roomTint.value.set(...c.tint);
-      updateGeometry(); fitCrop(); render(); placeFurniture(); ok();
+      updateGeometry(); fitCrop(); render(); placeFurniture().catch(e => console.warn(e)); ok();
     };
     if (cache[data.id] && cache[data.id].skH !== (skirt && skirt.h)) delete cache[data.id]; // другая высота плинтуса
     if (cache[data.id]) return done({ ...cache[data.id], data });
