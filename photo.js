@@ -5,9 +5,8 @@
 //  2) Маска пола (контур минус мебель) говорит, где менять пол, а где оставить фото.
 //  3) Свет и тени берём с исходного фото: размытая яркость пола / средняя яркость пола.
 import * as THREE from 'three';
-import { PRESETS, isBuilt, build } from './furniture.js?v=49';
 
-const MASK_V = 'v49'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
+const MASK_V = 'v50'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
 const DEFAULT_TEX_W_M = 1.3; // м пола по ширине фото декора (как в 3D)
 
 let renderer, scene, camera, mat, mesh, canvasEl;
@@ -173,292 +172,14 @@ function fitCrop() {
   if (!cur) return;
   const [iw, ih] = cur.data.img;
   const ca = canvasEl.clientWidth / canvasEl.clientHeight, ia = iw / ih;
-  // куда смещать кадр на узком (вертикальном) экране: при включённой мебели — на неё
-  const ff = furnOn && furnFocus(cur.data);
-  const fx = ff ? ff / iw : cur.data.focus ? cur.data.focus[0] / iw : 0.5;
+  const fx = cur.data.focus ? cur.data.focus[0] / iw : 0.5; // куда смещать кадр на узком экране
   let c;
   if (ia > ca) { const s = ca / ia; c = [Math.min(1 - s, Math.max(0, fx - s / 2)), 0, s, 1]; }
   else { const s = ia / ca; c = [0, (1 - s) / 2, 1, s]; }
   mat.uniforms.crop.value.set(...c);
-  fitFurnCrop();
 }
 
-export function render() {
-  if (!(renderer && cur && decorTex)) return;
-  renderer.render(scene, camera);
-  if (furnOn && furn.ready && furn.cam) drawFurniture();   // мебель — 3D поверх фото
-
-}
-
-// ---------- Мебель: 3D-модели, поставленные на пол фото ----------
-// По 4 точкам пола восстанавливаем камеру (фокус, положение, поворот) — модели рисуются
-// под тем же углом, что и фото. Мебель задаётся в photos.json: furniture: [{ m, x, y, rot }]
-// (x, y — метры в прямоугольнике пола, rot — градусы; модели в data/furniture/<m>/).
-let furnOn = null;          // название набора мебели («Гостиная»…) или null
-const furn = { scene: null, cam: null, group: null, models: {}, roomId: null, loader: null };
-
-function initFurniture() {
-  furn.scene = new THREE.Scene();
-  furn.group = new THREE.Group(); furn.group.matrixAutoUpdate = false;
-  furn.scene.add(furn.group);
-  // свет комнаты: рассеянный (окрашен цветом фото) + свет из окна, который даёт тени
-  furn.amb = new THREE.HemisphereLight(0xffffff, 0x6f6458, 0.9); furn.group.add(furn.amb);
-  furn.sun = new THREE.DirectionalLight(0xffffff, 2.2);
-  furn.sun.castShadow = true;
-  furn.sun.shadow.mapSize.set(2048, 2048);
-  furn.sun.shadow.radius = 18; furn.sun.shadow.blurSamples = 25; furn.sun.shadow.bias = -0.0005;
-  Object.assign(furn.sun.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6, near: 0.1, far: 30 });
-  furn.group.add(furn.sun, furn.sun.target);
-  // «ловец» теней — прозрачный пол, на нём видны только тени
-  furn.catcher = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShadowMaterial({ opacity: 0.28 }));
-  furn.catcher.rotation.x = -Math.PI / 2; furn.catcher.receiveShadow = true;
-  furn.group.add(furn.catcher);
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.VSMShadowMap;
-  renderer.shadowMap.autoUpdate = true;
-  furn.cam = new THREE.PerspectiveCamera();
-  furn.cam.matrixAutoUpdate = false; furn.cam.matrixWorldAutoUpdate = false;
-}
-
-// Камера из перспективы пола. false — если по этим точкам камеру не восстановить
-function solveCamera(d) {
-  const [W, D] = d.size, [iw, ih] = d.img, cx = iw / 2, cy = ih / 2;
-  const h = homography([[0, 0], [W, 0], [W, D], [0, D]], d.quad);   // метры → пиксели
-  const M = [[h[0] - cx * h[6], h[1] - cx * h[7], h[2] - cx * h[8]],
-             [h[3] - cy * h[6], h[4] - cy * h[7], h[5] - cy * h[8]],
-             [h[6], h[7], h[8]]];
-  const col = i => [M[0][i], M[1][i], M[2][i]];
-  const [a1, b1, g1] = col(0), [a2, b2, g2] = col(1);
-  const f2 = -(a1 * a2 + b1 * b2) / (g1 * g2);
-  if (!(f2 > 0)) return false;
-  const f = Math.sqrt(f2), kv = v => [v[0] / f, v[1] / f, v[2]], len = v => Math.hypot(...v);
-  const c1 = kv(col(0)), c2 = kv(col(1)), c3 = kv(col(2));
-  let lam = 2 / (len(c1) + len(c2));
-  if (c3[2] * lam < 0) lam = -lam;                                   // фото — перед камерой
-  const r1 = c1.map(v => v * lam), t = c3.map(v => v * lam);
-  let r2 = c2.map(v => v * lam);
-  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-  const r3 = cross(r1, r2); r2 = cross(r3, r1);
-  const n = v => { const l = len(v); return v.map(x => x / l); };
-  const R = [n(r1), n(r2), n(r3)];                                   // столбцы R
-  // вид камеры three.js: оси OpenCV (y вниз, z вперёд) → (y вверх, z назад)
-  const V = new THREE.Matrix4().set(
-     R[0][0],  R[1][0],  R[2][0],  t[0],
-    -R[0][1], -R[1][1], -R[2][1], -t[1],
-    -R[0][2], -R[1][2], -R[2][2], -t[2],
-     0, 0, 0, 1);
-  const cam = furn.cam;
-  cam.fov = 2 * Math.atan(ih / 2 / f) * 180 / Math.PI;
-  cam.aspect = iw / ih; cam.near = 0.05; cam.far = 100;
-  cam.matrixWorldInverse.copy(V); cam.matrixWorld.copy(V).invert();
-  // где «верх»: камера должна быть над полом
-  const camZ = -(R[2][0] * t[0] + R[2][1] * t[1] + R[2][2] * t[2]);
-  const s = camZ > 0 ? 1 : -1;
-  // модели: x → X пола, y (вверх) → s·Z, z → −s·Y (так поворот не зеркальный)
-  furn.group.matrix.set(1, 0, 0, 0,  0, 0, -s, 0,  0, s, 0, 0,  0, 0, 0, 1);
-  furn.group.matrixWorldNeedsUpdate = true;
-  furn.f = f; furn.s = s;
-  return true;
-}
-
-// Где на фото (x, пиксели) середина расставленной мебели
-function furnFocus(d) {
-  const items = layout(d, furnOn);
-  if (!items.length) return 0;
-  const [W, D] = d.size, h = homography([[0, 0], [W, 0], [W, D], [0, D]], d.quad);
-  const xs = items.map(({ x, y }) => (h[0] * x + h[1] * y + h[2]) / (h[6] * x + h[7] * y + h[8]));
-  return (Math.min(...xs) + Math.max(...xs)) / 2;
-}
-
-// Камера по 4 точкам пола (без three.js): фокус f, поворот R (столбцы), сдвиг t,
-// s — где «верх» (±), C — где камера стоит на полу (метры)
-const camCache = {};
-function camInfo(d) {
-  if (camCache[d.id]) return camCache[d.id];
-  const [W, D] = d.size, [iw, ih] = d.img, cx = iw / 2, cy = ih / 2;
-  const h = homography([[0, 0], [W, 0], [W, D], [0, D]], d.quad);
-  const M = [[h[0] - cx * h[6], h[1] - cx * h[7], h[2] - cx * h[8]],
-             [h[3] - cy * h[6], h[4] - cy * h[7], h[5] - cy * h[8]], [h[6], h[7], h[8]]];
-  const col = i => [M[0][i], M[1][i], M[2][i]];
-  const [a1, b1, g1] = col(0), [a2, b2, g2] = col(1);
-  const f2 = -(a1 * a2 + b1 * b2) / (g1 * g2);
-  if (!(f2 > 0)) return (camCache[d.id] = null);
-  const f = Math.sqrt(f2), kv = v => [v[0] / f, v[1] / f, v[2]], len = v => Math.hypot(...v);
-  const c1 = kv(col(0)), c2 = kv(col(1)), c3 = kv(col(2));
-  let lam = 2 / (len(c1) + len(c2));
-  if (c3[2] * lam < 0) lam = -lam;
-  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-  const n = v => { const l = len(v); return v.map(x => x / l); };
-  const r1 = n(c1.map(v => v * lam)), t = c3.map(v => v * lam);
-  const r3 = n(cross(r1, c2.map(v => v * lam))), r2 = cross(r3, r1);
-  const R = [r1, r2, r3];
-  const C = [0, 1, 2].map(i => -(R[i][0] * t[0] + R[i][1] * t[1] + R[i][2] * t[2]));  // центр камеры в осях пола
-  return (camCache[d.id] = { f, R, t, s: C[2] > 0 ? 1 : -1, C, H: h });
-}
-
-// Набор мебели → предметы в метрах пола: { m, x, y, yaw }.
-// Набор ставится у дальней стены (куда смотрит камера) лицом к камере; не влезает — пропускаем
-function layout(d, name) {
-  const P = name && PRESETS[name], c = d.size && camInfo(d);
-  if (!P || !c) return [];
-  const [W, D] = d.size, { s, C, H } = c;
-  // точка у дальней стены: на фото — середина кадра (или stage_img), чуть ниже границы пола
-  const [iw, ih] = d.img;
-  const [sx, sy] = d.stage_img || (() => {
-    const x0 = d.stage_x || (d.focus ? d.focus[0] : iw / 2);         // stage_x — если в середине что-то мешает
-    let top = ih;
-    d.floor.forEach((p, i) => {
-      const q = d.floor[(i + 1) % d.floor.length];
-      if ((p[0] - x0) * (q[0] - x0) <= 0 && p[0] !== q[0]) top = Math.min(top, p[1] + (q[1] - p[1]) * (x0 - p[0]) / (q[0] - p[0]));
-    });
-    return [x0, top + ih * 0.03];
-  })();
-  const Hi = homography(d.quad, [[0, 0], [W, 0], [W, D], [0, D]]);
-  const z = Hi[6] * sx + Hi[7] * sy + Hi[8];
-  let a = [(Hi[0] * sx + Hi[1] * sy + Hi[2]) / z, (Hi[3] * sx + Hi[4] * sy + Hi[5]) / z];
-  let v = [C[0] - a[0], C[1] - a[1]];                                // от стены к камере
-  const dist = Math.hypot(...v); v = [v[0] / dist, v[1] / dist];
-  const far = 4.2;                                                  // дальше — мебель слишком мелкая
-  if (dist > far) a = [C[0] - v[0] * far, C[1] - v[1] * far];
-  let u = [-v[1], v[0]];
-  const px = (x, y) => (H[0] * x + H[1] * y + H[2]) / (H[6] * x + H[7] * y + H[8]);
-  if (px(a[0] + u[0], a[1] + u[1]) < px(a[0], a[1])) u = [-u[0], -u[1]];   // «вправо» — как видно на фото
-  const face = Math.atan2(v[0], -s * v[1]);                         // поворот модели лицом к камере
-  const m = 0.15;
-  return P.map(it => ({ m: it.m, x: a[0] + u[0] * it.u + v[0] * it.v, y: a[1] + u[1] * it.u + v[1] * it.v,
-                        yaw: face + (it.rot || 0) * Math.PI / 180 }))
-    .filter(it => it.x > m && it.x < W - m && it.y > m && it.y < D - m);
-}
-
-function fitFurnCrop() {
-  if (!furn.cam || !cur) return;
-  const [iw, ih] = cur.data.img, c = mat.uniforms.crop.value;
-  furn.cam.setViewOffset(iw, ih, c.x * iw, c.y * ih, c.z * iw, c.w * ih);
-  furn.cam.updateProjectionMatrix();
-}
-
-function shadowTex() {
-  const c = document.createElement('canvas'); c.width = c.height = 128;
-  const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 8, 64, 64, 64);
-  gr.addColorStop(0, 'rgba(0,0,0,0.6)'); gr.addColorStop(0.5, 'rgba(0,0,0,0.3)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
-  g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
-  return new THREE.CanvasTexture(c);
-}
-
-// Мебель рисуется отдельным слоем, затем ложится на фото «как снятая той же камерой»:
-// мягкие края, цвет и контраст под фото, лёгкое зерно
-function drawFurniture() {
-  const sz = renderer.getDrawingBufferSize(new THREE.Vector2());
-  if (!furn.rt) {
-    furn.rt = new THREE.WebGLRenderTarget(sz.x, sz.y, { type: THREE.HalfFloatType, samples: 4 });
-    furn.comp = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({
-      uniforms: { layer: { value: null }, px: { value: new THREE.Vector2() }, tint: { value: new THREE.Vector3(1, 1, 1) } },
-      vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy * 2.0, 0.0, 1.0); }`,
-      fragmentShader: `
-        varying vec2 vUv; uniform sampler2D layer; uniform vec2 px; uniform vec3 tint;
-        void main(){
-          // лёгкое размытие: края мебели мягкие, как на фото
-          vec4 c = texture2D(layer, vUv) * 0.4;
-          c += (texture2D(layer, vUv + vec2(px.x, 0.0)) + texture2D(layer, vUv - vec2(px.x, 0.0))
-              + texture2D(layer, vUv + vec2(0.0, px.y)) + texture2D(layer, vUv - vec2(0.0, px.y))) * 0.15;
-          if (c.a < 0.002) discard;
-          vec3 col = c.rgb / c.a;                                      // цвет без прозрачности
-          float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
-          col = mix(vec3(l), col, 0.82);                               // фото менее насыщенное
-          col = col * tint * 0.9;                                      // оттенок комнаты, чуть темнее — как в тени комнаты
-          col = 0.012 + col * 0.95;                                    // нет «чёрной» черноты — у фото дымка
-          col = pow(col, vec3(1.0 / 2.2));                             // линейный свет → экран
-          col += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * 0.025; // зерно
-          gl_FragColor = vec4(col * c.a, c.a);
-        }`,
-      transparent: true, depthTest: false, depthWrite: false,
-      blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
-    }));
-    furn.compScene = new THREE.Scene(); furn.compScene.add(furn.comp);
-  }
-  if (furn.rt.width !== sz.x || furn.rt.height !== sz.y) furn.rt.setSize(sz.x, sz.y);
-  const u = furn.comp.material.uniforms;
-  u.layer.value = furn.rt.texture; u.px.value.set(0.7 / sz.x, 0.7 / sz.y);
-  const t = cur.tint || [1, 1, 1], m = (t[0] + t[1] + t[2]) / 3;
-  u.tint.value.set(t[0] / m, t[1] / m, t[2] / m).lerp(new THREE.Vector3(1, 1, 1), 0.5);
-  const cc = renderer.getClearColor(new THREE.Color()), ca = renderer.getClearAlpha();
-  renderer.setRenderTarget(furn.rt); renderer.setClearColor(0x000000, 0); renderer.clear();
-  renderer.render(furn.scene, furn.cam);
-  renderer.setRenderTarget(null); renderer.setClearColor(cc, ca);
-  renderer.autoClear = false; renderer.render(furn.compScene, camera); renderer.autoClear = true;
-}
-
-// Свет под комнату: цвет — средний цвет фото, окно — откуда свет (d.sun: [x, y, высота] в метрах пола)
-function lightRoom(d) {
-  const [W, D] = d.size, s = furn.s;
-  const [r, g, b] = cur.tint || [1, 1, 1];
-  const wall = new THREE.Color().setRGB(Math.min(1, 0.85 * r), Math.min(1, 0.85 * g), Math.min(1, 0.85 * b));
-  furn.amb.color.copy(wall); furn.amb.groundColor.setRGB(...decorAvg).multiplyScalar(0.8);
-  const [sx, sy, sh] = d.sun || [-2, D / 2, 7];   // рассеянный свет окна — высоко, тени короткие
-  furn.sun.position.set(sx, sh, -s * sy);
-  furn.sun.target.position.set(W / 2, 0, -s * D / 2);
-  furn.catcher.scale.set(W, D, 1);                  // тени — только на полу
-  furn.catcher.position.set(W / 2, 0.001, -s * D / 2);
-  if (!furn.env) {                                      // отражения — из самого фото
-    const pm = new THREE.PMREMGenerator(renderer), t = new THREE.Texture(cur.img);
-    t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true;
-    furn.scene.environment = pm.fromEquirectangular(t).texture; furn.scene.environmentIntensity = 0.45;
-    furn.envId = cur.data.id; furn.env = true; pm.dispose(); t.dispose();
-  } else if (furn.envId !== cur.data.id) { furn.env = false; lightRoom(d); }
-}
-
-async function loadModel(m) {
-  if (furn.models[m]) return furn.models[m];
-  if (isBuilt(m)) return (furn.models[m] = build(m));
-  if (!furn.loader) {
-    const { GLTFLoader } = await import('./lib/jsm/loaders/GLTFLoader.js');
-    furn.loader = new GLTFLoader();
-  }
-  const gltf = await furn.loader.loadAsync(`${window.PHOTO_BASE || ''}data/furniture/${m}/${m}.gltf`);
-  const obj = gltf.scene;
-  obj.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
-  const box = new THREE.Box3().setFromObject(obj), size = box.getSize(new THREE.Vector3());
-  obj.position.y -= box.min.y;                                       // ножки — на пол
-  obj.position.x -= (box.min.x + box.max.x) / 2; obj.position.z -= (box.min.z + box.max.z) / 2;
-  const holder = new THREE.Group(); holder.add(obj);
-  // мягкая тень под мебелью
-  const sh = new THREE.Mesh(new THREE.PlaneGeometry(size.x * 1.1, size.z * 1.15),
-    new THREE.MeshBasicMaterial({ map: furn.shadow || (furn.shadow = shadowTex()), transparent: true, depthWrite: false }));
-  sh.rotation.x = -Math.PI / 2; sh.position.y = 0.002; sh.renderOrder = -1;
-  holder.add(sh);
-  return (furn.models[m] = holder);
-}
-
-async function placeFurniture() {
-  if (!cur) return;
-  const d = cur.data;
-  if (!furn.scene) initFurniture();
-  furn.group.children.filter(o => o.userData.item).forEach(o => furn.group.remove(o));
-  furn.roomId = d.id;
-  if (!furnOn || !d.size) { render(); return; }
-  if (!solveCamera(d)) { render(); throw new Error('для этого фото не вычисляется камера'); }
-  fitFurnCrop();
-  lightRoom(d);
-  const errs = [];
-  for (const it of layout(d, furnOn)) {
-    try {
-      const proto = await loadModel(it.m);
-      if (furn.roomId !== d.id) return;                              // пока грузили — сменили комнату
-      const o = proto.clone();
-      o.position.set(it.x, 0, -furn.s * it.y);                       // z модели → Y пола (см. матрицу группы)
-      o.rotation.y = it.yaw;
-      o.userData.item = true;
-      furn.group.add(o);
-    } catch (e) { console.warn('мебель не загрузилась', it.m, e); errs.push(it.m + ': ' + (e && e.message || e)); }
-  }
-  furn.ready = true;
-  render();
-  if (errs.length) throw new Error(errs.join('; '));
-}
-
-// name — набор («Гостиная», «Спальня», «Столовая») или null — без мебели
-export function setFurniture(name) { furnOn = name || null; fitCrop(); return placeFurniture(); }
-export const FURN_PRESETS = Object.keys(PRESETS);
-export function roomCanFurnish(d) { return !!(d && d.size && d.quad && !d.no_furniture && camInfo(d)); }
+export function render() { if (renderer && cur && decorTex) renderer.render(scene, camera); }
 
 // ---------- Перспектива: 4 точки фото → прямоугольник W×D м ----------
 // Решаем систему 8×8 (классическое преобразование по 4 точкам)
@@ -673,7 +394,7 @@ export function showPhoto(data) {
       mat.uniforms.photo.value = c.photoTex; mat.uniforms.blurP.value = c.blurTex; mat.uniforms.medP.value = c.medTex;
       mat.uniforms.mask.value = c.maskTex; mat.uniforms.meanL.value = c.meanL; mat.uniforms.skL.value = c.skL;
       mat.uniforms.meanC.value.set(...c.meanC); mat.uniforms.roomTint.value.set(...c.tint);
-      updateGeometry(); fitCrop(); render(); placeFurniture().catch(e => console.warn(e)); ok();
+      updateGeometry(); fitCrop(); render(); ok();
     };
     if (cache[data.id] && cache[data.id].skH !== (skirt && skirt.h)) delete cache[data.id]; // другая высота плинтуса
     if (cache[data.id]) return done({ ...cache[data.id], data });
@@ -764,7 +485,6 @@ export function photoBlob() {
   const [iw, ih] = cur.data.img, w = Math.min(1600, iw);
   renderer.setSize(w, Math.round(w * ih / iw), false);
   mat.uniforms.crop.value.set(0, 0, 1, 1);
-  fitFurnCrop();
   render();
   const p = new Promise(res => renderer.domElement.toBlob(res, 'image/jpeg', 0.88)); // кадр снят сразу
   resize();

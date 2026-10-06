@@ -1,5 +1,5 @@
 // Главный файл интерфейса. Формулы расчёта — в calc.js, фото комнат — в photo.js.
-import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting, photoBlob, setFurniture, FURN_PRESETS, roomCanFurnish } from './photo.js?v=49';
+import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting, photoBlob } from './photo.js?v=50';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -228,8 +228,6 @@ function showView() {
   if (!p) return;
   if (!photoReady) { initPhoto($('#photoView')); photoReady = true; applyLight(); photoSkirting(); }
   if (current()) photoFloor(current());
-  $('#furnBtn').hidden = !roomCanFurnish(p);           // мебель — где по фото вычисляется камера
-  $('#furnMenu').hidden = true;
   showPhoto(p).catch(() => toast('Не удалось загрузить фото'));
 }
 
@@ -382,23 +380,6 @@ function photoSkirting() {
 }
 
 $('#skOnPhoto').onchange = () => photoSkirting();
-// Мебель: кнопка открывает выбор набора
-let furnName = null;
-$('#furnMenu').innerHTML = ['', ...FURN_PRESETS].map(n => `<button data-n="${n}">${n || 'Без мебели'}</button>`).join('');
-$('#furnBtn').onclick = () => {
-  $$('#furnMenu button').forEach(x => x.classList.toggle('on', x.dataset.n === (furnName || '')));
-  $('#furnMenu').hidden = !$('#furnMenu').hidden;
-};
-$$('#furnMenu button').forEach(x => x.onclick = async () => {
-  const b = $('#furnBtn');
-  $('#furnMenu').hidden = true;
-  if (!photoReady) return;
-  furnName = x.dataset.n || null;
-  b.textContent = furnName ? 'Загружаю…' : 'Мебель'; b.disabled = true;
-  try { await setFurniture(furnName); }
-  catch (err) { alert('Мебель не показалась: ' + (err && err.message || err)); furnName = null; setFurniture(null); }
-  b.textContent = furnName || 'Мебель'; b.classList.toggle('on', !!furnName); b.disabled = false;
-});
 
 function lineDetail(l, decor, underlay, skirting) {
   let s = `${l.qty} ${l.unit}`;

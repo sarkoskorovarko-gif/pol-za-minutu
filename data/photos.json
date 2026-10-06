@@ -19,8 +19,7 @@
   ],
   "exact_floor": true,
   "ai_trim": false,
-  "no_grabcut": true,
-  "no_furniture": true
+  "no_grabcut": true
  },
  {
   "id": "r23",
@@ -50,8 +49,7 @@
    [[932, 703], [938, 703], [938, 721], [932, 721]],
    [[967, 697], [973, 697], [973, 712], [967, 712]]
   ],
-  "no_grabcut": true,
-  "no_furniture": true
+  "no_grabcut": true
  },
  {
   "id": "r21",
