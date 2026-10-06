@@ -1,5 +1,5 @@
 // Главный файл интерфейса. Формулы расчёта — в calc.js, фото комнат — в photo.js.
-import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting } from './photo.js?v=38';
+import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting, photoBlob } from './photo.js?v=39';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -437,7 +437,15 @@ $('#share').onclick = async () => {
   const text = shareText();
   logCalc(); state.shared = true;
   if (navigator.share) {
-    try { await navigator.share({ title: 'Расчёт пола ' + state.number, text }); } catch (e) { /* закрыли меню */ }
+    const data = { title: 'Расчёт пола ' + state.number, text };
+    // картинка комнаты с выбранным полом — если телефон умеет отправлять файлы
+    const blob = await photoBlob().catch(() => null);
+    const file = blob && new File([blob], `pol-${state.number}.jpg`, { type: 'image/jpeg' });
+    if (file && navigator.canShare?.({ files: [file] })) data.files = [file];
+    try { await navigator.share(data); } catch (e) {
+      // если с картинкой не вышло (кроме «закрыли меню») — отправляем только текст
+      if (data.files && e.name !== 'AbortError') { delete data.files; try { await navigator.share(data); } catch (e2) {} }
+    }
   } else {
     copyText(text);
   }

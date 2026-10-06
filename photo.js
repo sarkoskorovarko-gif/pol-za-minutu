@@ -6,7 +6,7 @@
 //  3) Свет и тени берём с исходного фото: размытая яркость пола / средняя яркость пола.
 import * as THREE from 'three';
 
-const MASK_V = 'v38'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
+const MASK_V = 'v39'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
 const DEFAULT_TEX_W_M = 1.3; // м пола по ширине фото декора (как в 3D)
 
 let renderer, scene, camera, mat, mesh, canvasEl;
@@ -478,6 +478,18 @@ export function setPhotoLight(b, w) {
 
 // Пересчитать размер (если окно было скрыто и ResizeObserver не сработал)
 export function resizePhoto() { resize(); }
+// Картинка комнаты как на экране — для отправки клиенту (null, если фото не показано)
+export function photoBlob() {
+  if (!renderer || !cur || !decorTex) return Promise.resolve(null);
+  // всё фото целиком, 1600 px по ширине — не зависит от размера экрана телефона
+  const [iw, ih] = cur.data.img, w = Math.min(1600, iw);
+  renderer.setSize(w, Math.round(w * ih / iw), false);
+  mat.uniforms.crop.value.set(0, 0, 1, 1);
+  render();
+  const p = new Promise(res => renderer.domElement.toBlob(res, 'image/jpeg', 0.88)); // кадр снят сразу
+  resize();
+  return p;
+}
 
 export function setGrid(on) { mat.uniforms.showGrid.value = on ? 1 : 0; render(); }
 
