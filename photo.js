@@ -6,7 +6,7 @@
 //  3) Свет и тени берём с исходного фото: размытая яркость пола / средняя яркость пола.
 import * as THREE from 'three';
 
-const MASK_V = 'v44'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
+const MASK_V = 'v45'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
 const DEFAULT_TEX_W_M = 1.3; // м пола по ширине фото декора (как в 3D)
 
 let renderer, scene, camera, mat, mesh, canvasEl;
@@ -172,7 +172,9 @@ function fitCrop() {
   if (!cur) return;
   const [iw, ih] = cur.data.img;
   const ca = canvasEl.clientWidth / canvasEl.clientHeight, ia = iw / ih;
-  const fx = cur.data.focus ? cur.data.focus[0] / iw : 0.5; // куда смещать кадр на узком экране
+  // куда смещать кадр на узком (вертикальном) экране: при включённой мебели — на неё
+  const ff = furnOn && furnFocus(cur.data);
+  const fx = ff ? ff / iw : cur.data.focus ? cur.data.focus[0] / iw : 0.5;
   let c;
   if (ia > ca) { const s = ca / ia; c = [Math.min(1 - s, Math.max(0, fx - s / 2)), 0, s, 1]; }
   else { const s = ia / ca; c = [0, (1 - s) / 2, 1, s]; }
@@ -248,6 +250,14 @@ function solveCamera(d) {
   return true;
 }
 
+// Где на фото (x, пиксели) середина расставленной мебели
+function furnFocus(d) {
+  if (!d.furniture || !d.furniture.length || !d.size) return 0;
+  const [W, D] = d.size, h = homography([[0, 0], [W, 0], [W, D], [0, D]], d.quad);
+  const xs = d.furniture.map(({ x, y }) => (h[0] * x + h[1] * y + h[2]) / (h[6] * x + h[7] * y + h[8]));
+  return (Math.min(...xs) + Math.max(...xs)) / 2;
+}
+
 function fitFurnCrop() {
   if (!furn.cam || !cur) return;
   const [iw, ih] = cur.data.img, c = mat.uniforms.crop.value;
@@ -306,7 +316,7 @@ async function placeFurniture() {
   if (errs.length) throw new Error(errs.join('; '));
 }
 
-export function setFurniture(on) { furnOn = on; return placeFurniture(); }
+export function setFurniture(on) { furnOn = on; fitCrop(); return placeFurniture(); }
 export function roomHasFurniture(d) { return !!(d && d.furniture && d.furniture.length); }
 
 // ---------- Перспектива: 4 точки фото → прямоугольник W×D м ----------
