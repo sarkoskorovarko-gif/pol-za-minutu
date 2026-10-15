@@ -3,3 +3,5 @@ raw/
 __pycache__/
 tools/check/
 было_стало_*.jpg
+
+graphify-out/

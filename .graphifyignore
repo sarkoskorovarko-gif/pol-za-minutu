@@ -1,0 +1,3 @@
+# Чужие библиотеки — в карту проекта не нужны
+lib/
+tools/collect_in_browser.js
