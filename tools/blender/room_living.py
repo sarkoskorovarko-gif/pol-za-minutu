@@ -1,8 +1,9 @@
-"""Пробная комната для сайта, целиком в Blender: гостиная 5,0 × 4,2 м, окно слева, дневной свет.
+"""Комната для сайта, целиком в Blender: гостиная 5,0 × 4,2 м, окно слева, дневной свет.
 
 Пол — белый матовый: по его яркости сайт узнаёт свет и тени и кладёт любой декор.
+Материалы и модели (Poly Haven, CC0) лежат вне проекта: D:\\pol-ai\\assets.
 Запуск:  D:\\pol-ai\\blender\\blender.exe -b -P tools/blender/room_living.py -- <папка вывода> [samples]
-На выходе: room.png (картинка), floor_mask.png (где пол, сглаженный край), room.json (перспектива пола).
+На выходе: room.png (картинка), floor_mask0001.png (где пол), room.json (перспектива пола).
 """
 import json, math, sys
 from pathlib import Path
@@ -13,16 +14,16 @@ from mathutils import Vector
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 OUT = Path(argv[0] if argv else 'render_out'); OUT.mkdir(parents=True, exist_ok=True)
 SAMPLES = int(argv[1]) if len(argv) > 1 else 256
+ASSETS = Path(r'D:\pol-ai\assets')
 W, D, H = 5.0, 4.2, 2.7          # комната: ширина (x), глубина (y), высота
 RES = (1600, 1067)
 
-# ---------- сцена с нуля ----------
 bpy.ops.wm.read_factory_settings(use_empty=True)
 sc = bpy.context.scene
-sc.unit_settings.system = 'METRIC'
 
 
-def mat(name, color, rough=0.6, metal=0.0, sheen=0.0, bump=None, transmission=0.0):
+# ---------- материалы ----------
+def mat(name, color, rough=0.6, metal=0.0, sheen=0.0, transmission=0.0, bump=None, emit=0.0):
     m = bpy.data.materials.new(name); m.use_nodes = True
     b = m.node_tree.nodes['Principled BSDF']
     b.inputs['Base Color'].default_value = (*color, 1)
@@ -30,60 +31,90 @@ def mat(name, color, rough=0.6, metal=0.0, sheen=0.0, bump=None, transmission=0.
     b.inputs['Metallic'].default_value = metal
     if sheen: b.inputs['Sheen Weight'].default_value = sheen
     if transmission: b.inputs['Transmission Weight'].default_value = transmission
-    if bump:                                   # мелкий рельеф (ткань, штукатурка, дерево)
+    if emit:
+        b.inputs['Emission Color'].default_value = (1, 0.82, 0.6, 1); b.inputs['Emission Strength'].default_value = emit
+    if bump:
         nt = m.node_tree
-        tex = nt.nodes.new('ShaderNodeTexNoise'); tex.inputs['Scale'].default_value = bump[0]
-        tex.inputs['Detail'].default_value = 8
+        tx = nt.nodes.new('ShaderNodeTexNoise'); tx.inputs['Scale'].default_value = bump[0]; tx.inputs['Detail'].default_value = 10
         bm = nt.nodes.new('ShaderNodeBump'); bm.inputs['Strength'].default_value = bump[1]
-        nt.links.new(tex.outputs['Fac'], bm.inputs['Height']); nt.links.new(bm.outputs['Normal'], b.inputs['Normal'])
+        nt.links.new(tx.outputs['Fac'], bm.inputs['Height']); nt.links.new(bm.outputs['Normal'], b.inputs['Normal'])
     return m
 
 
-def wood(name, base, dark, scale=(2, 40, 2)):
-    """Дерево: полосы волокон (волновая текстура вдоль x)."""
-    m = mat(name, base, 0.45, bump=(300, 0.05))
+def tmat(name, tex, tint=(1, 1, 1), scale=1.0, sat=1.0, sheen=0.0, nstr=1.0):
+    """Материал с настоящей текстурой (цвет, рельеф, шероховатость); sat=0 — убрать цвет текстуры, оставить фактуру."""
+    m = bpy.data.materials.new(name); m.use_nodes = True
     nt = m.node_tree; b = nt.nodes['Principled BSDF']
     co = nt.nodes.new('ShaderNodeTexCoord'); mp = nt.nodes.new('ShaderNodeMapping')
-    mp.inputs['Scale'].default_value = scale
-    wv = nt.nodes.new('ShaderNodeTexWave'); wv.wave_type = 'BANDS'; wv.bands_direction = 'X'
-    wv.inputs['Scale'].default_value = 2; wv.inputs['Distortion'].default_value = 6; wv.inputs['Detail'].default_value = 4
-    ramp = nt.nodes.new('ShaderNodeValToRGB')
-    ramp.color_ramp.elements[0].color = (*dark, 1); ramp.color_ramp.elements[1].color = (*base, 1)
-    nt.links.new(co.outputs['Object'], mp.inputs['Vector']); nt.links.new(mp.outputs['Vector'], wv.inputs['Vector'])
-    nt.links.new(wv.outputs['Fac'], ramp.inputs['Fac']); nt.links.new(ramp.outputs['Color'], b.inputs['Base Color'])
+    mp.inputs['Scale'].default_value = (scale, scale, scale)
+    nt.links.new(co.outputs['Object'], mp.inputs['Vector'])
+
+    def img(kind, color):
+        n = nt.nodes.new('ShaderNodeTexImage'); n.projection = 'BOX'; n.projection_blend = 0.3
+        n.image = bpy.data.images.load(str(ASSETS / 'tex' / f'{tex}_{kind}.jpg'))
+        n.image.colorspace_settings.name = 'sRGB' if color else 'Non-Color'
+        nt.links.new(mp.outputs['Vector'], n.inputs['Vector'])
+        return n
+    dif = img('diff', True)
+    hs = nt.nodes.new('ShaderNodeHueSaturation'); hs.inputs['Saturation'].default_value = sat
+    mix = nt.nodes.new('ShaderNodeMix'); mix.data_type = 'RGBA'; mix.blend_type = 'MULTIPLY'
+    mix.inputs['Factor'].default_value = 1.0; mix.inputs[7].default_value = (*tint, 1)
+    nt.links.new(dif.outputs['Color'], hs.inputs['Color']); nt.links.new(hs.outputs['Color'], mix.inputs[6])
+    nt.links.new(mix.outputs[2], b.inputs['Base Color'])
+    rg = img('rough', False); nt.links.new(rg.outputs['Color'], b.inputs['Roughness'])
+    nm = nt.nodes.new('ShaderNodeNormalMap'); nm.inputs['Strength'].default_value = nstr
+    nt.links.new(img('nor', False).outputs['Color'], nm.inputs['Color']); nt.links.new(nm.outputs['Normal'], b.inputs['Normal'])
+    if sheen: b.inputs['Sheen Weight'].default_value = sheen
+    return m
+
+
+def art():
+    """Абстрактная картина: тёплые пятна (шум + градиент)."""
+    m = mat('картина', (0.8, 0.7, 0.6), 0.85); nt = m.node_tree; b = nt.nodes['Principled BSDF']
+    n = nt.nodes.new('ShaderNodeTexNoise'); n.inputs['Scale'].default_value = 2.2; n.inputs['Detail'].default_value = 3
+    n.inputs['Distortion'].default_value = 1.5
+    r = nt.nodes.new('ShaderNodeValToRGB'); el = r.color_ramp.elements
+    el[0].position = 0.35; el[0].color = (0.82, 0.74, 0.62, 1); el[1].position = 0.7; el[1].color = (0.36, 0.22, 0.14, 1)
+    e = el.new(0.52); e.color = (0.62, 0.42, 0.30, 1)
+    nt.links.new(n.outputs['Fac'], r.inputs['Fac']); nt.links.new(r.outputs['Color'], b.inputs['Base Color'])
     return m
 
 
 M = {
-    'wall': mat('стена', (0.86, 0.84, 0.80), 0.9, bump=(80, 0.02)),
-    'ceil': mat('потолок', (0.92, 0.92, 0.91), 0.95),
-    'floor': mat('пол белый', (0.8, 0.8, 0.8), 0.55),        # белый пол — носитель света для сайта
-    'skirt': mat('плинтус', (0.93, 0.93, 0.92), 0.4),
-    'frame': mat('рама окна', (0.95, 0.95, 0.95), 0.35),
+    'wall': mat('стена', (0.84, 0.82, 0.78), 0.92, bump=(60, 0.03)),
+    'ceil': mat('потолок', (0.9, 0.9, 0.89), 0.95),
+    'floor': mat('пол белый', (0.8, 0.8, 0.8), 0.55),      # белый пол — носитель света для сайта
+    'white': mat('белая краска', (0.9, 0.9, 0.89), 0.35),
     'glass': mat('стекло', (1, 1, 1), 0.0, transmission=1.0),
-    'sofa': mat('ткань дивана', (0.42, 0.40, 0.37), 0.95, sheen=0.4, bump=(250, 0.15)),
-    'cushion': mat('ткань подушек', (0.62, 0.55, 0.45), 0.95, sheen=0.4, bump=(250, 0.15)),
-    'oak': wood('дуб', (0.62, 0.45, 0.28), (0.45, 0.30, 0.17)),
-    'walnut': wood('орех', (0.30, 0.19, 0.12), (0.18, 0.11, 0.07)),
-    'black': mat('чёрный металл', (0.03, 0.03, 0.03), 0.35, metal=1.0),
-    'linen': mat('штора', (0.95, 0.94, 0.90), 0.9, sheen=0.3, transmission=0.35),
-    'shade': mat('абажур', (0.93, 0.90, 0.84), 0.8, transmission=0.15),
-    'pot': mat('горшок', (0.88, 0.87, 0.84), 0.5),
-    'leaf': mat('листья', (0.12, 0.28, 0.10), 0.5, sheen=0.2),
-    'art': mat('картина', (0.75, 0.62, 0.48), 0.8, bump=(30, 0.1)),
+    'sofa': tmat('лён дивана', 'rough_linen', (0.62, 0.59, 0.55), 3, sat=0, sheen=0.5),
+    'pillow1': tmat('лён подушки', 'rough_linen', (0.78, 0.66, 0.50), 4, sat=0, sheen=0.5),
+    'pillow2': tmat('лён подушки 2', 'rough_linen', (0.45, 0.47, 0.42), 4, sat=0, sheen=0.5),
+    'throw': tmat('шерстяной плед', 'poly_wool_herringbone', (1, 1, 1), 3, sat=0.3, sheen=0.4),
+    'oak': tmat('дуб', 'oak_veneer_01', (1, 1, 1), 1.2),
+    'walnut': tmat('орех', 'walnut_veneer', (1, 1, 1), 1.5),
+    'black': mat('чёрный металл', (0.03, 0.03, 0.03), 0.4, metal=1.0),
+    'brass': mat('латунь', (0.8, 0.6, 0.35), 0.3, metal=1.0),
+    'linen': mat('тюль', (0.95, 0.94, 0.90), 0.9, sheen=0.3, transmission=0.6),
+    'shade': mat('абажур', (0.93, 0.90, 0.84), 0.8, transmission=0.3),
+    'art': art(),
 }
 
 
-def box(name, size, loc, material, bevel=0.0, seg=3, sub=0):
+def box(name, size, loc, material, bevel=0.0, seg=3):
     bpy.ops.mesh.primitive_cube_add(size=1, location=loc)
     o = bpy.context.object; o.name = name; o.scale = size
-    bpy.ops.object.transform_apply(scale=True)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)   # только размер: поворот — вокруг самого предмета
     if bevel:
         bv = o.modifiers.new('фаска', 'BEVEL'); bv.width = bevel; bv.segments = seg; bv.limit_method = 'NONE'
-    if sub:
-        o.modifiers.new('сглаж', 'SUBSURF').levels = sub
         bpy.ops.object.shade_smooth()
     o.data.materials.append(material)
+    return o
+
+
+def soft(name, size, loc, material, r=0.05):
+    """Мягкий предмет (подушка, сиденье): скруглённый блок с плавными гранями."""
+    o = box(name, size, loc, material, bevel=r, seg=6)
+    o.modifiers.new('плавно', 'WEIGHTED_NORMAL')
     return o
 
 
@@ -96,105 +127,121 @@ def cyl(name, r, h, loc, material, verts=48, bevel=0.0):
     return o
 
 
+def gltf(name, loc, height=None, rot=0.0):
+    bpy.ops.import_scene.gltf(filepath=str(ASSETS / 'models' / name / f'{name}.gltf'))
+    objs = bpy.context.selected_objects
+    root = [o for o in objs if o.parent is None]
+    bpy.ops.object.empty_add(location=(0, 0, 0)); e = bpy.context.object; e.name = name
+    for o in root: o.parent = e
+    bpy.context.view_layer.update()
+    zs = [(o.matrix_world @ Vector(c)).z for o in objs if o.type == 'MESH' for c in o.bound_box]
+    if height: e.scale = [height / (max(zs) - min(zs))] * 3
+    e.location = loc; e.rotation_euler = (0, 0, rot)
+    return e
+
+
 # ---------- комната ----------
-floor = box('ПОЛ', (W, D, 0.02), (W / 2, D / 2, -0.01), M['floor'])
-floor.pass_index = 1                                      # маска пола
+floor = box('ПОЛ', (W, D, 0.02), (W / 2, D / 2, -0.01), M['floor']); floor.pass_index = 1
 box('потолок', (W, D, 0.02), (W / 2, D / 2, H + 0.01), M['ceil'])
 box('стена задняя', (W + 0.4, 0.1, H), (W / 2, D + 0.05, H / 2), M['wall'])
 box('стена правая', (0.1, D, H), (W + 0.05, D / 2, H / 2), M['wall'])
 box('стена у камеры', (W + 0.4, 0.1, H), (W / 2, -0.05, H / 2), M['wall'])
-# левая стена с окном: окно 1,8 × 1,6 м, подоконник на 0,8 м
-wy0, wy1, wz0, wz1 = 1.1, 2.9, 0.8, 2.4
-box('стена левая низ', (0.1, D, wz0), (-0.05, D / 2, wz0 / 2), M['wall'])
-box('стена левая верх', (0.1, D, H - wz1), (-0.05, D / 2, (H + wz1) / 2), M['wall'])
-box('стена левая перед', (0.1, wy0, wz1 - wz0), (-0.05, wy0 / 2, (wz0 + wz1) / 2), M['wall'])
-box('стена левая зад', (0.1, D - wy1, wz1 - wz0), (-0.05, (D + wy1) / 2, (wz0 + wz1) / 2), M['wall'])
-for y in (wy0, (wy0 + wy1) / 2, wy1): box('рама', (0.12, 0.06, wz1 - wz0), (-0.05, y, (wz0 + wz1) / 2), M['frame'])
-for z in (wz0, wz1): box('рама', (0.12, wy1 - wy0, 0.06), (-0.05, (wy0 + wy1) / 2, z), M['frame'])
-box('подоконник', (0.25, wy1 - wy0 + 0.1, 0.03), (0.06, (wy0 + wy1) / 2, wz0), M['frame'])
-box('стекло', (0.01, wy1 - wy0, wz1 - wz0), (-0.05, (wy0 + wy1) / 2, (wz0 + wz1) / 2), M['glass']).visible_shadow = False  # солнце проходит
-# плинтусы 7 см
-for (sx, sy, x, y) in [(W, 0.015, W / 2, D - 0.0075), (0.015, D, W - 0.0075, D / 2), (0.015, D, 0.0075, D / 2)]:
-    box('плинтус', (sx, sy, 0.07), (x, y, 0.035), M['skirt'], bevel=0.004)
-
-# занавески по краям окна: волнистое полотно
-for y0 in (wy0 - 0.15, wy1 - 0.25):
-    bpy.ops.mesh.primitive_grid_add(x_subdivisions=60, y_subdivisions=4, size=1, location=(0.12, y0 + 0.2, 1.3))
+wy0, wy1, wz0, wz1 = 1.0, 3.0, 0.85, 2.45             # окно 2,0 × 1,6 м
+box('стена левая низ', (0.25, D, wz0), (-0.125, D / 2, wz0 / 2), M['wall'])
+box('стена левая верх', (0.25, D, H - wz1), (-0.125, D / 2, (H + wz1) / 2), M['wall'])
+box('стена левая перед', (0.25, wy0, wz1 - wz0), (-0.125, wy0 / 2, (wz0 + wz1) / 2), M['wall'])
+box('стена левая зад', (0.25, D - wy1, wz1 - wz0), (-0.125, (D + wy1) / 2, (wz0 + wz1) / 2), M['wall'])
+for y in (wy0 + 0.03, (wy0 + wy1) / 2, wy1 - 0.03): box('рама', (0.08, 0.06, wz1 - wz0), (-0.15, y, (wz0 + wz1) / 2), M['white'], 0.005)
+for z in (wz0 + 0.03, wz1 - 0.03): box('рама', (0.08, wy1 - wy0, 0.06), (-0.15, (wy0 + wy1) / 2, z), M['white'], 0.005)
+box('подоконник', (0.32, wy1 - wy0 + 0.12, 0.03), (0.0, (wy0 + wy1) / 2, wz0 - 0.015), M['white'], 0.004)
+box('стекло', (0.01, wy1 - wy0, wz1 - wz0), (-0.15, (wy0 + wy1) / 2, (wz0 + wz1) / 2), M['glass']).visible_shadow = False
+for (sx, sy, x, y) in [(W, 0.016, W / 2, D - 0.008), (0.016, D, W - 0.008, D / 2), (0.016, D, 0.008, D / 2)]:
+    box('плинтус', (sx, sy, 0.08), (x, y, 0.04), M['white'], 0.003)
+# батарея под окном: ряды рёбер
+for i in range(24):
+    box('ребро батареи', (0.06, 0.035, 0.5), (0.06, wy0 + 0.25 + i * 0.062, 0.42), M['white'], 0.008)
+# дверь на правой стене (у камеры)
+dy0 = 0.35
+box('наличник', (0.03, 0.98, 2.15), (W - 0.015, dy0 + 0.45, 1.075), M['white'], 0.004)
+box('дверь', (0.04, 0.84, 2.04), (W - 0.03, dy0 + 0.45, 1.02), M['white'], 0.006)
+cyl('ручка', 0.012, 0.13, (W - 0.07, dy0 + 0.12, 1.0), M['brass'], 16).rotation_euler = (math.pi / 2, 0, 0)
+# розетки
+for x in (1.3, 3.9): box('розетка', (0.08, 0.012, 0.08), (x, D - 0.006, 0.3), M['white'], 0.006)
+# тюль: волнистое полотно по краям окна + карниз
+box('карниз', (0.03, wy1 - wy0 + 0.6, 0.03), (0.12, (wy0 + wy1) / 2, wz1 + 0.15), M['black'])
+for y0, w in ((wy0 - 0.3, 0.75), (wy1 - 0.45, 0.75)):
+    bpy.ops.mesh.primitive_grid_add(x_subdivisions=90, y_subdivisions=6, size=1, location=(0.14, y0 + w / 2, (wz1 + 0.15) / 2))
     c = bpy.context.object; c.name = 'штора'
-    c.rotation_euler = (math.pi / 2, 0, math.pi / 2); c.scale = (0.4, 2.55, 1)
+    c.rotation_euler = (math.pi / 2, 0, math.pi / 2); c.scale = (w, wz1 + 0.15, 1)
     bpy.ops.object.transform_apply(rotation=True, scale=True)
-    for v in c.data.vertices: v.co.x += 0.035 * math.sin(v.co.y * 55)
-    c.modifiers.new('толщина', 'SOLIDIFY').thickness = 0.004
+    for v in c.data.vertices: v.co.x += 0.03 * math.sin(v.co.y * 48) * (0.7 + 0.3 * math.sin(v.co.z * 3))
+    c.modifiers.new('толщина', 'SOLIDIFY').thickness = 0.003
     bpy.ops.object.shade_smooth(); c.data.materials.append(M['linen'])
+# люстра: подвес и плоский плафон
+cyl('подвес', 0.004, 0.5, (2.5, 2.2, H - 0.25), M['black'], 8)
+cyl('плафон', 0.22, 0.06, (2.5, 2.2, H - 0.52), M['shade'], 64, 0.01)
 
 # ---------- мебель ----------
-# диван 2,2 м у задней стены
-sx, sy = 2.4, D - 0.55
+sx, sy = 2.55, D - 0.52                               # диван 2,2 м у задней стены
 for dx in (-1.0, 1.0):
-    for dy in (-0.3, 0.3): cyl('ножка', 0.02, 0.1, (sx + dx, sy + dy, 0.05), M['walnut'], 16)
-box('диван основание', (2.2, 0.92, 0.22), (sx, sy, 0.21), M['sofa'], bevel=0.03)
-for dx in (-0.52, 0.52): box('сиденье', (1.0, 0.72, 0.16), (sx + dx, sy - 0.07, 0.40), M['sofa'], bevel=0.05, seg=4, sub=1)
-for dx in (-1.02, 1.02): box('подлокотник', (0.18, 0.92, 0.36), (sx + dx, sy, 0.38), M['sofa'], bevel=0.06, seg=4, sub=1)
-box('спинка', (1.86, 0.24, 0.46), (sx, sy + 0.32, 0.62), M['sofa'], bevel=0.07, seg=4, sub=1)
-# журнальный столик: дуб, чёрные ножки
-tx, ty = 2.4, D - 1.65
-cyl('столешница', 0.45, 0.035, (tx, ty, 0.42), M['oak'], 96, bevel=0.008)
+    for dy in (-0.32, 0.32): cyl('ножка', 0.018, 0.12, (sx + dx, sy + dy, 0.06), M['walnut'], 16)
+soft('основание', (2.24, 0.94, 0.22), (sx, sy, 0.23), M['sofa'], 0.035)
+for dx in (-0.535, 0.535): soft('сиденье', (1.04, 0.74, 0.17), (sx + dx, sy - 0.08, 0.425), M['sofa'], 0.07)
+for dx in (-1.03, 1.03): soft('подлокотник', (0.18, 0.94, 0.38), (sx + dx, sy, 0.53), M['sofa'], 0.07)
+soft('спинка', (1.88, 0.26, 0.46), (sx, sy + 0.33, 0.57), M['sofa'], 0.09)
+for dx, m_, rz in ((-0.62, 'pillow1', 0.15), (-0.2, 'pillow2', -0.05), (0.7, 'pillow1', -0.12)):
+    p = soft('подушка', (0.44, 0.2, 0.42), (sx + dx, sy + 0.04, 0.74), M[m_], 0.06)
+    p.rotation_euler = (math.radians(-14), 0, rz)
+# журнальный столик: дуб, чёрные ножки, ваза
+tx, ty = 2.5, D - 1.7
+cyl('столешница', 0.46, 0.035, (tx, ty, 0.42), M['oak'], 128, 0.008)
 for a in range(3):
-    ang = a * 2 * math.pi / 3
-    l = cyl('ножка стола', 0.012, 0.42, (tx + 0.28 * math.cos(ang), ty + 0.28 * math.sin(ang), 0.2), M['black'], 12)
-# торшер справа от дивана
-lx, ly = 3.85, D - 0.4
+    ang = a * 2 * math.pi / 3 + 0.4
+    cyl('ножка стола', 0.013, 0.405, (tx + 0.3 * math.cos(ang), ty + 0.3 * math.sin(ang), 0.2), M['black'], 12)
+gltf('ceramic_vase_01', (tx + 0.12, ty + 0.05, 0.44), height=0.24)
+# торшер у правого края дивана
+lx, ly = 4.1, D - 0.45
 cyl('основание торшера', 0.15, 0.02, (lx, ly, 0.01), M['black'])
-cyl('стойка торшера', 0.012, 1.5, (lx, ly, 0.76), M['black'], 12)
-sh = cyl('абажур', 0.22, 0.32, (lx, ly, 1.55), M['shade'], 64)
-# растение в углу
-px, py = 0.55, D - 0.45
-cyl('горшок', 0.2, 0.42, (px, py, 0.21), M['pot'], 64, bevel=0.01)
-for i in range(14):                                  # листья — вытянутые сплюснутые сферы
-    ang = i * 2.4; r = 0.12 + 0.03 * (i % 3)
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.2, location=(px + r * math.cos(ang), py + r * math.sin(ang), 0.75 + 0.05 * (i % 5)))
-    lf = bpy.context.object; lf.scale = (1.6, 0.45, 0.05)
-    lf.rotation_euler = (math.radians(30 + 8 * (i % 4)), 0, ang)
-    bpy.ops.object.shade_smooth(); lf.data.materials.append(M['leaf'])
-# картина над диваном
-box('рама картины', (1.0, 0.03, 0.7), (sx, D - 0.02, 1.55), M['walnut'], bevel=0.005)
-box('холст', (0.92, 0.01, 0.62), (sx, D - 0.04, 1.55), M['art'])
+cyl('стойка торшера', 0.011, 1.5, (lx, ly, 0.76), M['black'], 12)
+cyl('абажур', 0.22, 0.32, (lx, ly, 1.55), M['shade'], 64)
+bpy.ops.object.light_add(type='POINT', location=(lx, ly, 1.52)); L = bpy.context.object.data
+L.energy = 8; L.shadow_soft_size = 0.12; L.color = (1, 0.82, 0.6)
+# растение в углу и картина над диваном
+gltf('potted_plant_02', (0.55, D - 0.5, 0), height=1.25, rot=0.6)
+box('рама картины', (1.1, 0.03, 0.75), (sx, D - 0.02, 1.58), M['black'], 0.004)
+box('паспарту', (1.04, 0.012, 0.69), (sx, D - 0.036, 1.58), M['white'])
+box('картина', (0.86, 0.008, 0.52), (sx, D - 0.044, 1.58), M['art'])
 
-# ---------- свет: небо с солнцем через окно ----------
-world = bpy.data.worlds.new('небо'); sc.world = world; world.use_nodes = True
-sky = world.node_tree.nodes.new('ShaderNodeTexSky'); sky.sky_type = 'NISHITA'
-sky.sun_disc = False; sky.sun_elevation = math.radians(30)            # небо — рассеянный свет из окна
-world.node_tree.links.new(sky.outputs['Color'], world.node_tree.nodes['Background'].inputs['Color'])
-world.node_tree.nodes['Background'].inputs['Strength'].default_value = 0.9
-# солнце: через окно слева, пятно ложится на пол
+# ---------- свет: панорама парка за окном + солнце ----------
+world = bpy.data.worlds.new('мир'); sc.world = world; world.use_nodes = True
+nt = world.node_tree
+env = nt.nodes.new('ShaderNodeTexEnvironment'); env.image = bpy.data.images.load(str(ASSETS / 'ballawley_park_2k.hdr'))
+mp = nt.nodes.new('ShaderNodeMapping'); mp.inputs['Rotation'].default_value = (0, 0, math.radians(90))
+co = nt.nodes.new('ShaderNodeTexCoord')
+nt.links.new(co.outputs['Generated'], mp.inputs['Vector']); nt.links.new(mp.outputs['Vector'], env.inputs['Vector'])
+nt.links.new(env.outputs['Color'], nt.nodes['Background'].inputs['Color'])
+nt.nodes['Background'].inputs['Strength'].default_value = 1.4
 bpy.ops.object.light_add(type='SUN', location=(0, 0, 5)); sun = bpy.context.object
-sun.data.energy = 4.0; sun.data.angle = math.radians(1.5); sun.data.color = (1, 0.95, 0.88)
-sun.rotation_euler = Vector((1.0, 0.25, -0.62)).to_track_quat('-Z', 'Y').to_euler()
-# мягкий свет от абажура (вечером станет заметнее)
-bpy.ops.object.light_add(type='POINT', location=(lx, ly, 1.5)); bpy.context.object.data.energy = 6
-bpy.context.object.data.shadow_soft_size = 0.15; bpy.context.object.data.color = (1, 0.85, 0.65)
+sun.data.energy = 5.5; sun.data.angle = math.radians(1.0); sun.data.color = (1, 0.93, 0.84)
+sun.rotation_euler = Vector((1.0, 0.3, -0.6)).to_track_quat('-Z', 'Y').to_euler()
 
-# ---------- камера: как фото интерьера, 1,35 м, широкий угол ----------
-bpy.ops.object.camera_add(location=(W - 0.35, 0.3, 1.35))
+# ---------- камера: 1,3 м, объектив 22 мм ----------
+bpy.ops.object.camera_add(location=(W - 0.4, 0.35, 1.3))
 cam = bpy.context.object; sc.camera = cam
-cam.data.lens = 18; cam.data.sensor_width = 36
-target = Vector((1.8, D, 0.9))
-cam.rotation_euler = (target - cam.location).to_track_quat('-Z', 'Y').to_euler()
+cam.data.lens = 22; cam.data.sensor_width = 36
+cam.rotation_euler = (Vector((1.9, D, 0.95)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
 
 # ---------- рендер ----------
 sc.render.engine = 'CYCLES'
 prefs = bpy.context.preferences.addons['cycles'].preferences
 prefs.compute_device_type = 'OPTIX'; prefs.get_devices()
 for d in prefs.devices: d.use = d.type == 'OPTIX'
-sc.cycles.device = 'GPU'
-sc.cycles.samples = SAMPLES; sc.cycles.use_denoising = True
-sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Base Contrast'
-sc.view_settings.exposure = 1.1
+sc.cycles.device = 'GPU'; sc.cycles.samples = SAMPLES; sc.cycles.use_denoising = True
+sc.cycles.max_bounces = 8
+sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Medium High Contrast'
+sc.view_settings.exposure = 0.9
 sc.render.resolution_x, sc.render.resolution_y = RES
-sc.render.film_transparent = False
 sc.view_layers[0].use_pass_object_index = True
-
-# маска пола через композитор: ID Mask со сглаживанием
 sc.use_nodes = True
 nt = sc.node_tree; nt.nodes.clear()
 rl = nt.nodes.new('CompositorNodeRLayers')
@@ -202,20 +249,17 @@ comp = nt.nodes.new('CompositorNodeComposite'); nt.links.new(rl.outputs['Image']
 idm = nt.nodes.new('CompositorNodeIDMask'); idm.index = 1; idm.use_antialiasing = True
 nt.links.new(rl.outputs['IndexOB'], idm.inputs['ID value'])
 fo = nt.nodes.new('CompositorNodeOutputFile'); fo.base_path = str(OUT)
-fo.format.file_format = 'PNG'; fo.format.color_mode = 'BW'
-fo.file_slots[0].path = 'floor_mask'
+fo.format.file_format = 'PNG'; fo.format.color_mode = 'BW'; fo.file_slots[0].path = 'floor_mask'
 nt.links.new(idm.outputs['Alpha'], fo.inputs[0])
-
-sc.render.filepath = str(OUT / 'room.png')
-sc.render.image_settings.file_format = 'PNG'
+sc.render.filepath = str(OUT / 'room.png'); sc.render.image_settings.file_format = 'PNG'
 bpy.ops.render.render(write_still=True)
 
-# ---------- перспектива пола для сайта: углы пола на картинке ----------
+# ---------- перспектива пола для сайта ----------
 from bpy_extras.object_utils import world_to_camera_view
+Y0 = 1.3                                              # ближний край пола — в кадре
 q = []
-Y0 = 1.2                                                   # ближний край — в кадре (угол у стены за камерой)
-for p in [(0, D, 0), (W, D, 0), (W, Y0, 0), (0, Y0, 0)]:   # дальний левый, дальний правый, ближний правый, ближний левый
+for p in [(0, D, 0), (W, D, 0), (W, Y0, 0), (0, Y0, 0)]:
     v = world_to_camera_view(sc, cam, Vector(p))
     q.append([round(v.x * RES[0], 2), round((1 - v.y) * RES[1], 2)])
-json.dump({'img': list(RES), 'quad': q, 'size': [W, round(D - Y0, 3)], 'cam_h': 1.35}, open(OUT / 'room.json', 'w'), indent=1)
+json.dump({'img': list(RES), 'quad': q, 'size': [W, round(D - Y0, 3)], 'cam_h': 1.3}, open(OUT / 'room.json', 'w'), indent=1)
 print('ГОТОВО', OUT)
