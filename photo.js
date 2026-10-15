@@ -6,7 +6,7 @@
 //  3) Свет и тени берём с исходного фото: размытая яркость пола / средняя яркость пола.
 import * as THREE from 'three';
 
-const MASK_V = 'v50'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
+const MASK_V = 'v51'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
 const DEFAULT_TEX_W_M = 1.3; // м пола по ширине фото декора (как в 3D)
 
 let renderer, scene, camera, mat, mesh, canvasEl;
@@ -320,8 +320,9 @@ function boxBlur(a, w, h, r) {
 // Карта света пола. Размываем ТОЛЬКО пол (стены и мебель не «натекают» на край — нет каймы):
 // blur(фото·маска) / blur(маска), в линейном свете. Две ширины: крупная — общий свет и тени,
 // средняя — пятна солнца и отражения окон. Плюс затенение у стен и мебели (по маске).
-function makeLight(img, maskCanvas) {
-  const s = 512 / Math.max(img.width, img.height);
+// sharp — комната нарисована (Blender): свет на белом полу точный, не размываем
+function makeLight(img, maskCanvas, sharp) {
+  const s = (sharp ? 1024 : 512) / Math.max(img.width, img.height);
   const w = Math.round(img.width * s), h = Math.round(img.height * s), N = w * h;
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   const g = c.getContext('2d');
@@ -344,10 +345,11 @@ function makeLight(img, maskCanvas) {
     const den = boxBlur(m, w, h, rad);
     return ch.map(a => { const b = boxBlur(a, w, h, rad); for (let i = 0; i < N; i++) b[i] /= Math.max(den[i], 1e-3); return b; });
   };
-  const SL = masked(14), SM = masked(4);
+  const SL = masked(sharp ? 1 : 14), SM = masked(sharp ? 1 : 4);
   // затенение: сколько «не пола» вокруг (стены, мебель)
   const nf = new Float32Array(N); for (let i = 0; i < N; i++) nf[i] = 1 - m[i];
   const aoN = boxBlur(nf, w, h, 3), aoF = boxBlur(nf, w, h, 12);
+  if (sharp) { aoN.fill(0); aoF.fill(0); }          // затенение уже есть на рендере
   // «нормальная» яркость пола — 60-й процентиль (солнечные пятна не тянут всё вниз)
   const ls = [], fl = [0, 0, 0];
   for (let i = 0; i < N; i++) if (m[i] > 0.5) {
@@ -408,7 +410,7 @@ export function showPhoto(data) {
     img.onload = () => ready();
     const build = () => {
       data.img = data.img || [img.width, img.height];
-      const mask = makeMask(data), light = makeLight(img, mask);
+      const mask = makeMask(data), light = makeLight(img, mask, !!data.render);
       const c = { photoTex: tex(img), blurTex: light.bigTex, medTex: light.medTex, maskTex: tex(mask), meanL: light.meanL,
                   meanC: light.meanC, tint: light.tint, skL: light.skL, img, skH: skirt && skirt.h };
       cache[data.id] = c;
@@ -424,7 +426,7 @@ export function refreshPhoto(data) {
   if (!cur) return;
   const c = cache[data.id];
   data._maskImg = null; // разметку правят — режем по многоугольникам
-  const mask = makeMask(data), light = makeLight(c.img, mask);
+  const mask = makeMask(data), light = makeLight(c.img, mask, !!data.render);
   c.maskTex.dispose(); c.blurTex.dispose(); c.medTex.dispose();
   c.maskTex = tex(mask); c.blurTex = light.bigTex; c.medTex = light.medTex; c.meanL = light.meanL; c.meanC = light.meanC; c.tint = light.tint; c.skL = light.skL;
   mat.uniforms.meanC.value.set(...c.meanC); mat.uniforms.roomTint.value.set(...c.tint);
