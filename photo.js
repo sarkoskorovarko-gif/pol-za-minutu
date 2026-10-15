@@ -6,7 +6,7 @@
 //  3) Свет и тени берём с исходного фото: размытая яркость пола / средняя яркость пола.
 import * as THREE from 'three';
 
-const MASK_V = 'v52'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
+const MASK_V = 'v53'; // версия масок = версия сайта (меняется вместе с ?v=), иначе телефон берёт старые из кэша
 const DEFAULT_TEX_W_M = 1.3; // м пола по ширине фото декора (как в 3D)
 
 let renderer, scene, camera, mat, mesh, canvasEl;
@@ -26,7 +26,7 @@ export function initPhoto(canvas) {
   camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, 0, 1);
   mat = new THREE.ShaderMaterial({
     uniforms: {
-      photo: { value: null }, blurP: { value: null }, medP: { value: null }, gloss: { value: 0.35 }, mask: { value: null }, decor: { value: null },
+      photo: { value: null }, blurP: { value: null }, medP: { value: null }, gloss: { value: 0.35 }, reflT: { value: null }, reflOn: { value: 0 }, mask: { value: null }, decor: { value: null },
       Hinv: { value: new THREE.Matrix3() }, imgSize: { value: new THREE.Vector2(1, 1) },
       texM: { value: new THREE.Vector2(1.3, 0.8) }, meanL: { value: 0.5 }, rot: { value: 0 },
       meanC: { value: new THREE.Vector3(0.3, 0.3, 0.3) }, roomTint: { value: new THREE.Vector3(1, 1, 1) },
@@ -41,7 +41,7 @@ export function initPhoto(canvas) {
     fragmentShader: `
       precision highp float;
       varying vec2 vUv;
-      uniform sampler2D photo, blurP, medP, mask, decor; uniform float gloss;
+      uniform sampler2D photo, blurP, medP, mask, decor, reflT; uniform float gloss, reflOn;
       uniform mat3 Hinv; uniform vec2 imgSize, texM; uniform float meanL, rot, exposure, night, showGrid;
       uniform vec3 tint, meanC, roomTint; uniform vec4 crop; uniform vec2 lampFloor; uniform float hasLamp;
       uniform vec3 skCol; uniform float skOn, skL;
@@ -122,6 +122,8 @@ export function initPhoto(canvas) {
         float refl = max(lum(toLin(BM.rgb)) - lum(toLin(BL.rgb)) * 1.08, 0.0);
         float fres = mix(0.5, 1.3, smoothstep(0.0, 0.6, vUv.y));
         fl += vec3(refl * gloss * fres) * (1.0 - night);
+        // нарисованная комната: настоящие отражения (окно, мебель) из рендера глянцевого пола
+        fl += toLin(texture2D(reflT, uv).rgb) * 0.8 * reflOn * (1.0 - night);
         fl += vec3(0.06 * exp(-r * r / 0.5)) * night * ao * hasLamp; // отражение люстры — если отмечена
         // мягкое «плечо»: яркое не выгорает в белое пятно
         fl = mix(fl, 0.6 + 0.4 * (1.0 - exp(-(fl - 0.6) / 0.4)), step(0.6, fl));
@@ -395,13 +397,21 @@ export function showPhoto(data) {
       Object.assign(mat.uniforms, {});
       mat.uniforms.photo.value = c.photoTex; mat.uniforms.blurP.value = c.blurTex; mat.uniforms.medP.value = c.medTex;
       mat.uniforms.mask.value = c.maskTex; mat.uniforms.meanL.value = c.meanL; mat.uniforms.skL.value = c.skL;
+      mat.uniforms.reflT.value = c.reflTex || c.maskTex; mat.uniforms.reflOn.value = c.reflTex ? 1 : 0;
       mat.uniforms.meanC.value.set(...c.meanC); mat.uniforms.roomTint.value.set(...c.tint);
       updateGeometry(); fitCrop(); render(); ok();
     };
     if (cache[data.id] && cache[data.id].skH !== (skirt && skirt.h)) delete cache[data.id]; // другая высота плинтуса
     if (cache[data.id]) return done({ ...cache[data.id], data });
     const img = new Image();
-    let left = 2;          // ждём фото и уточнённую маску
+    let left = data.render ? 3 : 2;   // ждём фото и уточнённую маску (и отражения — у нарисованной комнаты)
+    let rf = null;
+    if (data.render) {
+      const r = new Image();
+      r.onload = () => { rf = r; ready(); };
+      r.onerror = () => ready();
+      r.src = (window.PHOTO_BASE || '') + 'data/photos/refl/' + data.id + '.jpg?v=' + MASK_V;
+    }
     const mk = new Image();
     mk.onload = () => { data._maskImg = mk; ready(); };
     mk.onerror = () => ready(); // маски нет — режем по многоугольникам
@@ -412,6 +422,7 @@ export function showPhoto(data) {
       data.img = data.img || [img.width, img.height];
       const mask = makeMask(data), light = makeLight(img, mask, !!data.render);
       const c = { photoTex: tex(img), blurTex: light.bigTex, medTex: light.medTex, maskTex: tex(mask), meanL: light.meanL,
+                  reflTex: rf && tex(rf),
                   meanC: light.meanC, tint: light.tint, skL: light.skL, img, skH: skirt && skirt.h };
       cache[data.id] = c;
       done({ ...c, data });

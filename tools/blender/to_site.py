@@ -22,6 +22,12 @@ th = cv2.imdecode(np.fromfile(next((P / 'thumbs').glob('r2*.jpg')), np.uint8), 1
 cv2.imencode('.jpg', cv2.resize(img, th.shape[1::-1], interpolation=cv2.INTER_AREA), [cv2.IMWRITE_JPEG_QUALITY, 85])[1].tofile(P / 'thumbs' / f'{rid}.jpg')
 m = cv2.imread(str(src / 'floor_mask0001.png'), 0)
 cv2.imencode('.png', m)[1].tofile(P / 'masks' / f'{rid}.png')
+# отражения в полу: только там, где пол (остальное чёрное — файл маленький)
+rf = cv2.imread(str(src / 'room_refl.png'))
+if rf is not None:
+    (P / 'refl').mkdir(exist_ok=True)
+    rf = (rf.astype(np.float32) * (cv2.GaussianBlur(m, (0, 0), 2)[..., None] / 255.0)).astype(np.uint8)
+    cv2.imencode('.jpg', rf, [cv2.IMWRITE_JPEG_QUALITY, 85])[1].tofile(P / 'refl' / f'{rid}.jpg')
 cs, _ = cv2.findContours((m > 127).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 poly = cv2.approxPolyDP(max(cs, key=cv2.contourArea), 2.0, True)[:, 0].tolist()
 r = json.load(open(src / 'room.json'))

@@ -114,6 +114,9 @@ def box(name, size, loc, material, bevel=0.0, seg=3):
 def soft(name, size, loc, material, r=0.05):
     """Мягкий предмет (подушка, сиденье): скруглённый блок с плавными гранями."""
     o = box(name, size, loc, material, bevel=r, seg=6)
+    sub = o.modifiers.new('сетка', 'SUBSURF'); sub.subdivision_type = 'SIMPLE'; sub.levels = sub.render_levels = 3
+    tx = bpy.data.textures.new(name + ' складки', 'CLOUDS'); tx.noise_scale = 0.12
+    dp = o.modifiers.new('складки', 'DISPLACE'); dp.texture = tx; dp.strength = 0.012; dp.mid_level = 0.5
     o.modifiers.new('плавно', 'WEIGHTED_NORMAL')
     return o
 
@@ -242,16 +245,44 @@ sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Medium H
 sc.view_settings.exposure = 0.9
 sc.render.resolution_x, sc.render.resolution_y = RES
 sc.view_layers[0].use_pass_object_index = True
+sc.view_layers[0].use_pass_z = True
 sc.use_nodes = True
 nt = sc.node_tree; nt.nodes.clear()
 rl = nt.nodes.new('CompositorNodeRLayers')
-comp = nt.nodes.new('CompositorNodeComposite'); nt.links.new(rl.outputs['Image'], comp.inputs['Image'])
+comp = nt.nodes.new('CompositorNodeComposite')
+# «как фотоаппарат»: свечение вокруг ярких мест, лёгкие цветные края, затемнение по углам
+gl = nt.nodes.new('CompositorNodeGlare'); gl.glare_type = 'FOG_GLOW'; gl.quality = 'HIGH'
+gl.threshold = 0.9; gl.mix = -0.85; gl.size = 8
+ld = nt.nodes.new('CompositorNodeLensdist'); ld.inputs['Dispersion'].default_value = 0.004
+el = nt.nodes.new('CompositorNodeEllipseMask'); el.width = 1.25; el.height = 1.25
+bl = nt.nodes.new('CompositorNodeBlur'); bl.size_x = bl.size_y = 300; bl.use_relative = False
+vm = nt.nodes.new('CompositorNodeMixRGB'); vm.blend_type = 'MULTIPLY'; vm.inputs['Fac'].default_value = 0.25
+nt.links.new(rl.outputs['Image'], gl.inputs['Image']); nt.links.new(gl.outputs['Image'], ld.inputs['Image'])
+nt.links.new(el.outputs['Mask'], bl.inputs['Image'])
+nt.links.new(ld.outputs['Image'], vm.inputs[1]); nt.links.new(bl.outputs['Image'], vm.inputs[2])
+nt.links.new(vm.outputs['Image'], comp.inputs['Image'])
 idm = nt.nodes.new('CompositorNodeIDMask'); idm.index = 1; idm.use_antialiasing = True
 nt.links.new(rl.outputs['IndexOB'], idm.inputs['ID value'])
 fo = nt.nodes.new('CompositorNodeOutputFile'); fo.base_path = str(OUT)
 fo.format.file_format = 'PNG'; fo.format.color_mode = 'BW'; fo.file_slots[0].path = 'floor_mask'
 nt.links.new(idm.outputs['Alpha'], fo.inputs[0])
+# карта глубины для нейросети (ближе — светлее)
+nz = nt.nodes.new('CompositorNodeNormalize'); inv = nt.nodes.new('CompositorNodeInvert')
+nt.links.new(rl.outputs['Depth'], nz.inputs[0]); nt.links.new(nz.outputs[0], inv.inputs['Color'])
+fo.file_slots.new('depth'); nt.links.new(inv.outputs['Color'], fo.inputs[1])
 sc.render.filepath = str(OUT / 'room.png'); sc.render.image_settings.file_format = 'PNG'
+bpy.ops.render.render(write_still=True)
+
+# второй кадр — отражения в полу: пол чёрный глянцевый, в нём видно только отражение комнаты
+fo.mute = True
+floor.data.materials[0] = mat('пол глянец', (0, 0, 0), 0.18)
+sc.render.filepath = str(OUT / 'room_refl.png')
+bpy.ops.render.render(write_still=True)
+
+# третий кадр — для нейросети: пол деревянный (белый пол сбивает её)
+fl = tmat('дуб пола', 'oak_veneer_01', (0.95, 0.9, 0.85), 0.35)
+floor.data.materials[0] = fl
+sc.render.filepath = str(OUT / 'room_ai.png')
 bpy.ops.render.render(write_still=True)
 
 # ---------- перспектива пола для сайта ----------
