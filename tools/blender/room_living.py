@@ -3,6 +3,7 @@
 Пол — белый матовый: по его яркости сайт узнаёт свет и тени и кладёт любой декор.
 Материалы и модели (Poly Haven, CC0) лежат вне проекта: D:\\pol-ai\\assets.
 Запуск:  D:\\pol-ai\\blender\\blender.exe -b -P tools/blender/room_living.py -- <папка вывода> [samples]
+С мебелью BlenderKit: ... -- <папка> 256 bk
 На выходе: room.png (картинка), floor_mask0001.png (где пол), room.json (перспектива пола).
 """
 import json, math, sys
@@ -14,6 +15,8 @@ from mathutils import Vector
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 OUT = Path(argv[0] if argv else 'render_out'); OUT.mkdir(parents=True, exist_ok=True)
 SAMPLES = int(argv[1]) if len(argv) > 1 else 256
+BK = 'bk' in argv[2:]            # мебель из BlenderKit (скачана tools/blender/bk_download.py)
+BK_DIR = Path('D:/pol-ai/bk_assets')
 ASSETS = Path(r'D:\pol-ai\assets')
 W, D, H = 5.0, 4.2, 2.7          # комната: ширина (x), глубина (y), высота
 RES = (1600, 1067)
@@ -143,6 +146,27 @@ def gltf(name, loc, height=None, rot=0.0):
     return e
 
 
+def bk(aid, loc, rot=0.0, height=None, skip=(), hide=()):
+    """Модель BlenderKit: ставим низом на пол, центром в loc."""
+    with bpy.data.libraries.load(str(BK_DIR / f'{aid}.blend')) as (src, dst):
+        dst.objects = [n for n in src.objects if not any(k in n for k in skip)]
+    objs = [o for o in dst.objects if o and o.type not in ('CAMERA', 'LIGHT')]
+    for o in objs:
+        sc.collection.objects.link(o)
+        if o.name in hide: o.hide_render = True
+    bpy.ops.object.empty_add(location=(0, 0, 0)); e = bpy.context.object; e.name = aid[:8]
+    for o in objs:
+        if o.parent is None or o.parent not in objs: o.parent = e
+    bpy.context.view_layer.update()
+    pts = [o.matrix_world @ Vector(c) for o in objs if o.type == 'MESH' for c in o.bound_box]
+    mn = Vector([min(p[i] for p in pts) for i in range(3)]); mx = Vector([max(p[i] for p in pts) for i in range(3)])
+    k = height / (mx.z - mn.z) if height else 1.0
+    for o in objs:
+        if o.parent == e: o.location -= Vector(((mn.x + mx.x) / 2, (mn.y + mx.y) / 2, mn.z))
+    e.scale = (k, k, k); e.location = loc; e.rotation_euler = (0, 0, rot)
+    return e
+
+
 # ---------- комната ----------
 floor = box('ПОЛ', (W, D, 0.02), (W / 2, D / 2, -0.01), M['floor']); floor.pass_index = 1
 box('потолок', (W, D, 0.02), (W / 2, D / 2, H + 0.01), M['ceil'])
@@ -170,9 +194,10 @@ box('дверь', (0.04, 0.84, 2.04), (W - 0.03, dy0 + 0.45, 1.02), M['white'], 
 cyl('ручка', 0.012, 0.13, (W - 0.07, dy0 + 0.12, 1.0), M['brass'], 16).rotation_euler = (math.pi / 2, 0, 0)
 # розетки
 for x in (1.3, 3.9): box('розетка', (0.08, 0.012, 0.08), (x, D - 0.006, 0.3), M['white'], 0.006)
+if BK: bk('8f38fc13-71f5-40f9-9778-cf27f38a85b0', (0.25, (wy0 + wy1) / 2, 0), math.pi / 2, height=wz1 + 0.2)
 # тюль: волнистое полотно по краям окна + карниз
 box('карниз', (0.03, wy1 - wy0 + 0.6, 0.03), (0.12, (wy0 + wy1) / 2, wz1 + 0.15), M['black'])
-for y0, w in ((wy0 - 0.3, 0.75), (wy1 - 0.45, 0.75)):
+for y0, w in () if BK else ((wy0 - 0.3, 0.75), (wy1 - 0.45, 0.75)):
     bpy.ops.mesh.primitive_grid_add(x_subdivisions=90, y_subdivisions=6, size=1, location=(0.14, y0 + w / 2, (wz1 + 0.15) / 2))
     c = bpy.context.object; c.name = 'штора'
     c.rotation_euler = (math.pi / 2, 0, math.pi / 2); c.scale = (w, wz1 + 0.15, 1)
@@ -185,32 +210,41 @@ cyl('подвес', 0.004, 0.5, (2.5, 2.2, H - 0.25), M['black'], 8)
 cyl('плафон', 0.22, 0.06, (2.5, 2.2, H - 0.52), M['shade'], 64, 0.01)
 
 # ---------- мебель ----------
-sx, sy = 2.55, D - 0.52                               # диван 2,2 м у задней стены
-for dx in (-1.0, 1.0):
-    for dy in (-0.32, 0.32): cyl('ножка', 0.018, 0.12, (sx + dx, sy + dy, 0.06), M['walnut'], 16)
-soft('основание', (2.24, 0.94, 0.22), (sx, sy, 0.23), M['sofa'], 0.035)
-for dx in (-0.535, 0.535): soft('сиденье', (1.04, 0.74, 0.17), (sx + dx, sy - 0.08, 0.425), M['sofa'], 0.07)
-for dx in (-1.03, 1.03): soft('подлокотник', (0.18, 0.94, 0.38), (sx + dx, sy, 0.53), M['sofa'], 0.07)
-soft('спинка', (1.88, 0.26, 0.46), (sx, sy + 0.33, 0.57), M['sofa'], 0.09)
-for dx, m_, rz in ((-0.62, 'pillow1', 0.15), (-0.2, 'pillow2', -0.05), (0.7, 'pillow1', -0.12)):
-    p = soft('подушка', (0.44, 0.2, 0.42), (sx + dx, sy + 0.04, 0.74), M[m_], 0.06)
-    p.rotation_euler = (math.radians(-14), 0, rz)
-# журнальный столик: дуб, чёрные ножки, ваза
-tx, ty = 2.5, D - 1.7
-cyl('столешница', 0.46, 0.035, (tx, ty, 0.42), M['oak'], 128, 0.008)
-for a in range(3):
-    ang = a * 2 * math.pi / 3 + 0.4
-    cyl('ножка стола', 0.013, 0.405, (tx + 0.3 * math.cos(ang), ty + 0.3 * math.sin(ang), 0.2), M['black'], 12)
-gltf('ceramic_vase_01', (tx + 0.12, ty + 0.05, 0.44), height=0.24)
-# торшер у правого края дивана
-lx, ly = 4.1, D - 0.45
-cyl('основание торшера', 0.15, 0.02, (lx, ly, 0.01), M['black'])
-cyl('стойка торшера', 0.011, 1.5, (lx, ly, 0.76), M['black'], 12)
-cyl('абажур', 0.22, 0.32, (lx, ly, 1.55), M['shade'], 64)
-bpy.ops.object.light_add(type='POINT', location=(lx, ly, 1.52)); L = bpy.context.object.data
-L.energy = 8; L.shadow_soft_size = 0.12; L.color = (1, 0.82, 0.6)
-# растение в углу и картина над диваном
-gltf('potted_plant_02', (0.55, D - 0.5, 0), height=1.25, rot=0.6)
+if BK:
+    sx = 2.25                                         # центр нового дивана (для картины)
+    bk('01d39e9e-a6a5-40e5-bec3-56a908c62b8f', (2.45, D - 1.05, 0), 0.0,   # диван, столик, пуф, растения
+       hide=('Living Room Sofa and Table Set 002', 'pouff', 'pouff_cushion'))                       # ковёр прячем: пол должен быть виден
+    bk('07267ccb-c51f-4c9a-9afb-56ebb6f8ad1a', (0.95, 1.75, 0), -0.15)         # кресло с пуфом
+    bk('0318ccab-565c-4169-ad40-0001f537aba2', (4.55, D - 0.35, 0))          # торшер
+    bpy.ops.object.light_add(type='POINT', location=(4.55, D - 0.35, 1.3)); L = bpy.context.object.data
+    L.energy = 8; L.shadow_soft_size = 0.12; L.color = (1, 0.82, 0.6)
+if not BK:
+    sx, sy = 2.55, D - 0.52                               # диван 2,2 м у задней стены
+    for dx in (-1.0, 1.0):
+        for dy in (-0.32, 0.32): cyl('ножка', 0.018, 0.12, (sx + dx, sy + dy, 0.06), M['walnut'], 16)
+    soft('основание', (2.24, 0.94, 0.22), (sx, sy, 0.23), M['sofa'], 0.035)
+    for dx in (-0.535, 0.535): soft('сиденье', (1.04, 0.74, 0.17), (sx + dx, sy - 0.08, 0.425), M['sofa'], 0.07)
+    for dx in (-1.03, 1.03): soft('подлокотник', (0.18, 0.94, 0.38), (sx + dx, sy, 0.53), M['sofa'], 0.07)
+    soft('спинка', (1.88, 0.26, 0.46), (sx, sy + 0.33, 0.57), M['sofa'], 0.09)
+    for dx, m_, rz in ((-0.62, 'pillow1', 0.15), (-0.2, 'pillow2', -0.05), (0.7, 'pillow1', -0.12)):
+        p = soft('подушка', (0.44, 0.2, 0.42), (sx + dx, sy + 0.04, 0.74), M[m_], 0.06)
+        p.rotation_euler = (math.radians(-14), 0, rz)
+    # журнальный столик: дуб, чёрные ножки, ваза
+    tx, ty = 2.5, D - 1.7
+    cyl('столешница', 0.46, 0.035, (tx, ty, 0.42), M['oak'], 128, 0.008)
+    for a in range(3):
+        ang = a * 2 * math.pi / 3 + 0.4
+        cyl('ножка стола', 0.013, 0.405, (tx + 0.3 * math.cos(ang), ty + 0.3 * math.sin(ang), 0.2), M['black'], 12)
+    gltf('ceramic_vase_01', (tx + 0.12, ty + 0.05, 0.44), height=0.24)
+    # торшер у правого края дивана
+    lx, ly = 4.1, D - 0.45
+    cyl('основание торшера', 0.15, 0.02, (lx, ly, 0.01), M['black'])
+    cyl('стойка торшера', 0.011, 1.5, (lx, ly, 0.76), M['black'], 12)
+    cyl('абажур', 0.22, 0.32, (lx, ly, 1.55), M['shade'], 64)
+    bpy.ops.object.light_add(type='POINT', location=(lx, ly, 1.52)); L = bpy.context.object.data
+    L.energy = 8; L.shadow_soft_size = 0.12; L.color = (1, 0.82, 0.6)
+    # растение в углу и картина над диваном
+    gltf('potted_plant_02', (0.55, D - 0.5, 0), height=1.25, rot=0.6)
 box('рама картины', (1.1, 0.03, 0.75), (sx, D - 0.02, 1.58), M['black'], 0.004)
 box('паспарту', (1.04, 0.012, 0.69), (sx, D - 0.036, 1.58), M['white'])
 box('картина', (0.86, 0.008, 0.52), (sx, D - 0.044, 1.58), M['art'])
