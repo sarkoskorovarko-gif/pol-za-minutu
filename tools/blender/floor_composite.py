@@ -26,11 +26,11 @@ for did in sys.argv[3:]:
     f = cv2.resize(f, (ai.shape[1], ai.shape[0]), interpolation=cv2.INTER_AREA)
     # цвет как у образца: ожидаемый пол = свет (белый пол) × средний цвет фото декора
     tex = lin(rd(ROOT / 'data' / 'textures' / f'{did}.jpg').reshape(-1, 3).astype(np.float32).mean(0))
-    w = m[..., 0] > 0.5
+    w = (m[..., 0] > 0.5) & (white.max(2) < 245)            # пересвеченные точки белого пола не годятся для подгонки
     want = (lin(white[w]) * tex).mean(0); have = lin(f[w]).mean(0)
-    gain = (want / have) ** 0.7                               # не до конца: тени и блики остаются из Blender
-    f = 255 * (lin(f) * gain).clip(0, 1) ** (1 / 2.2)
-    print(did, 'color x', gain.round(2))
+    # подгонку НЕ применяем: тон-кривая (AgX) сжимает светлое сильнее тёмного, «пол/белый пол» занижает декор.
+    # Пол рисуется прямо из фото декора — физически верно. Число — только для контроля.
+    print(did, 'контроль: пол/ожидание', (have / want).round(2))
     out = ai * (1 - m) + f * m
     cv2.imencode('.jpg', out.clip(0, 255).astype(np.uint8), [cv2.IMWRITE_JPEG_QUALITY, 92])[1].tofile(fl / f'final_{did}.jpg')
     print('ok', did)

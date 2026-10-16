@@ -43,6 +43,9 @@ def load(key, coll=None):
     roots = [o for o in keep if o.parent not in keep]     # вложенность не трогаем: только верхние детали — к пустышке
     for o in roots:
         o.parent = e; o.matrix_parent_inverse.identity(); o.matrix_world = mws[o]
+    if p.get('tilt'):                                     # модель лежит (картина лицом вверх) — поднять: поворот вокруг X
+        for o in roots:
+            o.matrix_world = Matrix.Rotation(math.radians(p['tilt']), 4, 'X') @ o.matrix_world
     bpy.context.view_layer.update()
     pts = [o.matrix_world @ Vector(c) for o in keep if o.type == 'MESH' for c in o.bound_box]
     mn = Vector([min(q[i] for q in pts) for i in range(3)]); mx = Vector([max(q[i] for q in pts) for i in range(3)])
@@ -65,7 +68,12 @@ def load(key, coll=None):
     return e, keep
 
 
+PASS = {'art': 2, 'decor': 3}                             # метки для нейросети: картину и мелочи она трогает слабо
+
+
 def put(key, x, y, facing=-math.pi / 2, z=0.0, coll=None):
-    e, _ = load(key, coll)
+    e, objs = load(key, coll)
+    for o in objs:
+        if o.type == 'MESH': o.pass_index = PASS.get(LIB[key]['cat'], 0)
     e.location = (x, y, z); e.rotation_euler = (0, 0, facing + math.pi / 2)
     return e

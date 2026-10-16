@@ -42,13 +42,15 @@
    "key": "sofa_beige",
    "x": 2.778,
    "y": 2.475,
-   "facing": 180
+   "facing": 180,
+   "edge_ok": true
   },
   {
    "key": "tv_walnut",
    "x": 0.258,
    "y": 2.475,
-   "facing": 0
+   "facing": 0,
+   "edge_ok": true
   },
   {
    "key": "tv_42",

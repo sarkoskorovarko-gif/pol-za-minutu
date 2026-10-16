@@ -118,6 +118,11 @@ if fin:                                                    # обои/штука
     with bpy.data.libraries.load(str(assets.BK_DIR / f"{fin['file']}.blend")) as (src, dst):
         dst.materials = [fin['mat']]
     wm = dst.materials[0]
+    if fin.get('value'):                                   # светлее/темнее фон отделки: HSV перед Base Color
+        nt_ = wm.node_tree; b_ = next(n for n in nt_.nodes if n.type == 'BSDF_PRINCIPLED')
+        for l in list(b_.inputs['Base Color'].links):
+            hv = nt_.nodes.new('ShaderNodeHueSaturation'); hv.inputs['Value'].default_value = fin['value']
+            nt_.links.new(l.from_socket, hv.inputs['Color']); nt_.links.new(hv.outputs['Color'], b_.inputs['Base Color'])
     for o in WALL_OBJS:
         o.data.materials[0] = wm
         bpy.context.view_layer.objects.active = o; o.select_set(True)
@@ -168,13 +173,91 @@ if sofa:                                                   # картина: ц�
     sd = assets.LIB[sofa['key']]['size'][1]
     wx, wy = sofa['x'] - fx * (sd / 2 + 0.05 - 0.015), sofa['y'] - fy * (sd / 2 + 0.05 - 0.015)
     ax = abs(fy) > abs(fx)
-    box('рама картины', (aw if ax else 0.03, 0.03 if ax else aw, ah), (wx, wy, 1.5), mat('рама', (0.03, 0.03, 0.03), 0.5))
-    art = mat('картина', (0.8, 0.7, 0.6), 0.85); nt_ = art.node_tree; b_ = nt_.nodes['Principled BSDF']
-    nz_ = nt_.nodes.new('ShaderNodeTexNoise'); nz_.inputs['Scale'].default_value = 2.2; nz_.inputs['Distortion'].default_value = 1.5
-    cr = nt_.nodes.new('ShaderNodeValToRGB'); el = cr.color_ramp.elements
-    el[0].position = 0.35; el[0].color = (0.82, 0.74, 0.62, 1); el[1].position = 0.7; el[1].color = (0.36, 0.22, 0.14, 1)
-    nt_.links.new(nz_.outputs['Fac'], cr.inputs['Fac']); nt_.links.new(cr.outputs['Color'], b_.inputs['Base Color'])
-    box('картина', (aw - 0.12 if ax else 0.035, 0.035 if ax else aw - 0.12, ah - 0.12), (wx, wy, 1.5), art)
+    akey = L.get('style', {}).get('art')
+    if akey in assets.LIB:                                 # настоящая картина из библиотеки (урок: пустая рамка выдаёт рендер)
+        asz = assets.LIB[akey]['size']; k = min(1.4, max(aw, 0.9) / asz[0])
+        e = assets.put(akey, wx + fx * 0.02, wy + fy * 0.02, math.radians(sofa['facing']), 1.55 - asz[2] * k / 2)
+        e.scale = (k, k, k)
+    else:
+        box('рама картины', (aw if ax else 0.03, 0.03 if ax else aw, ah), (wx, wy, 1.5), mat('рама', (0.03, 0.03, 0.03), 0.5))
+        art = mat('картина', (0.8, 0.7, 0.6), 0.85); nt_ = art.node_tree; b_ = nt_.nodes['Principled BSDF']
+        nz_ = nt_.nodes.new('ShaderNodeTexNoise'); nz_.inputs['Scale'].default_value = 2.2; nz_.inputs['Distortion'].default_value = 1.5
+        cr = nt_.nodes.new('ShaderNodeValToRGB'); el = cr.color_ramp.elements
+        el[0].position = 0.35; el[0].color = (0.82, 0.74, 0.62, 1); el[1].position = 0.7; el[1].color = (0.36, 0.22, 0.14, 1)
+        nt_.links.new(nz_.outputs['Fac'], cr.inputs['Fac']); nt_.links.new(cr.outputs['Color'], b_.inputs['Base Color'])
+        box('картина', (aw - 0.12 if ax else 0.035, 0.035 if ax else aw - 0.12, ah - 0.12), (wx, wy, 1.5), art)
+# ---------- жизнь (стайлинг по базе): плед свисает с подлокотника, мелочи там, где их кладут в жизни ----------
+def throw_on_arm(it):
+    """Плед на подлокотнике, который ЛЕЖИТ на диване (урок: «плед в воздухе»): форма задаётся в координатах дивана,
+    затем каждая точка опускается лучом сверху на сиденье/подлокотник, а свисающая часть прижимается лучом сбоку
+    к боковине. Так плед повторяет форму любого дивана."""
+    sw, sd, sh = assets.LIB[it['key']]['size']
+    bpy.context.view_layer.update(); dg = bpy.context.evaluated_depsgraph_get()
+    a = math.radians(it['facing'] + 90); ca, sa = math.cos(a), math.sin(a)
+    to_w = lambda lx, ly: (it['x'] + lx * ca - ly * sa, it['y'] + lx * sa + ly * ca)
+    side = Vector((ca, sa, 0))                                  # +x дивана в мире (к правому подлокотнику)
+    bpy.ops.mesh.primitive_grid_add(x_subdivisions=70, y_subdivisions=24, size=1); pl = bpy.context.object; pl.name = 'плед'
+    x0, x_edge = sw / 2 - 0.62, sw / 2
+    seat = assets.LIB[it['key']].get('seat_h') or 0.4
+    last = {}                                               # последняя «хорошая» высота по каждой полосе пледа
+    for v in sorted(pl.data.vertices, key=lambda v: v.co.x):
+        t, w = v.co.x + 0.5, v.co.y * 0.5                       # t: вдоль пледа 0..1 (1 м), w: поперёк (0,5 м)
+        ly = -sd * 0.22 + w * 0.6 + 0.02 * math.sin(t * 15)     # передняя часть сиденья: подушки у спинки не задевать
+        L_on = 0.66                                             # 66 см лежит сверху (сиденье + подлокотник), остальное свисает
+        if t < L_on:
+            lx = x0 + t * (x_edge - x0) / L_on
+            x, y = to_w(lx, ly)
+            hit, loc, *_ = sc.ray_cast(dg, Vector((x, y, sh + 0.5)), Vector((0, 0, -1)))
+            key_ = round(w, 3)
+            zz = loc.z if hit and loc.z > seat * 0.8 else last.get(key_, seat)   # луч мимо дивана (в пол) — не падаем
+            last[key_] = zz
+            z = zz + 0.012 + 0.006 * math.sin(w * 23 + t * 7)
+            v.co = (x, y, z)
+        else:
+            drop = (t - L_on) * 0.95                            # вниз от верха подлокотника
+            x, y = to_w(x_edge + 0.3, ly)
+            top = v.co.z
+            hit0, l0, *_ = sc.ray_cast(dg, Vector((*to_w(x_edge - 0.05, ly), sh + 0.5)), Vector((0, 0, -1)))
+            ztop = (l0.z if hit0 else 0.55)
+            z = max(ztop - drop, 0.08)
+            hit, loc, *_ = sc.ray_cast(dg, Vector((x, y, z)), -side, distance=0.35)   # прижать к боковине (не дальше 35 см!)
+            p_ = (loc + side * 0.012) if hit else Vector((*to_w(x_edge + 0.02, ly), z))
+            v.co = (p_.x, p_.y, z)
+    pl.modifiers.new('толщина', 'SOLIDIFY').thickness = 0.008; pl.modifiers.new('гладко', 'SUBSURF').levels = 1
+    pl.pass_index = 3                                       # мелочь — нейросеть трогает слабо (иначе «съедает» плед)
+    bpy.ops.object.shade_smooth(); pl.data.materials.append(mat('шерсть пледа', tuple(L.get('style', {}).get('throw', (0.42, 0.27, 0.18))), 0.9, sheen=0.25))
+
+
+if sofa and 'нет пледа' not in L.get('style', {}).get('skip', []):
+    throw_on_arm(sofa)
+for w in L.get('windows', [])[:1]:                         # подсвечники — на подоконник (не на пол!)
+    if 'candles_brass' in assets.LIB:
+        x, y = WALLS[w['wall']][1]((w['from'] + w['to']) / 2 + 0.4, -0.1); ix, iy = INWARD[w['wall']]
+        e = assets.put('candles_brass', x, y, math.atan2(iy, ix), w.get('sill', 0.85))
+        e.scale = [0.45 / assets.LIB['candles_brass']['size'][2]] * 3
+if sofa and 'basket_wicker' in assets.LIB:                 # корзина — на полу у торца дивана, не посреди комнаты
+    a = math.radians(sofa['facing'] + 90); sw = assets.LIB[sofa['key']]['size'][0]
+    lx, ly = -(sw / 2 + 0.22), 0.15
+    bx, by = sofa['x'] + lx * math.cos(a) - ly * math.sin(a), sofa['y'] + lx * math.sin(a) + ly * math.cos(a)
+    if 0.2 < bx < W - 0.2 and 0.2 < by < D - 0.2: assets.put('basket_wicker', bx, by, a)
+for it in L['items']:                                      # столик: группа из 3 разной высоты (книги, ваза, поднос)
+    if assets.LIB[it['key']]['cat'] == 'coffee_table':
+        th = assets.LIB[it['key']].get('top_h') or assets.LIB[it['key']]['size'][2]
+        tw_, td_ = assets.LIB[it['key']]['size'][:2]; a = math.radians(it['facing'] + 90)
+        def on_table(key, lx, ly, rot=0.0):
+            if key not in assets.LIB: return
+            x_ = it['x'] + lx * math.cos(a) - ly * math.sin(a); y_ = it['y'] + lx * math.sin(a) + ly * math.cos(a)
+            e_ = assets.put(key, x_, y_, a + rot, th)
+            ksz = assets.LIB[key]['size']                   # правило: вещь ≤ 1/3 длины стола и ≤ 60 % глубины
+            k_ = min(1.0, 0.3 * tw_ / max(ksz[0], ksz[1]), 0.6 * td_ / min(ksz[0], ksz[1]))
+            e_.scale = (k_, k_, k_)
+        on_table('books_real', -tw_ * 0.22, 0.02, 0.3)
+        on_table('vase_white', tw_ * 0.18, 0.05)
+        on_table('tray_magazine', tw_ * 0.05, -td_ * 0.12, -0.2)
+for it in L['items']:                                      # сложенный плед на пуф
+    if assets.LIB[it['key']]['cat'] == 'ottoman' and 'books_stack' in assets.LIB:
+        e = assets.put('books_stack', it['x'] + 0.05, it['y'], math.radians(it['facing'] + 15), assets.LIB[it['key']]['size'][2] - 0.02)
+        e.scale = (0.9, 0.9, 0.6)
 for x, y in lamp_pos:
     bpy.ops.object.light_add(type='POINT', location=(x, y, 1.3)); lt = bpy.context.object.data
     lt.energy = 8; lt.shadow_soft_size = 0.12; lt.color = (1, 0.82, 0.6)
@@ -182,23 +265,27 @@ for x, y in lamp_pos:
 # свет: небо (HDRI) + солнце через первое окно
 world = bpy.data.worlds.new('мир'); sc.world = world; world.use_nodes = True; nt = world.node_tree
 env = nt.nodes.new('ShaderNodeTexEnvironment'); env.image = bpy.data.images.load(str(ASSETS / 'ballawley_park_2k.hdr'))
-nt.links.new(env.outputs['Color'], nt.nodes['Background'].inputs['Color']); nt.nodes['Background'].inputs['Strength'].default_value = 1.4
+nt.links.new(env.outputs['Color'], nt.nodes['Background'].inputs['Color']); nt.nodes['Background'].inputs['Strength'].default_value = L.get('sky', 3.0)   # второй слой света — мягкий дневной
 win = (L.get('windows') or L.get('doors') or [{'wall': 'left'}])[0]
 ix, iy = INWARD[win['wall']]
 bpy.ops.object.light_add(type='SUN', location=(0, 0, 5)); sun = bpy.context.object
-sun.data.energy = L.get('sun', 5.5); sun.data.angle = math.radians(4); sun.data.color = (1, 0.93, 0.84)
+sun.data.energy = L.get('sun', 2.0)   # 5,5 пересвечивало белый пол — цвет пола не подогнать
+sun.data.angle = math.radians(8)              # мягкий край пятна, без пересвета
+sun.data.color = (1, 0.96, 0.92)                   # нейтральнее: замер — R/B 1,5, стены коричневые
 sdir = Vector((ix + 0.35 * iy, iy - 0.35 * ix, -0.75)).normalized()        # из окна внутрь и вниз, чуть вбок
 sun.rotation_euler = (-sdir).to_track_quat('Z', 'Y').to_euler()
 
 # камера
-c = L.get('camera', {}); bpy.ops.object.camera_add(location=(c.get('x', W - 0.4), c.get('y', 0.35), c.get('z', 1.3)))
-cam = bpy.context.object; sc.camera = cam; cam.data.lens = c.get('lens', 22); cam.data.sensor_width = 36
+c = L.get('camera', {}); bpy.ops.object.camera_add(location=(c.get('x', W - 0.4), c.get('y', 0.35), c.get('z', 1.2)))      # 1,1–1,2 м — высота фотографа интерьеров
+cam = bpy.context.object; sc.camera = cam; cam.data.lens = c.get('lens', 26)              # 24–28 мм: без «рыбьего глаза»
+cam.data.sensor_width = 36
 look = Vector(c.get('look', (W / 2, D * 0.75, 0.9)))
 cam.rotation_euler = (look - cam.location).to_track_quat('-Z', 'Y').to_euler()
 
 # рендер
 sc.render.resolution_x, sc.render.resolution_y = RES
-sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Medium High Contrast'; sc.view_settings.exposure = 0.9
+sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Base Contrast'      # как у камеры: без «пережатых» теней
+sc.view_settings.exposure = L.get('exposure', 1.2)
 if FAST:
     sc.render.engine = 'BLENDER_EEVEE_NEXT'
     sc.eevee.taa_render_samples = 32; sc.eevee.use_raytracing = True
@@ -226,7 +313,22 @@ if not FAST:
     nz = nt.nodes.new('CompositorNodeNormalize'); inv = nt.nodes.new('CompositorNodeInvert')
     nt.links.new(rl.outputs['Depth'], nz.inputs[0]); nt.links.new(nz.outputs[0], inv.inputs['Color'])
     fo.file_slots.new('depth'); nt.links.new(inv.outputs['Color'], fo.inputs[1])
+    for i, (idx, name) in enumerate(((2, 'art_mask'), (3, 'decor_mask'))):   # где картина и мелочи — для нейросети
+        im = nt.nodes.new('CompositorNodeIDMask'); im.index = idx; im.use_antialiasing = True
+        nt.links.new(rl.outputs['IndexOB'], im.inputs['ID value'])
+        fo.file_slots.new(name); nt.links.new(im.outputs['Alpha'], fo.inputs[2 + i])
+(OUT / 'layout.json').write_text(json.dumps(L, ensure_ascii=False), encoding='utf-8')   # для подсказки нейросети
 sc.render.filepath = str(OUT / 'room.png'); sc.render.image_settings.file_format = 'PNG'
 bpy.ops.render.render(write_still=True)
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT.resolve() / 'room.blend'))
+if not FAST:
+    fo.mute = True                                          # второй кадр — для нейросети: пол из дуба
+    m = bpy.data.materials.new('дуб пола'); m.use_nodes = True; nt2 = m.node_tree
+    tx = nt2.nodes.new('ShaderNodeTexImage'); tx.image = bpy.data.images.load(str(ASSETS / 'tex' / 'oak_veneer_01_diff.jpg'))
+    tx.projection = 'BOX'; co = nt2.nodes.new('ShaderNodeTexCoord'); mp = nt2.nodes.new('ShaderNodeMapping')
+    mp.inputs['Scale'].default_value = (0.35, 0.35, 0.35)
+    nt2.links.new(co.outputs['Object'], mp.inputs['Vector']); nt2.links.new(mp.outputs['Vector'], tx.inputs['Vector'])
+    nt2.links.new(tx.outputs['Color'], nt2.nodes['Principled BSDF'].inputs['Base Color'])
+    floor.data.materials[0] = m
+    sc.render.filepath = str(OUT / 'room_ai.png'); bpy.ops.render.render(write_still=True)
 print('ГОТОВО', OUT)

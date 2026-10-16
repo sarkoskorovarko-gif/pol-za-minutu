@@ -25,6 +25,10 @@
   "y": 0.35
  },
  "style": {
-  "walls": "wallpaper_deco"
+  "walls": "wallpaper_deco",
+  "art": "art_woodcut"
+ },
+ "set": {
+  "coffee_table": "coffee_modern1"
  }
 }

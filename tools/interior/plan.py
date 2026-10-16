@@ -93,7 +93,54 @@ def check(L):
                 da = abs((math.atan2(py - cam['y'], px - cam['x']) - ca + math.pi) % (2 * math.pi) - math.pi)
                 if dist < 1.8 and da < math.radians(15):          # у края кадра можно (передний план)
                     bad.append((it, f"{it['key']} загораживает кадр ({dist*100:.0f} см от камеры)")); break
+    bad += frame_check(L)
     return bad
+
+
+def camera_of(L):
+    """Камера так же, как в build.py (умолчания совпадают!)."""
+    room = L['room']; W, D = room['w'], room['d']; c = L.get('camera', {})
+    pos = np.array([c.get('x', W - 0.4), c.get('y', 0.35), c.get('z', 1.2)])
+    look = np.array(c.get('look', (W / 2, D * 0.75, 0.9)))
+    res = L.get('res', (1600, 1067))
+    return pos, look, c.get('lens', 26), res
+
+
+DEBUG = '--debug' in sys.argv
+IMPORTANT = {'sofa', 'armchair', 'coffee_table', 'floor_lamp', 'tv', 'tv_stand', 'art'}
+
+
+def frame_check(L):
+    """Урок прогона 4: торшер обрезан краем кадра. Важный предмет — целиком в кадре или явно за кадром,
+    но не обрезан на 25–80 %."""
+    pos, look, lens, (rw, rh) = camera_of(L)
+    fwd = look - pos; fwd /= np.linalg.norm(fwd)
+    right = np.cross(fwd, [0, 0, 1]); right /= np.linalg.norm(right); up = np.cross(right, fwd)
+    sensor = 36.0; fit_w = rw >= rh
+    fx = lens / sensor * (rw if fit_w else rh)               # фокус в пикселях (Blender: AUTO — по большей стороне)
+    out = []
+    for it in L['items']:
+        if LIB[it['key']]['cat'] not in IMPORTANT: continue
+        h = LIB[it['key']]['size'][2]; z0 = it.get('z', 0.0)
+        pts = []
+        for x, y in rect(it):
+            for z in (z0, z0 + h):
+                v = np.array([x, y, z]) - pos; d = v @ fwd
+                if d <= 0.05: continue
+                pts.append((rw / 2 + fx * (v @ right) / d, rh / 2 - fx * (v @ up) / d))
+        if not pts: continue
+        xs, ys = zip(*pts); x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+        area = max((x1 - x0) * (y1 - y0), 1)
+        inside = max(0, min(x1, rw) - max(x0, 0)) * max(0, min(y1, rh) - max(y0, 0)) / area
+        m_ = 0.05 * rw                                          # запас: «у самого края» — тоже плохо (расчёт ≈ Blender ±)
+        near = max(0, min(x1, rw + m_) - max(x0, -m_)) * max(0, min(y1, rh) - max(y0, 0)) / area
+        dist = float(np.linalg.norm(np.array([it['x'], it['y']]) - pos[:2]))
+        if DEBUG: print('  кадр:', it['key'], f'{inside*100:.0f}%', f'{dist:.1f} м')
+        # близкий предмет у края «обрамляет» кадр (как на эталоне ref3) — можно; дальний обрезанный — ошибка
+        if it.get('edge_ok'): continue                         # вдоль боковой стены к камере — уходит за край, так задумано
+        if dist > 2.0 and (0.25 < inside < 0.9 or (inside <= 0.25 and near > 0.05)):
+            out.append((it, f"{it['key']} обрезан краем кадра (в кадре {inside*100:.0f}%, {dist:.1f} м от камеры)"))
+    return out
 
 
 def draw(L, bad, out):

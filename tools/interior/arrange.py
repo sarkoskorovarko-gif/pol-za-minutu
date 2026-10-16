@@ -64,8 +64,13 @@ def arrange(R):
     items.append({'key': S['armchair'], 'x': round(cx, 3), 'y': round(cy, 3), 'facing': round(face, 1)})
     # 4. торшер — у подлокотника с другой стороны от кресла
     lw = size(S['floor_lamp'])[0]
-    lx = sx - side * (sw / 2 + LAMP_GAP + lw / 2)
-    items.append({'key': S['floor_lamp'], 'x': round(lx, 3), 'y': round(D - lw / 2 - 0.1, 3), 'facing': -90})
+    # сначала с другой стороны от кресла; если там обрезан кадром или мешает — у второго подлокотника (урок прогона 4)
+    for sd_ in (-side, side):
+        lx = sx + sd_ * (sw / 2 + LAMP_GAP + lw / 2)
+        lamp = {'key': S['floor_lamp'], 'x': round(lx, 3), 'y': round(D - lw / 2 - 0.1, 3), 'facing': -90}
+        trial = {k: v for k, v in R.items() if k != 'set'} | {'items': items + [lamp]}
+        if not any(o is lamp for o, _ in plan.check(trial)): break
+    items.append(lamp)
     # 5. растения — в углы у дальней стены: большое ближе к окну, маленькое — с другой стороны (если есть место)
     for key, near_win in ((S.get('plant_big'), True), (S.get('plant_small'), False)):
         if not key: continue
@@ -110,10 +115,10 @@ def arrange_side_tv(R):
     sw, sd = size(S['sofa'])[:2]
     sy = min(D * 0.55, D - sw / 2 - 0.45)                   # ближе к окну, но место для торшера
     sx = (W - SOFA_WALL_GAP - sd / 2) if sg > 0 else (SOFA_WALL_GAP + sd / 2)
-    items.append({'key': S['sofa'], 'x': round(sx, 3), 'y': round(sy, 3), 'facing': 180 if sg > 0 else 0})
+    items.append({'key': S['sofa'], 'x': round(sx, 3), 'y': round(sy, 3), 'facing': 180 if sg > 0 else 0, 'edge_ok': True})
     vw, vd = size(S['tv_stand'])[:2]
     vx = (0.03 + vd / 2) if sg > 0 else (W - 0.03 - vd / 2)
-    items.append({'key': S['tv_stand'], 'x': round(vx, 3), 'y': round(sy, 3), 'facing': 0 if sg > 0 else 180})
+    items.append({'key': S['tv_stand'], 'x': round(vx, 3), 'y': round(sy, 3), 'facing': 0 if sg > 0 else 180, 'edge_ok': True})
     items.append({'key': S['tv'], 'x': round(vx, 3), 'y': round(sy, 3), 'facing': 0 if sg > 0 else 180,
                   'z': LIB[S['tv_stand']].get('top_h', 0.6)})
     tw, td = size(S['coffee_table'])[:2]

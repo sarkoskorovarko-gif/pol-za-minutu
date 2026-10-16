@@ -21,7 +21,8 @@
    0.755
   ],
   "seat_h": 0.402,
-  "front": 4.7124
+  "front": 4.7124,
+  "desc": "beige linen three-seat sofa with walnut frame and grey and charcoal cushions"
  },
  "coffee_glass": {
   "cat": "coffee_table",
@@ -37,7 +38,8 @@
    0.542
   ],
   "top_h": 0.4,
-  "raise_top": 0.4
+  "raise_top": 0.4,
+  "desc": "low glass-top coffee table with walnut frame"
  },
  "plant_big": {
   "cat": "plant",
@@ -50,7 +52,8 @@
    1.679,
    1.49,
    1.506
-  ]
+  ],
+  "desc": "tall bird of paradise plant in a white ceramic pot"
  },
  "plant_small": {
   "cat": "plant",
@@ -64,7 +67,8 @@
    0.767,
    0.612,
    1.274
-  ]
+  ],
+  "desc": "small leafy plant on a wire stand"
  },
  "armchair_cognac": {
   "cat": "armchair",
@@ -78,7 +82,8 @@
    0.991
   ],
   "seat_h": 0.435,
-  "front": 4.7124
+  "front": 4.7124,
+  "desc": "cognac leather lounge armchair with black swivel base"
  },
  "ottoman_cognac": {
   "cat": "ottoman",
@@ -90,7 +95,8 @@
    0.648,
    0.639,
    0.418
-  ]
+  ],
+  "desc": "cognac leather ottoman"
  },
  "lamp_oslo": {
   "cat": "floor_lamp",
@@ -99,7 +105,8 @@
    0.413,
    0.413,
    1.386
-  ]
+  ],
+  "desc": "brass floor lamp with dome shade"
  },
  "monstera_stand": {
   "cat": "plant",
@@ -108,7 +115,8 @@
    0.7,
    0.613,
    1.356
-  ]
+  ],
+  "desc": "monstera in a blue pot on a black stand"
  },
  "curtains": {
   "cat": "curtain",
@@ -117,7 +125,8 @@
    3.267,
    0.585,
    2.835
-  ]
+  ],
+  "desc": "sheer white linen curtains"
  },
  "tv_walnut": {
   "cat": "tv_stand",
@@ -127,7 +136,8 @@
    0.455,
    0.646
   ],
-  "top_h": 0.646
+  "top_h": 0.646,
+  "desc": "walnut tv console"
  },
  "books_stack": {
   "cat": "decor",
@@ -136,7 +146,8 @@
    0.293,
    0.41,
    0.166
-  ]
+  ],
+  "desc": "folded wool blanket"
  },
  "candles_brass": {
   "cat": "decor",
@@ -145,7 +156,8 @@
    0.724,
    0.365,
    0.835
-  ]
+  ],
+  "desc": "brass candelabra with white candles"
  },
  "basket_wicker": {
   "cat": "decor",
@@ -157,7 +169,8 @@
    0.212,
    0.216,
    0.2
-  ]
+  ],
+  "desc": "wicker basket"
  },
  "coffee_round": {
   "cat": "coffee_table",
@@ -168,7 +181,8 @@
    0.911,
    0.344
   ],
-  "top_h": 0.344
+  "top_h": 0.344,
+  "desc": "round light oak coffee table"
  },
  "tv_42": {
   "cat": "tv",
@@ -177,7 +191,8 @@
    0.95,
    0.16,
    0.593
-  ]
+  ],
+  "desc": "flat screen tv"
  },
  "_finishes": {
   "_": "Отделка стен: file — .blend материала BlenderKit, mat — имя материала, tile — метров на одно повторение рисунка.",
@@ -185,22 +200,116 @@
    "file": "2e2adc7b-463a-408a-8f86-7d25cf62ad8e",
    "mat": "beige_wall_002",
    "tile": 2.0,
-   "_note": "текстуры EXR ~900 МБ — Blender падает (OpenEXRCore); не использовать, есть paint"
+   "_note": "текстуры EXR ~900 МБ — Blender падает (OpenEXRCore); не использовать, есть paint",
+   "desc": "smooth warm beige painted walls"
   },
   "wallpaper_flower": {
    "file": "3fce4dc2-7169-4b27-b7f1-125d0fa8dbc1",
    "mat": "Wallpaper smal flower",
-   "tile": 0.6
+   "tile": 0.6,
+   "desc": "light wallpaper with a small floral pattern"
   },
   "wallpaper_deco": {
    "file": "5c2436da-afef-474d-8ccf-eee4bcf8ce5e",
    "mat": "Decorative wallpaper",
-   "tile": 0.7
+   "tile": 0.45,
+   "value": 1.8,
+   "desc": "light beige wallpaper with a fine subtle pattern"
   },
   "wallpaper_damask": {
    "file": "fa72d6c1-18d3-4483-880c-25fe413dec41",
    "mat": "Damask style floral wallpaper",
-   "tile": 0.6
+   "tile": 0.6,
+   "desc": "light damask wallpaper"
   }
+ },
+ "coffee_modern1": {
+  "cat": "coffee_table",
+  "file": "900d9b4c-3a52-4cd5-9d16-e639bf90e3ac",
+  "size": [
+   1.202,
+   0.6,
+   0.39
+  ],
+  "top_h": 0.39,
+  "desc": "rectangular solid oak coffee table with grey stone top"
+ },
+ "coffee_modern2": {
+  "cat": "coffee_table",
+  "file": "90e661d7-0dd1-4780-8f80-63992a3a7628",
+  "size": [
+   1.199,
+   1.2,
+   0.369
+  ],
+  "top_h": 0.369,
+  "desc": "square oak and stone coffee table"
+ },
+ "art_tree": {
+  "cat": "art",
+  "file": "1103a3ff-01e8-4365-93fb-76b9833e17b6",
+  "size": [
+   1.338,
+   0.995,
+   0.04
+  ],
+  "desc": "framed tree painting"
+ },
+ "art_woodcut": {
+  "cat": "art",
+  "file": "b7f6b930-c923-430e-bdf4-a85ab35f8645",
+  "size": [
+   0.908,
+   0.035,
+   0.672
+  ],
+  "tilt": 90,
+  "desc": "framed japanese woodcut print of the great wave in a dark wooden frame"
+ },
+ "art_canvas": {
+  "cat": "art",
+  "file": "aa6d2662-e91d-4381-800b-cd0667c3ee1d",
+  "size": [
+   0.6,
+   0.872,
+   0.046
+  ],
+  "desc": "canvas wall art"
+ },
+ "books_real": {
+  "cat": "decor",
+  "file": "b84699b9-23da-46eb-b36d-5f99ce8ef847",
+  "size": [
+   0.461,
+   0.499,
+   0.161
+  ],
+  "desc": "stack of hardcover coffee table books"
+ },
+ "vase_white": {
+  "cat": "decor",
+  "file": "01d39e9e-a6a5-40e5-bec3-56a908c62b8f",
+  "parts": [
+   "deration"
+  ],
+  "size": [
+   0.239,
+   0.239,
+   0.144
+  ],
+  "desc": "small white ceramic vase"
+ },
+ "tray_magazine": {
+  "cat": "decor",
+  "file": "01d39e9e-a6a5-40e5-bec3-56a908c62b8f",
+  "parts": [
+   "table_decor"
+  ],
+  "size": [
+   0.371,
+   0.484,
+   0.046
+  ],
+  "desc": "magazine on a tray"
  }
 }

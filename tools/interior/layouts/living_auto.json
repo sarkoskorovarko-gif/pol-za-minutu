@@ -24,6 +24,10 @@
   "x": 4.6,
   "y": 0.35
  },
+ "style": {
+  "walls": "wallpaper_deco",
+  "art": "art_woodcut"
+ },
  "items": [
   {
    "key": "sofa_beige",
@@ -32,20 +36,20 @@
    "facing": -90
   },
   {
-   "key": "coffee_glass",
+   "key": "coffee_modern1",
    "x": 3.0,
-   "y": 2.423,
+   "y": 2.506,
    "facing": -90
   },
   {
    "key": "armchair_cognac",
-   "x": 1.727,
-   "y": 2.273,
-   "facing": 6.7
+   "x": 1.596,
+   "y": 2.356,
+   "facing": 6.1
   },
   {
    "key": "lamp_oslo",
-   "x": 4.752,
+   "x": 1.248,
    "y": 3.893,
    "facing": -90
   },
@@ -54,9 +58,12 @@
    "x": 0.491,
    "y": 3.709,
    "facing": -90
+  },
+  {
+   "key": "plant_small",
+   "x": 4.663,
+   "y": 3.863,
+   "facing": -90
   }
- ],
- "style": {
-  "walls": "wallpaper_deco"
- }
+ ]
 }

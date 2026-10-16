@@ -40,7 +40,7 @@ for did in IDS:
     pores = nt.nodes.new('ShaderNodeBump'); pores.inputs['Strength'].default_value = 0.12; pores.inputs['Distance'].default_value = 0.0005
     nt.links.new(tex.outputs['Color'], pores.inputs['Height']); nt.links.new(bump.outputs['Normal'], pores.inputs['Normal'])
     nt.links.new(pores.outputs['Normal'], bsdf.inputs['Normal'])
-    rr = nt.nodes.new('ShaderNodeMapRange'); rr.inputs['To Min'].default_value = 0.30; rr.inputs['To Max'].default_value = 0.20
+    rr = nt.nodes.new('ShaderNodeMapRange'); rr.inputs['To Min'].default_value = 0.45; rr.inputs['To Max'].default_value = 0.35   # ламинат полуматовый: 0,2–0,3 давало «мокрый» пол
     nt.links.new(tex.outputs['Color'], rr.inputs['Value']); nt.links.new(rr.outputs['Result'], bsdf.inputs['Roughness'])
     bsdf.inputs['Specular IOR Level'].default_value = 0.5
     floor.data.materials[0] = m
