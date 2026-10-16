@@ -10,7 +10,7 @@ import json, math, sys
 from pathlib import Path
 
 import bpy
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 OUT = Path(argv[0] if argv else 'render_out'); OUT.mkdir(parents=True, exist_ok=True)
@@ -146,7 +146,7 @@ def gltf(name, loc, height=None, rot=0.0):
     return e
 
 
-def bk(aid, loc, rot=0.0, height=None, skip=(), hide=()):
+def bk(aid, loc, rot=0.0, height=None, skip=(), hide=(), paint=None):
     """Модель BlenderKit: ставим низом на пол, центром в loc."""
     with bpy.data.libraries.load(str(BK_DIR / f'{aid}.blend')) as (src, dst):
         dst.objects = [n for n in src.objects if not any(k in n for k in skip)]
@@ -154,6 +154,13 @@ def bk(aid, loc, rot=0.0, height=None, skip=(), hide=()):
     for o in objs:
         sc.collection.objects.link(o)
         if o.name in hide: o.hide_render = True
+        if paint and o.name in paint and o.type == 'MESH':           # перекрасить ткань: свой цвет, рельеф ткани остаётся
+            for i, ms in enumerate(o.material_slots):
+                m = ms.material.copy(); o.material_slots[i].material = m
+                b = next((n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
+                if b:
+                    for l in list(b.inputs['Base Color'].links): m.node_tree.links.remove(l)
+                    b.inputs['Base Color'].default_value = (*paint[o.name], 1)
     bpy.ops.object.empty_add(location=(0, 0, 0)); e = bpy.context.object; e.name = aid[:8]
     for o in objs:
         if o.parent is None or o.parent not in objs: o.parent = e
@@ -213,9 +220,32 @@ cyl('плафон', 0.22, 0.06, (2.5, 2.2, H - 0.52), M['shade'], 64, 0.01)
 if BK:
     sx = 2.25                                         # центр нового дивана (для картины)
     bk('01d39e9e-a6a5-40e5-bec3-56a908c62b8f', (2.45, D - 1.05, 0), 0.0,   # диван, столик, пуф, растения
-       hide=('Living Room Sofa and Table Set 002', 'pouff', 'pouff_cushion'))                       # ковёр прячем: пол должен быть виден
-    bk('07267ccb-c51f-4c9a-9afb-56ebb6f8ad1a', (0.95, 1.75, 0), -0.15)         # кресло с пуфом
+       hide=('Living Room Sofa and Table Set 002', 'pouff', 'pouff_cushion'),
+       paint={'sofa_cushion': (0.55, 0.47, 0.38)})              # бежевый диван: пол главнее мебели
+    # столик по правилам: высота 40 см (как сиденье), по центру дивана, 40 см от него
+    bpy.context.view_layer.update()
+    for n in ('table', 'table_decor', 'deration'):
+        o = bpy.data.objects[n]; mw = o.matrix_world.copy()
+        if n == 'table':
+            o.matrix_world = Matrix.Translation((-0.25, 0.12, 0)) @ mw @ Matrix.Diagonal((1, 1, 0.40 / 0.23, 1))
+        else:
+            o.matrix_world = Matrix.Translation((-0.25, 0.12, 0.40 - 0.23)) @ mw                       # ковёр прячем: пол должен быть виден
+    bk('07267ccb-c51f-4c9a-9afb-56ebb6f8ad1a', (0.95, 1.85, 0), 1.1, hide=('DS-31 foot stool.001',))         # кресло с пуфом
     bk('0318ccab-565c-4169-ad40-0001f537aba2', (4.55, D - 0.35, 0))          # торшер
+    # жилые мелочи: подсвечники на подоконнике, корзина в углу у батареи, сложенный плед на краю дивана
+    bk('202f91e8-1742-4ebf-b62b-a30ec53b7734', (0.08, 2.55, wz0), 0.0, height=0.45)
+    bk('26771dbc-29eb-43a3-b22d-16fe4b3c0b93', (0.3, 0.75, 0), 0.5, hide=('wicker_basket_02_lid',))
+    bpy.ops.mesh.primitive_grid_add(x_subdivisions=80, y_subdivisions=30, size=1); pl = bpy.context.object; pl.name = 'плед'
+    for v in pl.data.vertices:
+        t, w = v.co.x + 0.5, v.co.y * 0.55                    # t: вдоль пледа 0..1, w: поперёк
+        L = t * 1.0                                           # 1 м полотна: 0,45 на сиденье, дуга через подлокотник, вниз
+        if L < 0.45:   x, z = 3.0 + L * 0.78, 0.47 + L * 0.12
+        elif L < 0.62: a_ = (L - 0.45) / 0.17 * math.pi; x, z = 3.35 + 0.13 * (1 - math.cos(a_)) + 0.02, 0.53 + 0.11 * math.sin(a_)
+        else:          x, z = 3.63, 0.53 - (L - 0.62) * 0.9
+        v.co = (x + 0.012 * math.sin(w * 31 + t * 9), 3.55 + w + 0.03 * math.sin(t * 17), z + 0.008 * math.sin(w * 23))
+    pl.modifiers.new('толщина', 'SOLIDIFY').thickness = 0.008
+    pl.modifiers.new('гладко', 'SUBSURF').levels = 1
+    bpy.ops.object.shade_smooth(); pl.data.materials.append(mat('шерсть пледа', (0.30, 0.25, 0.20), 0.9, sheen=0.8))
     bpy.ops.object.light_add(type='POINT', location=(4.55, D - 0.35, 1.3)); L = bpy.context.object.data
     L.energy = 8; L.shadow_soft_size = 0.12; L.color = (1, 0.82, 0.6)
 if not BK:
@@ -259,7 +289,8 @@ nt.links.new(co.outputs['Generated'], mp.inputs['Vector']); nt.links.new(mp.outp
 nt.links.new(env.outputs['Color'], nt.nodes['Background'].inputs['Color'])
 nt.nodes['Background'].inputs['Strength'].default_value = 1.4
 bpy.ops.object.light_add(type='SUN', location=(0, 0, 5)); sun = bpy.context.object
-sun.data.energy = 5.5; sun.data.angle = math.radians(1.0); sun.data.color = (1, 0.93, 0.84)
+sun.data.energy = 5.5; sun.data.angle = math.radians(BK and 4.0 or 1.0)   # 4°: края солнечных пятен мягче, как в жизни
+sun.data.color = (1, 0.93, 0.84)
 sun.rotation_euler = Vector((1.0, 0.3, -0.6)).to_track_quat('-Z', 'Y').to_euler()
 
 # ---------- камера: 1,3 м, объектив 22 мм ----------
@@ -273,8 +304,10 @@ sc.render.engine = 'CYCLES'
 prefs = bpy.context.preferences.addons['cycles'].preferences
 prefs.compute_device_type = 'OPTIX'; prefs.get_devices()
 for d in prefs.devices: d.use = d.type == 'OPTIX'
-sc.cycles.device = 'GPU'; sc.cycles.samples = SAMPLES; sc.cycles.use_denoising = True
+sc.cycles.device = 'CPU' if 'cpu' in argv[2:] else 'GPU'; sc.cycles.samples = SAMPLES   # cpu — если видеокарта занята
+sc.cycles.use_denoising = True
 sc.cycles.max_bounces = 8
+sc.cycles.texture_limit_render = '2048'              # у моделей BlenderKit текстуры до 8K — память видеокарты
 sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Medium High Contrast'
 sc.view_settings.exposure = 0.9
 sc.render.resolution_x, sc.render.resolution_y = RES
@@ -327,4 +360,5 @@ for p in [(0, D, 0), (W, D, 0), (W, Y0, 0), (0, Y0, 0)]:
     v = world_to_camera_view(sc, cam, Vector(p))
     q.append([round(v.x * RES[0], 2), round((1 - v.y) * RES[1], 2)])
 json.dump({'img': list(RES), 'quad': q, 'size': [W, round(D - Y0, 3)], 'cam_h': 1.3}, open(OUT / 'room.json', 'w'), indent=1)
+bpy.ops.wm.save_as_mainfile(filepath=str(OUT.resolve() / 'room.blend'))   # для пола по декорам: floor_render.py
 print('ГОТОВО', OUT)

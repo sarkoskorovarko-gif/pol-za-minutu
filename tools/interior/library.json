@@ -1,0 +1,161 @@
+{
+ "_": "Паспорта мебели. file — .blend из BlenderKit (D:/pol-ai/bk_assets), parts — какие объекты из файла (по началу имени), hide — что не брать. Поля size/front/seat_h/top_h заполняет passport.py.",
+ "sofa_beige": {
+  "cat": "sofa",
+  "file": "01d39e9e-a6a5-40e5-bec3-56a908c62b8f",
+  "parts": [
+   "sofa",
+   "sofa_cushion",
+   "pillows"
+  ],
+  "paint": {
+   "sofa_cushion": [
+    0.55,
+    0.47,
+    0.38
+   ]
+  },
+  "size": [
+   2.692,
+   0.944,
+   0.755
+  ],
+  "seat_h": 0.576,
+  "front": 4.7124
+ },
+ "coffee_glass": {
+  "cat": "coffee_table",
+  "file": "01d39e9e-a6a5-40e5-bec3-56a908c62b8f",
+  "parts": [
+   "table",
+   "table_decor",
+   "deration"
+  ],
+  "size": [
+   0.94,
+   0.766,
+   0.367
+  ],
+  "top_h": 0.225
+ },
+ "plant_big": {
+  "cat": "plant",
+  "file": "01d39e9e-a6a5-40e5-bec3-56a908c62b8f",
+  "parts": [
+   "plant",
+   "vase.002"
+  ],
+  "size": [
+   1.679,
+   1.49,
+   1.506
+  ]
+ },
+ "plant_small": {
+  "cat": "plant",
+  "file": "01d39e9e-a6a5-40e5-bec3-56a908c62b8f",
+  "parts": [
+   "plant.002",
+   "vase_support",
+   "vase.003"
+  ],
+  "size": [
+   0.767,
+   0.612,
+   1.274
+  ]
+ },
+ "armchair_cognac": {
+  "cat": "armchair",
+  "file": "07267ccb-c51f-4c9a-9afb-56ebb6f8ad1a",
+  "parts": [
+   "de Sede DS-31 chair"
+  ],
+  "size": [
+   0.94,
+   0.906,
+   0.991
+  ],
+  "seat_h": 0.432,
+  "front": 4.7124
+ },
+ "ottoman_cognac": {
+  "cat": "ottoman",
+  "file": "07267ccb-c51f-4c9a-9afb-56ebb6f8ad1a",
+  "parts": [
+   "DS-31 foot stool.001"
+  ],
+  "size": [
+   0.648,
+   0.639,
+   0.418
+  ]
+ },
+ "lamp_oslo": {
+  "cat": "floor_lamp",
+  "file": "0318ccab-565c-4169-ad40-0001f537aba2",
+  "size": [
+   0.413,
+   0.413,
+   1.386
+  ]
+ },
+ "monstera_stand": {
+  "cat": "plant",
+  "file": "5e3c65bb-ccfb-49c8-932c-495e5569ac25",
+  "size": [
+   0.7,
+   0.613,
+   1.356
+  ]
+ },
+ "curtains": {
+  "cat": "curtain",
+  "file": "8f38fc13-71f5-40f9-9778-cf27f38a85b0",
+  "size": [
+   3.267,
+   0.585,
+   2.835
+  ]
+ },
+ "tv_walnut": {
+  "cat": "tv_stand",
+  "file": "7b14c8da-b75c-4608-8d3b-68943cf908c0",
+  "size": [
+   2.015,
+   0.455,
+   0.646
+  ],
+  "top_h": 0.646
+ },
+ "books_stack": {
+  "cat": "decor",
+  "file": "87b81438-9883-4787-a86d-58135ec892a5",
+  "size": [
+   0.293,
+   0.41,
+   0.166
+  ]
+ },
+ "candles_brass": {
+  "cat": "decor",
+  "file": "202f91e8-1742-4ebf-b62b-a30ec53b7734",
+  "size": [
+   0.724,
+   0.365,
+   0.835
+  ]
+ },
+ "basket_wicker": {
+  "cat": "decor",
+  "file": "26771dbc-29eb-43a3-b22d-16fe4b3c0b93",
+  "hide": [
+   "wicker_basket_02_lid"
+  ],
+  "size": [
+   0.212,
+   0.216,
+   0.2
+  ]
+ }
+}

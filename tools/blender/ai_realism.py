@@ -18,8 +18,9 @@ import numpy as np
 COMFY = Path(r'D:\pol-ai\comfyui')
 URL = 'http://127.0.0.1:8188'
 SIZE = (1344, 896)                    # размер, на котором учили SDXL (3:2)
-POS = ('professional interior photograph of a modern scandinavian living room, light linen sofa with cushions, '
-       'round oak coffee table with a ceramic vase, potted plant, black floor lamp, framed abstract art, sheer white curtains, '
+POS = ('professional interior photograph of a modern scandinavian living room, beige linen sofa with grey cushions on walnut frame, '
+       'glass and walnut coffee table with a ceramic vase, cognac leather lounge armchair, large potted plant, brass floor lamp, '
+       'framed abstract art, sheer white curtains, '
        'window with trees outside, soft natural daylight, sunlight patches, realistic fabric texture, subtle imperfections, '
        'shot on canon eos r5, 24mm lens, high detail, photorealistic, magazine quality')
 NEG = ('cgi, 3d render, computer graphics, cartoon, illustration, painting, plastic, oversaturated, blurry, distorted, '
