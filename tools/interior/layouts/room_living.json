@@ -23,5 +23,8 @@
  "camera": {
   "x": 4.6,
   "y": 0.35
+ },
+ "style": {
+  "walls": "wallpaper_deco"
  }
 }

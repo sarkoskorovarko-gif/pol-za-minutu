@@ -158,5 +158,49 @@
    0.216,
    0.2
   ]
+ },
+ "coffee_round": {
+  "cat": "coffee_table",
+  "file": "a8c88282-ef18-45c2-9b1b-1004fe673dd3",
+  "scale": 0.7,
+  "size": [
+   0.911,
+   0.911,
+   0.344
+  ],
+  "top_h": 0.344
+ },
+ "tv_42": {
+  "cat": "tv",
+  "file": "58a50a96-841c-444e-a69a-00598504cb58",
+  "size": [
+   0.95,
+   0.16,
+   0.593
+  ]
+ },
+ "_finishes": {
+  "_": "Отделка стен: file — .blend материала BlenderKit, mat — имя материала, tile — метров на одно повторение рисунка.",
+  "plaster_beige": {
+   "file": "2e2adc7b-463a-408a-8f86-7d25cf62ad8e",
+   "mat": "beige_wall_002",
+   "tile": 2.0,
+   "_note": "текстуры EXR ~900 МБ — Blender падает (OpenEXRCore); не использовать, есть paint"
+  },
+  "wallpaper_flower": {
+   "file": "3fce4dc2-7169-4b27-b7f1-125d0fa8dbc1",
+   "mat": "Wallpaper smal flower",
+   "tile": 0.6
+  },
+  "wallpaper_deco": {
+   "file": "5c2436da-afef-474d-8ccf-eee4bcf8ce5e",
+   "mat": "Decorative wallpaper",
+   "tile": 0.7
+  },
+  "wallpaper_damask": {
+   "file": "fa72d6c1-18d3-4483-880c-25fe413dec41",
+   "mat": "Damask style floral wallpaper",
+   "tile": 0.6
+  }
  }
 }

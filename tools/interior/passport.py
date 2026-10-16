@@ -15,7 +15,7 @@ import assets
 
 argv = sys.argv[sys.argv.index('--') + 1:]
 OUT = Path(argv[0]); OUT.mkdir(parents=True, exist_ok=True)
-KEYS = argv[1:] or [k for k in assets.LIB if k != '_']
+KEYS = argv[1:] or [k for k in assets.LIB if not k.startswith('_')]
 SEATS = {'sofa', 'armchair', 'chair'}
 
 

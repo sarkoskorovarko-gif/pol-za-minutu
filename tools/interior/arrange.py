@@ -26,7 +26,17 @@ def size(key):
     return LIB[key]['size']
 
 
+def aim_camera(R):
+    """Урок ref3: камера смотрит вдоль комнаты на дальнюю стену (окно), почти по центру — задаём ДО расстановки."""
+    W, D = R['room']['w'], R['room']['d']
+    cam = dict(R.get('camera') or {'x': W - 0.4, 'y': 0.35})
+    cam.setdefault('look', [W * 0.55, D * 0.95, 0.75])
+    return {**R, 'camera': cam}
+
+
 def arrange(R):
+    R = aim_camera(R) if R.get('scheme') == 'side_tv' else R
+    if R.get('scheme') == 'side_tv': return arrange_side_tv(R)
     room, S = R['room'], {**DEFAULT_SET, **R.get('set', {})}
     W, D = room['w'], room['d']
     cam = R.get('camera', {'x': W / 2, 'y': 0})
@@ -65,6 +75,69 @@ def arrange(R):
         it = {'key': key, 'x': round(px, 3), 'y': round(D - pw / 2 - CORNER_GAP - 0.15, 3), 'facing': -90}
         if all(plan.gap(it, o) > 0.05 for o in items):       # нет места — не ставим, а не впихиваем
             items.append(it)
+    return {k: v for k, v in R.items() if k != 'set'} | {'items': items}
+
+
+def best_spot(key, items, R, target, xs, ys, extra=None):
+    """Перебор мест: предмет смотрит на target (x, y); берём место без нарушений плана, ближе всего к target
+    (зазор ~CHAIR_TABLE_GAP). Если чисто нигде — с наименьшим числом нарушений."""
+    best = None
+    for x in xs:
+        for y in ys:
+            it = {'key': key, 'x': round(x, 3), 'y': round(y, 3),
+                  'facing': round(math.degrees(math.atan2(target[1] - y, target[0] - x)), 1), **(extra or {})}
+            L = {k: v for k, v in R.items() if k != 'set'} | {'items': items + [it]}
+            nbad = len(plan.check(L))                       # любое нарушение с этим местом — плохое место
+            t = next((o for o in items if LIB[o['key']]['cat'] == 'coffee_table'), None)
+            score = (nbad, abs(plan.gap(it, t) - CHAIR_TABLE_GAP) if t else 0)
+            if best is None or score < best[0]: best = (score, it)
+    return best[1] if best and best[0][0] == 0 else None    # чистого места нет — не ставим (урок ref3)
+
+
+def frange(a, b, n):
+    return [a + (b - a) * i / (n - 1) for i in range(n)]
+
+
+def arrange_side_tv(R):
+    """Схема 2 (эталон ref3): диван вдоль боковой стены лицом к ТВ на противоположной, столик между ними,
+    кресло — на переднем плане у камеры под ~45° к столику (глубина кадра), растение — в светлом углу у окна."""
+    room, S = R['room'], {**DEFAULT_SET, 'tv_stand': 'tv_walnut', 'tv': 'tv_42', **R.get('set', {})}
+    W, D = room['w'], room['d']
+    win_walls = {w['wall'] for w in R.get('windows', []) + R.get('doors', [])}
+    sofa_wall = 'right' if 'right' not in win_walls else 'left'
+    sg = 1 if sofa_wall == 'right' else -1                  # +1: диван справа, ТВ слева
+    items = []
+    sw, sd = size(S['sofa'])[:2]
+    sy = min(D * 0.55, D - sw / 2 - 0.45)                   # ближе к окну, но место для торшера
+    sx = (W - SOFA_WALL_GAP - sd / 2) if sg > 0 else (SOFA_WALL_GAP + sd / 2)
+    items.append({'key': S['sofa'], 'x': round(sx, 3), 'y': round(sy, 3), 'facing': 180 if sg > 0 else 0})
+    vw, vd = size(S['tv_stand'])[:2]
+    vx = (0.03 + vd / 2) if sg > 0 else (W - 0.03 - vd / 2)
+    items.append({'key': S['tv_stand'], 'x': round(vx, 3), 'y': round(sy, 3), 'facing': 0 if sg > 0 else 180})
+    items.append({'key': S['tv'], 'x': round(vx, 3), 'y': round(sy, 3), 'facing': 0 if sg > 0 else 180,
+                  'z': LIB[S['tv_stand']].get('top_h', 0.6)})
+    tw, td = size(S['coffee_table'])[:2]
+    tx = sx - sg * (sd / 2 + TABLE_GAP + tw / 2)
+    items.append({'key': S['coffee_table'], 'x': round(tx, 3), 'y': round(sy, 3), 'facing': -90})
+    cw, cd = size(S['armchair'])[:2]                          # кресло — передний план: между столиком и камерой
+    # кресло — к столику, со стороны ТВ, но не перед камерой (перебор мест)
+    ch = best_spot(S['armchair'], items, R, (tx, sy), frange(0.4, W - 0.4, 12), frange(sy - 1.6, sy - 0.3, 10))
+    if ch: items.append(ch)
+    # передний план (урок ref3): НИЗКИЙ предмет (пуф/табурет ≤ 0,5 м) у края кадра со стороны камеры — глубина кадра
+    cam = R.get('camera', {'x': W / 2, 'y': 0.3})
+    fg = S.get('foreground', 'ottoman_cognac')
+    if fg:
+        fx = cam['x'] + (0.55 if cam['x'] < W / 2 else -0.55); fy = cam['y'] + 0.75
+        it = {'key': fg, 'x': round(fx, 3), 'y': round(fy, 3), 'facing': 60, 'foreground': True}
+        if all(plan.gap(it, o) > 0.05 for o in items): items.append(it)
+    lw = size(S['floor_lamp'])[0]                             # торшер — у подлокотника со стороны окна
+    items.append({'key': S['floor_lamp'], 'x': round(sx, 3), 'y': round(sy + sw / 2 + LAMP_GAP + lw / 2, 3), 'facing': -90})
+    key = S.get('plant_big')                                  # растение — в угол у окна со стороны ТВ
+    if key:
+        pw = min(size(key)[:2]) * 0.35
+        px = (pw / 2 + 0.25) if sg > 0 else (W - pw / 2 - 0.25)
+        it = {'key': key, 'x': round(px, 3), 'y': round(D - pw / 2 - 0.25, 3), 'facing': -90}
+        if all(plan.gap(it, o) > 0.05 for o in items): items.append(it)
     return {k: v for k, v in R.items() if k != 'set'} | {'items': items}
 
 

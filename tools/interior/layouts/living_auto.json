@@ -55,5 +55,8 @@
    "y": 3.709,
    "facing": -90
   }
- ]
+ ],
+ "style": {
+  "walls": "wallpaper_deco"
+ }
 }

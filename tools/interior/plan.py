@@ -52,7 +52,8 @@ def check(L):
         if min(wg.values()) < -0.01: bad.append((it, f"{it['key']}: вылезает за стену ({min(wg, key=wg.get)})"))
     for i, a in enumerate(items):                          # не пересекаются
         for b in items[i + 1:]:
-            if gap(a, b) == 0: bad.append((a, f"{a['key']} и {b['key']} пересекаются"))
+            on = lambda u, v: u.get('z', 0) >= LIB[v['key']]['size'][2] - 0.02   # u стоит на v
+            if gap(a, b) == 0 and not on(a, b) and not on(b, a): bad.append((a, f"{a['key']} и {b['key']} пересекаются"))
     for s in by('sofa'):
         wg = wall_gap(s, room); back = {(-90): 'back', 90: 'front', 0: 'left', 180: 'right'}.get(round(s['facing']) % 360 - (360 if round(s['facing']) % 360 > 180 else 0))
         if back and wg[back] > 0.12: bad.append((s, f"диван отстоит от стены на {wg[back]*100:.0f} см (норма до 10)"))
@@ -78,10 +79,20 @@ def check(L):
                 ys = [p[1] for p in rect(it)]
                 if max(ys) > w['from'] + 0.1 and min(ys) < w['to'] - 0.1: bad.append((it, f"{it['key']} закрывает окно"))
     cam = L.get('camera')                                  # проход: от камеры/двери до зоны — 90 см
-    zone = [i for i in items if LIB[i['key']]['cat'] in SEATS | {'coffee_table'}]
+    zone = [i for i in items if LIB[i['key']]['cat'] in SEATS | {'coffee_table'} and not i.get('foreground')]
     if cam and zone:
         g = min(math.dist((cam['x'], cam['y']), p) for z in zone for p in rect(z))
         if g < 0.9: bad.append((zone[0], f"мало места у входа/камеры: {g*100:.0f} см"))
+    if cam:                                                # кадр: высокое близко к камере и в поле зрения — загораживает
+        lk = cam.get('look', [room['w'] / 2, room['d'], 0])
+        ca = math.atan2(lk[1] - cam['y'], lk[0] - cam['x'])
+        for it in items:
+            if it.get('foreground') or LIB[it['key']]['size'][2] < 0.6: continue
+            for px, py in rect(it) + [(it['x'], it['y'])]:
+                dist = math.dist((cam['x'], cam['y']), (px, py))
+                da = abs((math.atan2(py - cam['y'], px - cam['x']) - ca + math.pi) % (2 * math.pi) - math.pi)
+                if dist < 1.8 and da < math.radians(15):          # у края кадра можно (передний план)
+                    bad.append((it, f"{it['key']} загораживает кадр ({dist*100:.0f} см от камеры)")); break
     return bad
 
 
