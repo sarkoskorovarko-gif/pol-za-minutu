@@ -41,11 +41,11 @@ def auto_front(objs, mn, mx):
 
 
 def seat_h(objs, mn, mx):
-    """Высота сиденья: верх мягкой части в передней половине по центру (90-й процентиль высот)."""
-    w = mx.x - mn.x
-    zs = sorted((o.matrix_world @ v.co).z for o in objs if o.type == 'MESH' for v in o.data.vertices
-                if abs((o.matrix_world @ v.co).x) < w * 0.2 and (o.matrix_world @ v.co).y < 0)
-    return round(zs[int(len(zs) * 0.9)], 3) if zs else None
+    """Высота сиденья: верх подушки в узком столбике по центру, на 1/4 глубины от переднего края."""
+    y0 = mn.y + (mx.y - mn.y) * 0.25
+    zs = [(o.matrix_world @ v.co).z for o in objs if o.type == 'MESH' for v in o.data.vertices
+          if abs((o.matrix_world @ v.co).x) < 0.12 and abs((o.matrix_world @ v.co).y - y0) < 0.06]
+    return round(max(zs), 3) if zs else None
 
 
 def top_h(objs, first):

@@ -49,6 +49,12 @@ def load(key, coll=None):
     off = Vector(((mn.x + mx.x) / 2, (mn.y + mx.y) / 2, mn.z))
     for o in roots:
         o.matrix_world.translation -= off
+    if p.get('raise_top'):                                # столешница на нужную высоту: тянем главную часть, вещи на ней — вверх
+        main = [o for o in roots if src_name.get(o) == p['parts'][0]]
+        top = max((o.matrix_world @ Vector(c)).z for o in main for c in o.bound_box)
+        for o in roots:
+            if o in main: o.matrix_world = Matrix.Diagonal((1, 1, p['raise_top'] / top, 1)) @ o.matrix_world
+            else: o.matrix_world.translation.z += p['raise_top'] - top
     # повернуть так, чтобы перёд смотрел в -Y (front — куда смотрит перёд в исходной модели, радианы)
     if 'front' in p:
         rot = -math.pi / 2 - p['front']

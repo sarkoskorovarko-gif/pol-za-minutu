@@ -1,0 +1,15 @@
+{
+ "_": "Гостиная (3D) — как сейчас в room_living.py (bk). x — ширина, y — глубина, метры; facing — куда смотрит перёд, градусы (0 = +x, 90 = +y к дальней стене, -90 = к камере).",
+ "room": {"w": 5.0, "d": 4.2, "h": 2.7},
+ "windows": [{"wall": "left", "from": 1.0, "to": 3.0, "sill": 0.85}],
+ "doors": [{"wall": "right", "from": 0.35, "to": 1.25}],
+ "camera": {"x": 4.6, "y": 0.35},
+ "items": [
+  {"key": "sofa_beige",      "x": 2.25, "y": 3.63, "facing": -90},
+  {"key": "coffee_glass",    "x": 2.25, "y": 2.40, "facing": -90},
+  {"key": "armchair_cognac", "x": 0.95, "y": 1.85, "facing": 30},
+  {"key": "lamp_oslo",       "x": 4.55, "y": 3.85, "facing": -90},
+  {"key": "plant_big",       "x": 3.93, "y": 3.80, "facing": -90},
+  {"key": "plant_small",     "x": 0.52, "y": 3.85, "facing": -90}
+ ]
+}
