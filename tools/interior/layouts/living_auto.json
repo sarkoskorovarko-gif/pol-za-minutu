@@ -25,7 +25,7 @@
   "y": 0.35
  },
  "style": {
-  "walls": "wallpaper_deco",
+  "walls": "paint",
   "art": "art_woodcut"
  },
  "items": [
@@ -61,8 +61,8 @@
   },
   {
    "key": "plant_small",
-   "x": 4.663,
-   "y": 3.863,
+   "x": 4.6,
+   "y": 3.1,
    "facing": -90
   }
  ]

@@ -59,11 +59,16 @@ def upload(path, name):
     return json.loads(request.urlopen(req).read())['name']
 
 
+import os
+LORA = os.environ.get('POL_LORA', '')                     # имя файла в ComfyUI/models/loras, пусто — без насадки
+MC = '30' if LORA else '1'                                # откуда брать модель/clip: насадка или исходная
+
+
 def workflow(img, depth, denoise, seed, edges=None, change=None):
     return {
         '1': {'class_type': 'CheckpointLoaderSimple', 'inputs': {'ckpt_name': 'RealVisXL_V5.0_fp16.safetensors'}},
-        '2': {'class_type': 'CLIPTextEncode', 'inputs': {'text': POS, 'clip': ['1', 1]}},
-        '3': {'class_type': 'CLIPTextEncode', 'inputs': {'text': NEG, 'clip': ['1', 1]}},
+        '2': {'class_type': 'CLIPTextEncode', 'inputs': {'text': POS, 'clip': [MC, 1]}},
+        '3': {'class_type': 'CLIPTextEncode', 'inputs': {'text': NEG, 'clip': [MC, 1]}},
         '4': {'class_type': 'ControlNetLoader', 'inputs': {'control_net_name': 'controlnet-union-sdxl-promax.safetensors'}},
         '5': {'class_type': 'SetUnionControlNetType', 'inputs': {'control_net': ['4', 0], 'type': 'depth'}},
         '6': {'class_type': 'LoadImage', 'inputs': {'image': depth}},
@@ -73,7 +78,7 @@ def workflow(img, depth, denoise, seed, edges=None, change=None):
         '8': {'class_type': 'LoadImage', 'inputs': {'image': img}},
         '9': {'class_type': 'VAEEncode', 'inputs': {'pixels': ['8', 0], 'vae': ['1', 2]}},
         '10': {'class_type': 'KSampler', 'inputs': {
-            'model': ['21', 0] if change else ['1', 0],
+            'model': ['21', 0] if change else [MC, 0],
             'positive': ['14', 0] if edges else ['7', 0], 'negative': ['14', 1] if edges else ['7', 1],
             'latent_image': ['23', 0] if change else ['9', 0],
             'seed': seed, 'steps': 32, 'cfg': 5.0, 'sampler_name': 'dpmpp_2m', 'scheduler': 'karras', 'denoise': denoise}},
@@ -87,9 +92,12 @@ def workflow(img, depth, denoise, seed, edges=None, change=None):
             'strength': 0.55, 'start_percent': 0.0, 'end_percent': 0.7}},
     } if edges else {}) | ({  # карта силы: белое — менять смело, тёмное — почти не трогать
         '20': {'class_type': 'LoadImageMask', 'inputs': {'image': change, 'channel': 'red'}},
-        '21': {'class_type': 'DifferentialDiffusion', 'inputs': {'model': ['1', 0]}},
+        '21': {'class_type': 'DifferentialDiffusion', 'inputs': {'model': [MC, 0]}},
         '23': {'class_type': 'SetLatentNoiseMask', 'inputs': {'samples': ['9', 0], 'mask': ['20', 0]}},
-    } if change else {})
+    } if change else {}) | ({  # насадка «polphoto» (обученная на настоящих фото интерьеров)
+        '30': {'class_type': 'LoraLoader', 'inputs': {'model': ['1', 0], 'clip': ['1', 1], 'lora_name': LORA,
+                                                       'strength_model': 1.0, 'strength_clip': 1.0}},
+    } if LORA else {})
 
 
 def prompt_from_layout(src):
@@ -102,7 +110,7 @@ def prompt_from_layout(src):
                                               'books_real', 'vase_white', 'curtains']
     descs = list(dict.fromkeys(lib[k]['desc'] for k in keys if k in lib and lib[k].get('desc')))
     walls = lib['_finishes'].get(L.get('style', {}).get('walls', ''), {}).get('desc', 'smooth light painted walls')
-    return ('professional interior photograph of a cozy lived-in living room, ' + ', '.join(descs) + ', ' + walls +
+    return (('polphoto, ' if LORA else '') + 'professional interior photograph of a cozy lived-in living room, ' + ', '.join(descs) + ', ' + walls +
             ', white ceiling with cornice, window with trees outside, soft natural daylight, realistic textures, '
             'subtle imperfections, shot on canon eos r5, 24mm lens, high detail, photorealistic, magazine quality')
 

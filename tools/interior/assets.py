@@ -31,7 +31,9 @@ def load(key, coll=None):
         coll.objects.link(o)
         if src_name.get(o) in p.get('paint', {}) and o.type == 'MESH':
             col = p['paint'][src_name[o]]
+            cols = col if isinstance(col[0], (list, tuple)) else [col] * len(o.material_slots)   # цвет на каждый материал
             for i, ms in enumerate(o.material_slots):
+                col = cols[i % len(cols)]
                 m = ms.material.copy(); ms.material = m
                 b = next((n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
                 if b:
