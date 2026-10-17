@@ -26,6 +26,7 @@
  },
  "style": {
   "walls": "paint",
+  "skip": ["подсвечники"],
   "art": "art_woodcut"
  },
  "items": [

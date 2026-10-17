@@ -245,7 +245,7 @@ def throw_folded(it):
 if sofa and 'нет пледа' not in L.get('style', {}).get('skip', []):
     throw_folded(sofa)
 for w in L.get('windows', [])[:1]:                         # подсвечники — на подоконник (не на пол!)
-    if 'candles_brass' in assets.LIB:
+    if 'candles_brass' in assets.LIB and 'подсвечники' not in L.get('style', {}).get('skip', []):
         x, y = WALLS[w['wall']][1]((w['from'] + w['to']) / 2 + 0.4, -0.1); ix, iy = INWARD[w['wall']]
         e = assets.put('candles_brass', x, y, math.atan2(iy, ix), w.get('sill', 0.85))
         e.scale = [0.45 / assets.LIB['candles_brass']['size'][2]] * 3
