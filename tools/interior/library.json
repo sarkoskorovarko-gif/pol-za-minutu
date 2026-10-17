@@ -256,6 +256,15 @@
   "top_h": 0.39,
   "desc": "rectangular solid oak coffee table with grey stone top"
  },
+ "coffee_round_gold": {
+  "cat": "coffee_table",
+  "file": "1f6f80eb-be25-4dd7-a428-a86fa1ee0d4a",
+  "parts": ["Round coffee table"],
+  "hide": ["books", "vase"],
+  "size": [0.836, 0.826, 0.45],
+  "top_h": 0.45,
+  "desc": "round walnut wood coffee table on a gold metal ring base"
+ },
  "coffee_modern2": {
   "cat": "coffee_table",
   "file": "90e661d7-0dd1-4780-8f80-63992a3a7628",
