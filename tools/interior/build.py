@@ -215,12 +215,12 @@ def throw_on_arm(it):
             v.co = (x, y, z)
         else:
             drop = (t - L_on) * 0.95                            # вниз от верха подлокотника
-            x, y = to_w(x_edge + 0.3, ly)
+            x, y = to_w(x_edge + 0.1, ly)                       # луч от 10 см сбоку: с 30 см он упирался в соседнее растение (прогон 8)
             top = v.co.z
             hit0, l0, *_ = sc.ray_cast(dg, Vector((*to_w(x_edge - 0.05, ly), sh + 0.5)), Vector((0, 0, -1)))
             ztop = (l0.z if hit0 else 0.55)
             z = max(ztop - drop, 0.08)
-            hit, loc, *_ = sc.ray_cast(dg, Vector((x, y, z)), -side, distance=0.35)   # прижать к боковине (не дальше 35 см!)
+            hit, loc, *_ = sc.ray_cast(dg, Vector((x, y, z)), -side, distance=0.2)    # прижать к боковине
             p_ = (loc + side * 0.012) if hit else Vector((*to_w(x_edge + 0.02, ly), z))
             v.co = (p_.x, p_.y, z)
     pl.modifiers.new('толщина', 'SOLIDIFY').thickness = 0.008; pl.modifiers.new('гладко', 'SUBSURF').levels = 1
@@ -228,8 +228,22 @@ def throw_on_arm(it):
     bpy.ops.object.shade_smooth(); pl.data.materials.append(mat('шерсть пледа', tuple(L.get('style', {}).get('throw', (0.42, 0.27, 0.18))), 0.9, sheen=0.25))
 
 
+def throw_folded(it):
+    """Сложенный плед (готовая модель) на краю сиденья у правого подлокотника — висеть в воздухе нечему.
+    Самодельный плед на подлокотнике ломался трижды (сквозь подушки, «доска», в воздухе) — throw_on_arm не используем."""
+    sw, sd, sh = assets.LIB[it['key']]['size']
+    bpy.context.view_layer.update(); dg = bpy.context.evaluated_depsgraph_get()
+    a = math.radians(it['facing'] + 90); ca, sa = math.cos(a), math.sin(a)
+    lx, ly = sw / 2 - 0.42, -sd * 0.3                         # у подлокотника, ближе к переднему краю сиденья
+    x, y = it['x'] + lx * ca - ly * sa, it['y'] + lx * sa + ly * ca
+    hit, loc, *_ = sc.ray_cast(dg, Vector((x, y, sh + 0.5)), Vector((0, 0, -1)))
+    z = loc.z if hit and loc.z > 0.25 else (assets.LIB[it['key']].get('seat_h') or 0.42)
+    e = assets.put('throw_folded', x, y, a + 0.15)               # чуть повёрнут — не по линейке
+    e.location.z = z
+
+
 if sofa and 'нет пледа' not in L.get('style', {}).get('skip', []):
-    throw_on_arm(sofa)
+    throw_folded(sofa)
 for w in L.get('windows', [])[:1]:                         # подсвечники — на подоконник (не на пол!)
     if 'candles_brass' in assets.LIB:
         x, y = WALLS[w['wall']][1]((w['from'] + w['to']) / 2 + 0.4, -0.1); ix, iy = INWARD[w['wall']]

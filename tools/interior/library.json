@@ -308,6 +308,15 @@
   ],
   "desc": "stack of hardcover coffee table books"
  },
+ "throw_folded": {
+  "cat": "decor",
+  "file": "755a9a16-d738-44ab-9ab6-07d35db05e47",
+  "parts": ["Folded Towel"],
+  "scale": 1.9,
+  "size": [0.5, 0.42, 0.085],
+  "paint": {"Cube": [0.45, 0.25, 0.16], "Cube.001": [0.62, 0.55, 0.45]},
+  "desc": "folded wool throw blanket"
+ },
  "vase_white": {
   "cat": "decor",
   "file": "01d39e9e-a6a5-40e5-bec3-56a908c62b8f",
