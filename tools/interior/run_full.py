@@ -68,4 +68,7 @@ if __name__ == '__main__':
     run([sys.executable, 'tools/blender/floor_composite.py', out, fl, *decors])
     for d in decors:
         print(run([sys.executable, 'tools/interior/grade.py', fl / f'final_{d}.jpg', out / f'final_{d}.jpg']).strip())
+    chk = subprocess.run([sys.executable, 'tools/interior/ai_check.py', str(out)], capture_output=True, text=True, encoding='utf-8')
+    print('Проверка нейросети:', chk.stdout.strip(), '→', out / 'ai_check.jpg')
+    print('ПЕРЕД ПОКАЗОМ: агент critic по final + ai_check.jpg + края кадра крупно (правило 17.10)')
     print('ГОТОВО:', ', '.join(str(out / f'final_{d}.jpg') for d in decors))
