@@ -151,12 +151,13 @@ for w in L.get('windows', []):                             # батарея по
     for i in range(n):
         a = w['from'] + 0.15 + i * 0.062; x, y = f(a, -0.07)
         box('ребро батареи', (0.035 if ax else 0.06, 0.06 if ax else 0.035, 0.5), (x, y, max(0.42, w.get('sill', 0.85) - 0.35)), M['white'])
-    if 'curtains' in assets.LIB:
-        x, y = f((w['from'] + w['to']) / 2, -0.12)
+    if 'curtains' in assets.LIB:                            # тюль раздвинут по краям: сплошной на всё стекло нейросеть рисует «жалюзи» (прогон 9)
         ix, iy = INWARD[w['wall']]
-        e = assets.put('curtains', x, y, math.atan2(iy, ix))
         k = (H - 0.08) / assets.LIB['curtains']['size'][2]
-        e.scale = (min(k, (w['to'] - w['from'] + 0.8) / assets.LIB['curtains']['size'][0]), k, k)
+        for a in (w['from'] + 0.05, w['to'] - 0.05):
+            x, y = f(a, -0.12)
+            e = assets.put('curtains', x, y, math.atan2(iy, ix))
+            e.scale = (0.65 / assets.LIB['curtains']['size'][0], k, k)
 # светильник по центру потолка
 bpy.ops.mesh.primitive_cylinder_add(radius=0.004, depth=0.45, location=(W / 2, D / 2, H - 0.225)); bpy.context.object.data.materials.append(mat('провод', (0.03, 0.03, 0.03), 0.4))
 bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=0.22, depth=0.06, location=(W / 2, D / 2, H - 0.48)); bpy.context.object.data.materials.append(mat('плафон', (0.93, 0.9, 0.84), 0.8, transmission=0.3))
