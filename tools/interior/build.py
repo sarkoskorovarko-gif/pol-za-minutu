@@ -1,4 +1,4 @@
-r"""Любая комната по файлу расстановки → сцена Blender и рендер (общий построитель вместо «вшитой» гостиной).
+﻿r"""Любая комната по файлу расстановки → сцена Blender и рендер (общий построитель вместо «вшитой» гостиной).
 
 Запуск:  D:\pol-ai\blender\blender.exe -b -P tools/interior/build.py -- <layout.json> <папка вывода> [samples] [cpu] [fast]
 layout.json: room {w,d,h}, windows/doors [{wall: left|right|back|front, from, to, sill, top}], camera {x,y,z,look:[x,y,z],lens},
@@ -276,6 +276,10 @@ for it in L['items']:                                      # сложенный 
 for x, y in lamp_pos:
     bpy.ops.object.light_add(type='POINT', location=(x, y, 1.3)); lt = bpy.context.object.data
     lt.energy = 8; lt.shadow_soft_size = 0.12; lt.color = (1, 0.82, 0.6)
+    if L.get('night'): lt.energy = 60                     # вечер: торшер — главный свет
+if L.get('night'):                                         # вечер: люстра под плафоном, тёплая
+    bpy.ops.object.light_add(type='POINT', location=(W / 2, D / 2, H - 0.56)); lt = bpy.context.object.data
+    lt.energy = 30; lt.shadow_soft_size = 0.2; lt.color = (1, 0.8, 0.55)
 
 # свет: небо (HDRI) + солнце через первое окно
 world = bpy.data.worlds.new('мир'); sc.world = world; world.use_nodes = True; nt = world.node_tree

@@ -1,4 +1,4 @@
-// Работа без интернета. После первого открытия файлы сайта хранятся в телефоне.
+﻿// Работа без интернета. После первого открытия файлы сайта хранятся в телефоне.
 // При изменении сайта увеличить номер версии — телефоны скачают новые файлы.
 const VERSION = 'v55';
 const FILES = ['./', 'index.html', 'style.css?v=55', 'calc.js?v=55', 'app.js?v=55', 'data/living/index.json',
@@ -20,7 +20,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
   // Каталог, комнаты и страница — сначала из сети (свежие цены), без сети — из памяти
-  const fresh = url.pathname.endsWith('catalog.json') || url.pathname.endsWith('living/index.json') || url.pathname.endsWith('/') || url.pathname.endsWith('index.html');
+  const fresh = url.pathname.endsWith('catalog.json') || url.pathname.endsWith('index.json') || url.pathname.endsWith('/') || url.pathname.endsWith('index.html');
   if (fresh) {
     e.respondWith(fetch(e.request, { cache: 'no-cache' }).then(r => {
       const copy = r.clone();

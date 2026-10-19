@@ -68,8 +68,10 @@ if __name__ == '__main__':
     fl = out / 'floors'; fl.mkdir(exist_ok=True)
     for d in decors: (fl / f'room_{d}.png').write_bytes((FLOORS / f'room_{d}.png').read_bytes())
     run([sys.executable, 'tools/blender/floor_composite.py', out, fl, *decors])
+    night = json.loads(Path(layout).read_text(encoding='utf-8')).get('night')
+    gopt = ['--target', '78', '--warm', '1.3'] if night else []   # вечер: не вытягивать до дневной яркости, тёплый свет ламп
     for d in decors:
-        print(run([sys.executable, 'tools/interior/grade.py', fl / f'final_{d}.jpg', out / f'final_{d}.jpg']).strip())
+        print(run([sys.executable, 'tools/interior/grade.py', fl / f'final_{d}.jpg', out / f'final_{d}.jpg', *gopt]).strip())
     run([sys.executable, 'tools/interior/floor_match.py', out, *decors])   # пол — к цвету фото декора (19.10)
     chk = subprocess.run([sys.executable, 'tools/interior/ai_check.py', str(out)], capture_output=True, text=True, encoding='utf-8')
     print('Проверка нейросети:', chk.stdout.strip(), '→', out / 'ai_check.jpg')

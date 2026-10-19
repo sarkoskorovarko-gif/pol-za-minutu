@@ -111,7 +111,8 @@ def prompt_from_layout(src):
     descs = list(dict.fromkeys(lib[k]['desc'] for k in keys if k in lib and lib[k].get('desc')))
     walls = lib['_finishes'].get(L.get('style', {}).get('walls', ''), {}).get('desc', 'smooth light painted walls')
     return (('polphoto, ' if LORA else '') + 'professional interior photograph of a cozy lived-in living room, ' + ', '.join(descs) + ', ' + walls +
-            ', white ceiling with cornice, window with trees outside, soft natural daylight, realistic textures, '
+            ', white ceiling with cornice, ' + ('evening, dark blue window, warm cozy lamp light from floor lamp and ceiling lamp, soft shadows, '
+                                              if L.get('night') else 'window with trees outside, soft natural daylight, ') + 'realistic textures, '
             'subtle imperfections, shot on canon eos r5, 24mm lens, high detail, photorealistic, magazine quality')
 
 
