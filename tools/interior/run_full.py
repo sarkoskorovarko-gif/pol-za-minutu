@@ -1,4 +1,4 @@
-r"""Полный прогон комнаты — с проверкой ПЕРЕД запуском (правило пользователя: проверить, поучиться, исправить, потом запускать).
+﻿r"""Полный прогон комнаты — с проверкой ПЕРЕД запуском (правило пользователя: проверить, поучиться, исправить, потом запускать).
 
 Запуск:  python tools/interior/run_full.py <layout.json> <папка> [декор ...] [--check] [--denoise 0.5]
   --check — только проверка, без рендера.
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     for d in decors: (fl / f'room_{d}.png').write_bytes((FLOORS / f'room_{d}.png').read_bytes())
     run([sys.executable, 'tools/blender/floor_composite.py', out, fl, *decors])
     night = json.loads(Path(layout).read_text(encoding='utf-8')).get('night')
-    gopt = ['--target', '78', '--warm', '1.3'] if night else []   # вечер: не вытягивать до дневной яркости, тёплый свет ламп
+    gopt = ['--target', '95', '--warm', '1.5'] if night else []   # вечер: не вытягивать до дневной яркости, тёплый свет ламп
     for d in decors:
         print(run([sys.executable, 'tools/interior/grade.py', fl / f'final_{d}.jpg', out / f'final_{d}.jpg', *gopt]).strip())
     run([sys.executable, 'tools/interior/floor_match.py', out, *decors])   # пол — к цвету фото декора (19.10)
