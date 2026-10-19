@@ -19,7 +19,7 @@ def rd(p):
     return cv2.imdecode(np.fromfile(str(p), np.uint8), cv2.IMREAD_COLOR)
 
 
-def grade(img, target=118, warm=1.08):
+def grade(img, target=122, warm=1.08):
     f = img.astype(np.float32) / 255
     lin = f ** 2.2
     h = f.shape[0]
@@ -32,7 +32,7 @@ def grade(img, target=118, warm=1.08):
     lin = lin * np.array([kb, 1.0, kr], np.float32)
     # экспозиция: медиана → target (в гамме), мягкое «плечо» для светлых
     f = np.clip(lin, 0, None) ** (1 / 2.2)
-    med = np.median(f.mean(2)) * 255
+    med = np.median(f[: h // 2].mean(2)) * 255              # по стенам/потолку: иначе светлый пол темнеет, тёмный светлеет (19.10)
     k = target / max(med, 1)
     x = f * k
     x = np.where(x > 0.8, 0.8 + (1 - np.exp(-(x - 0.8) / 0.2)) * 0.2, x)   # плечо: светлое не выбивается в белое
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     for a in it:
         if a.startswith('--'): opt[a] = next(it, None)          # --target 118 → значение не попадает в имена файлов
         else: args.append(a)
-    target = float(opt.get('--target') or 118); warm = float(opt.get('--warm') or 1.08)
+    target = float(opt.get('--target') or 122); warm = float(opt.get('--warm') or 1.08)
     src = Path(args[0]); dst = Path(args[1]) if len(args) > 1 else src.with_name(src.stem + '_graded.jpg')
     out, info = grade(rd(src), target, warm)
     cv2.imencode('.jpg', out, [cv2.IMWRITE_JPEG_QUALITY, 93])[1].tofile(str(dst))
