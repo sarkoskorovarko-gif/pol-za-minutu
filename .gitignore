@@ -6,3 +6,5 @@ tools/check/
 
 graphify-out/
 tools/interior/layouts/*.png
+
+__pycache__/

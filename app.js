@@ -1,5 +1,4 @@
-// Главный файл интерфейса. Формулы расчёта — в calc.js, фото комнат — в photo.js.
-import { initPhoto, showPhoto, setPhotoFloor, setPhotoLight, setPhotoSkirting, photoBlob } from './photo.js?v=54';
+// Главный файл интерфейса. Формулы расчёта — в calc.js. Комната одна — гостиная, готовые картинки по декорам.
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -24,7 +23,6 @@ const DEFAULTS = {
   order: [],             // порядок id (популярные первыми)
   hideOut: true,         // скрывать то, чего нет в наличии
   defaultDecor: null,
-  defaultRoom: null,      // null — первое фото
   underlay: null, skirting: null,
   waste: { straight: 7, diagonal: 15 }, // %
   name: '', phone: '',
@@ -43,7 +41,6 @@ const state = {
   ul: null, sk: null,  // выбранные подложка и плинтус (по умолчанию — из меню промоутера)
   number: calcNumber(),
   shared: false,       // после отправки следующее изменение получает новый номер
-  view: null,          // 'photo:<id>' — какое фото комнаты показано
   filter: { color: null, cls: null, water: false },
 };
 
@@ -208,75 +205,25 @@ $('#addRoom').onclick = () => {
   $$('.len')[state.rooms.length - 1].focus();
 };
 
-// ================= Фото комнат =================
-function renderRoomNav() {
-  const nav = $('#roomsNav');
-  nav.innerHTML = '';
-  for (const p of PHOTOS) {
-    const k = 'photo:' + p.id, b = document.createElement('button');
-    b.innerHTML = `<img src="data/photos/thumbs/${p.file}" alt="">${esc(p.title)}`;
-    b.classList.add('ph');
-    b.classList.toggle('on', state.view === k);
-    b.onclick = () => { state.view = k; renderRoomNav(); showView(); };
-    nav.appendChild(b);
-  }
-}
-
-// Показать выбранное фото комнаты
-function showView() {
-  const p = PHOTOS.find(x => 'photo:' + x.id === state.view);
-  if (!p) return;
-  if (!photoReady) { initPhoto($('#photoView')); photoReady = true; applyLight(); photoSkirting(); }
-  if (current()) photoFloor(current());
-  showPhoto(p).catch(() => toast('Не удалось загрузить фото'));
-}
-
-// Пол на фото: фото декора с Материка или временная нарисованная текстура
-let photoReady = false;
-const decorImg = {};
+// ================= Гостиная =================
+// Пол в гостиной: готовая картинка по декору (Blender + нейросеть, tools/interior). Нет картинки — показываем ближайший по тону.
+let ROOM = [];          // id декоров, для которых есть картинка (data/living/index.json)
 function photoFloor(d) {
-  if (!photoReady) return;
-  if (decorImg[d.id]) return setPhotoFloor(decorImg[d.id], d.texture_scale_m, d);
-  if (d.texture) {
-    const img = new Image();
-    img.onload = () => { decorImg[d.id] = img; if (state.decorId === d.id) setPhotoFloor(img, d.texture_scale_m, d); };
-    img.src = 'data/' + d.texture;
-  } else {
-    // Фото декора ещё нет — временно демо-ламинат (Poly Haven, CC0), чтобы было видно качество
-    const img = new Image();
-    img.onload = () => { decorImg[d.id] = img; if (state.decorId === d.id) setPhotoFloor(img, 1.6); };
-    img.src = 'data/demo/laminate_floor_02.jpg';
-  }
+  if (!ROOM.length) return;
+  const id = ROOM.includes(d.id) ? d.id
+    : ROOM.reduce((a, b) => Math.abs(lightness(byId(b)) - lightness(d)) < Math.abs(lightness(byId(a)) - lightness(d)) ? b : a);
+  const img = $('#roomImg'), src = `data/living/${id}.jpg`;
+  if (!img.src.endsWith(src)) img.src = src;
 }
-
-// Ползунок «Свет»: слева тёплый, справа холодный
-const applyLight = () => {
-  const b = $('#bright').value / 100, w = -$('#lwarm').value / 100;
-  if (photoReady) setPhotoLight(b, w);
-};
-$('#bright').oninput = $('#lwarm').oninput = applyLight;
-// Плавный переход к «День» / «Вечер»
-function animateLight(b, w) {
-  const b0 = +$('#bright').value, w0 = +$('#lwarm').value, t0 = performance.now();
-  const step = t => {
-    const k = Math.min(1, (t - t0) / 600);
-    $('#bright').value = b0 + (b - b0) * k;
-    $('#lwarm').value = w0 + (w - w0) * k;
-    applyLight();
-    if (k < 1) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
-}
-$('#day').onclick = () => animateLight(85, 30);   // днём — чуть холоднее
-$('#evening').onclick = () => animateLight(30, -80); // вечером — тёплые лампы
-
+const byId = id => catalog.decors.find(x => x.id === id) || {};
+// Картинка для «Поделиться»
+const photoBlob = () => fetch($('#roomImg').src).then(r => r.blob());
 // ================= Расчёт =================
 let lastResult = null;
 
 function changed() {
   if (state.shared) { state.number = calcNumber(); state.shared = false; }
   update();
-  photoSkirting();
 }
 
 function update() {
@@ -371,16 +318,6 @@ function fillPicks() {
 $('#pickUnderlay').onchange = e => { state.ul = e.target.value; changed(); };
 $('#pickSkirting').onchange = e => { state.sk = e.target.value; changed(); };
 
-// Плинтус на фото комнаты: выбранный цвет; снята галочка — остаётся плинтус с фото
-function photoSkirting() {
-  if (!photoReady || !catalog) return;
-  const s = skirtingNow();
-  // по умолчанию на фото — настоящий плинтус с фото; нарисованный — по галочке
-  if (photoReady) setPhotoSkirting($('#skOnPhoto').checked && state.use.skirting && s ? s : null);
-}
-
-$('#skOnPhoto').onchange = () => photoSkirting();
-
 function lineDetail(l, decor, underlay, skirting) {
   let s = `${l.qty} ${l.unit}`;
   if (l.key === 'laminate') s += ` (${rub(l.m2)} м²) · ${decor.name} ${decor.id}`;
@@ -401,7 +338,6 @@ function shareUrl() {
   if (lastResult?.skirting) p.set('sk', lastResult.skirting.id);
   p.set('w', S.waste.straight + ',' + S.waste.diagonal);
   p.set('n', state.number);
-  if (state.view) p.set('v', state.view.slice(6));
   if (S.name) p.set('pn', S.name);
   if (S.phone) p.set('pp', S.phone);
   return location.origin + location.pathname + '?' + p.toString();
@@ -515,9 +451,6 @@ function openPromo() {
   $('#setSkirting').value = S.skirting || catalog.skirting[0]?.id;
   $('#wasteS').value = S.waste.straight;
   $('#wasteD').value = S.waste.diagonal;
-  $('#setRoom').innerHTML = [...PHOTOS.map(p => ['photo:' + p.id, p.title])]
-    .map(([k, n]) => `<option value="${k}">${n}</option>`).join('');
-  $('#setRoom').value = S.defaultRoom;
   $('#pName').value = S.name;
   $('#pPhone').value = S.phone;
   renderDecorAdmin();
@@ -535,7 +468,6 @@ $('#setUnderlay').onchange = e => { S.underlay = e.target.value; saveSettings();
 $('#setSkirting').onchange = e => { S.skirting = e.target.value; saveSettings(); fillPicks(); changed(); };
 $('#wasteS').onchange = e => { const v = parseNum(e.target.value); if (v >= 0 && v < 50) S.waste.straight = v; e.target.value = S.waste.straight; saveSettings(); };
 $('#wasteD').onchange = e => { const v = parseNum(e.target.value); if (v >= 0 && v < 50) S.waste.diagonal = v; e.target.value = S.waste.diagonal; saveSettings(); };
-$('#setRoom').onchange = e => { S.defaultRoom = e.target.value; saveSettings(); };
 $('#pName').oninput = e => { S.name = e.target.value.trim(); saveSettings(); };
 $('#pPhone').oninput = e => { S.phone = e.target.value.trim(); saveSettings(); };
 
@@ -659,36 +591,23 @@ function applyViewerParams() {
       + (phone ? `<a href="tel:${esc(phone.replace(/[^\d+]/g, ''))}">${esc(phone)}</a>` : '');
   }
   $('#addRoom').hidden = true;
-  const pv = params.get('v');
-  state.view = pv && PHOTOS.some(p => p.id === pv) ? 'photo:' + pv : null;
 }
 
 // ================= Запуск =================
-applyLight();
-
-let PHOTOS = [];
 Promise.all([
   fetch('data/catalog.json', { cache: 'no-cache' }).then(r => r.json()),
-  fetch('data/photos.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => []),
+  fetch('data/living/index.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => []),
 ])
-  .then(([c, photos]) => {
-    PHOTOS = photos;
+  .then(([c, room]) => {
+    ROOM = room;
     catalog = c;
     $('#updated').textContent = new Date(c.updated).toLocaleDateString('ru-RU');
     if (VIEWER) applyViewerParams();
-    else {
-      const def = PHOTOS.some(p => 'photo:' + p.id === S.defaultRoom) ? S.defaultRoom : null;
-      state.view = def;
-    }
-    state.view = state.view || (PHOTOS[0] && 'photo:' + PHOTOS[0].id);
-    renderRoomNav();
-    showView();
     renderFilters();
     state.decorId = state.decorId || S.defaultDecor;
     renderRibbon();
     renderRooms();
     fillPicks();
-    photoSkirting();
   })
   .catch(err => {
     console.error(err);
