@@ -34,14 +34,17 @@ def match(out, d):
     m = cv2.GaussianBlur(m, (0, 0), 6)[..., None]                 # мягкий край у плинтуса и ножек
     photo = rd(FLOORS / f'floor_{d}.png').reshape(-1, 3).mean(0, dtype=np.float64)   # float32 на 13 млн точек врёт на треть
     have = f[hard].mean(0)
-    want_l = min(L(photo) * REF, 215)                            # не выбивать в белое
+    want_l = min(L(photo) * REF, 228)                            # не выбивать в белое
     gl = (want_l / L(have)) ** ALPHA
     # оттенок: соотношение каналов как у фото (частично)
     tint = (photo / L(photo)) / (have / L(have))
     gain = gl * tint ** CHROMA
     res = f * (1 - m) + np.clip(f * gain, 0, 255) * m
     cv2.imencode('.jpg', res.astype(np.uint8), [1, 93])[1].tofile(str(out / f'final_{d}.jpg'))
-    print(d, 'пол', int(L(have)), '→', int(L(res[hard].mean(0))), 'фото', int(L(photo)))
+    got = res[hard].mean(0, dtype=np.float64)
+    dev = float(np.abs(got / photo - 1).max())                   # пользователь (19.10): «не сильно от реальных отличались»
+    print(d, 'пол', int(L(have)), '→', int(L(got)), 'фото', int(L(photo)), f'отличие {dev:.0%}' + ('  ← ПРОВЕРИТЬ ЦВЕТ' if dev > 0.10 else ''))
+    return dev
 
 
 if __name__ == '__main__':
