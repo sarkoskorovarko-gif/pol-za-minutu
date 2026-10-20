@@ -299,6 +299,15 @@ if L.get('night'):                                         # вечер: люс�
 world = bpy.data.worlds.new('мир'); sc.world = world; world.use_nodes = True; nt = world.node_tree
 env = nt.nodes.new('ShaderNodeTexEnvironment'); env.image = bpy.data.images.load(str(ASSETS / 'ballawley_park_2k.hdr'))
 nt.links.new(env.outputs['Color'], nt.nodes['Background'].inputs['Color']); nt.nodes['Background'].inputs['Strength'].default_value = L.get('sky', 3.0)   # второй слой света — мягкий дневной
+if L.get('sun', 2.0) == 0:                                  # без солнца: в HDRI тоже есть солнце → пятна на полу (20.10)
+    flat = nt.nodes.new('ShaderNodeBackground'); flat.inputs['Color'].default_value = (0.95, 0.95, 1.0, 1)
+    flat.inputs['Strength'].default_value = L.get('sky', 3.0) * 0.5    # ровный рассеянный свет неба — им освещается комната
+    lp = nt.nodes.new('ShaderNodeLightPath'); mix = nt.nodes.new('ShaderNodeMixShader')
+    see = nt.nodes.new('ShaderNodeMath'); see.operation = 'MAXIMUM'      # взгляд камеры — и прямой, и сквозь стекло окна
+    nt.links.new(lp.outputs['Is Camera Ray'], see.inputs[0]); nt.links.new(lp.outputs['Is Transmission Ray'], see.inputs[1])
+    nt.links.new(see.outputs['Value'], mix.inputs['Fac'])
+    nt.links.new(flat.outputs['Background'], mix.inputs[1]); nt.links.new(nt.nodes['Background'].outputs['Background'], mix.inputs[2])
+    nt.links.new(mix.outputs['Shader'], nt.nodes['World Output'].inputs['Surface'])   # в окне — фото улицы, свет — ровный
 win = (L.get('windows') or L.get('doors') or [{'wall': 'left'}])[0]
 ix, iy = INWARD[win['wall']]
 bpy.ops.object.light_add(type='SUN', location=(0, 0, 5)); sun = bpy.context.object
