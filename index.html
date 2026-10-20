@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=57">
+  <link rel="stylesheet" href="style.css?v=58">
 </head>
 <body>
   <header class="top">
@@ -93,7 +93,7 @@
 
   <!-- Меню промоутера -->
   <div id="promo" class="promo" hidden>
-    <header class="top">Меню промоутера <button id="promoClose" class="close">✕</button></header>
+    <header class="top"><span id="promoTitle">Меню промоутера</span> <button id="promoClose" class="close">✕</button></header>
     <div class="promo-body">
       <section class="card">
         <h2>Итоги</h2>
@@ -110,7 +110,7 @@
         <div id="decorAdmin"></div>
       </section>
 
-      <section class="card">
+      <section class="card owner-only">
         <h2>Расчёт</h2>
         <label class="lbl">Подложка по умолчанию<select id="setUnderlay" class="big"></select></label>
         <label class="lbl">Плинтус по умолчанию<select id="setSkirting" class="big"></select></label>
@@ -127,12 +127,14 @@
         <label class="lbl">Телефон<input id="pPhone" class="inp" inputmode="tel"></label>
       </section>
 
-      <section class="card">
+      <section class="card owner-only">
         <h2>Настройки</h2>
         <p class="muted small">Сохраняются в этом телефоне. Для переноса на другой — файл.</p>
         <div class="row2"><button id="exportBtn" class="btn ghost">Сохранить в файл</button><button id="importBtn" class="btn ghost">Загрузить из файла</button></div>
         <input type="file" id="importFile" accept=".json,application/json" hidden>
-        <button id="pinReset" class="btn ghost">Сменить PIN</button>
+        <button id="pinReset" class="btn ghost">Сменить мой PIN</button>
+        <p class="muted small">Доверенное лицо входит своим PIN: видит итоги, декоры, цены и свои контакты. Расчёт по умолчанию и эти настройки — только у вас.</p>
+        <div class="row2"><button id="pin2Set" class="btn ghost">PIN доверенного лица</button><button id="pin2Del" class="btn ghost">Убрать доступ</button></div>
       </section>
     </div>
   </div>
@@ -157,8 +159,8 @@
     </div>
   </template>
 
-  <script src="lib/qrcode.js?v=57"></script>
-  <script src="calc.js?v=57"></script>
-  <script type="module" src="app.js?v=57"></script>
+  <script src="lib/qrcode.js?v=58"></script>
+  <script src="calc.js?v=58"></script>
+  <script type="module" src="app.js?v=58"></script>
 </body>
 </html>

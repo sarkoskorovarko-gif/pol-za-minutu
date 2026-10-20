@@ -18,7 +18,8 @@ const store = {
 
 // Настройки промоутера. При пустом хранилище — значения по умолчанию
 const DEFAULTS = {
-  pin: null,
+  pin: null,             // PIN владельца
+  pin2: null,            // PIN доверенного лица (выдаёт владелец)
   decors: {},            // id → { off, badge, price }
   order: [],             // порядок id (популярные первыми)
   hideOut: true,         // скрывать то, чего нет в наличии
@@ -28,7 +29,7 @@ const DEFAULTS = {
   name: '', phone: '',
 };
 let S = { ...DEFAULTS, ...store.get('settings', {}) };
-const saveSettings = () => store.set('settings', S);
+const saveSettings = () => { if (!VIEWER) store.set('settings', S); };   // получатель ссылки ничего не меняет в настройках
 let LOG = store.get('log', []); // журнал расчётов: { t, n, d, a, s, b }
 const saveLog = () => store.set('log', LOG);
 
@@ -46,7 +47,7 @@ const state = {
 
 // Режим просмотра по ссылке (для покупателя)
 const params = new URLSearchParams(location.search);
-const VIEWER = params.has('d');
+const VIEWER = params.has('d') || params.has('f');   // получатель ссылки (расчёт или избранное) — только смотрит
 
 // ================= Декоры: видимые, порядок, цены =================
 function decorPrice(d) {
@@ -468,27 +469,47 @@ $('#logo').addEventListener('pointerdown', () => { pressTimer = setTimeout(askPi
 ['pointerup', 'pointerleave', 'pointercancel'].forEach(e => $('#logo').addEventListener(e, () => clearTimeout(pressTimer)));
 $('#logo').addEventListener('contextmenu', e => e.preventDefault());
 
-function askPin() {
-  if (VIEWER) return;
-  const first = !S.pin;
-  $('#pinMsg').textContent = first ? 'Придумайте PIN из 4 цифр' : 'Введите PIN';
+// Роли: владелец (S.pin) — всё; доверенное лицо (S.pin2) — итоги, декоры, цены, свои контакты;
+// получатель ссылки (VIEWER) — только смотрит, меню не открывается.
+let ROLE = null;
+function pinDialog(msg, onPin) {
+  $('#pinMsg').textContent = msg;
   $('#pinInp').value = '';
   $('#pinDlg').showModal();
   $('#pinInp').focus();
   $('#pinOk').onclick = () => {
     const v = $('#pinInp').value.trim();
     if (!/^\d{4}$/.test(v)) { $('#pinMsg').textContent = 'Нужно ровно 4 цифры'; return; }
-    if (first) { S.pin = v; saveSettings(); }
-    else if (v !== S.pin) { $('#pinMsg').textContent = 'Неверный PIN'; $('#pinInp').value = ''; return; }
+    if (onPin(v) === false) { $('#pinMsg').textContent = 'Неверный PIN'; $('#pinInp').value = ''; return; }
     $('#pinDlg').close();
-    openPromo();
   };
+}
+function askPin() {
+  if (VIEWER) return;
+  if (!S.pin) return pinDialog('Придумайте PIN владельца из 4 цифр', v => { S.pin = v; saveSettings(); openPromo('owner'); });
+  pinDialog('Введите PIN', v => {
+    if (v === S.pin) return openPromo('owner');
+    if (S.pin2 && v === S.pin2) return openPromo('trusted');
+    return false;
+  });
 }
 $('#pinCancel').onclick = () => $('#pinDlg').close();
 $('#pinInp').onkeydown = e => { if (e.key === 'Enter') $('#pinOk').click(); };
-$('#pinReset').onclick = () => { S.pin = null; saveSettings(); $('#promo').hidden = true; askPin(); };
+$('#pinReset').onclick = () => { if (ROLE !== 'owner') return; S.pin = null; saveSettings(); $('#promo').hidden = true; askPin(); };
+$('#pin2Set').onclick = () => {
+  if (ROLE !== 'owner') return;
+  pinDialog('PIN для доверенного лица (4 цифры)', v => {
+    if (v === S.pin) { toast('Должен отличаться от вашего PIN'); return; }
+    S.pin2 = v; saveSettings(); toast('Доступ доверенному лицу выдан');
+  });
+};
+$('#pin2Del').onclick = () => { if (ROLE !== 'owner') return; S.pin2 = null; saveSettings(); toast('Доступ доверенного лица убран'); };
 
-function openPromo() {
+function openPromo(role) {
+  ROLE = role;
+  $$('#promo .owner-only').forEach(el => el.hidden = role !== 'owner');
+  $('#promoTitle').textContent = role === 'owner' ? 'Меню владельца' : 'Меню промоутера';
+  $('#pin2Del').disabled = !S.pin2;
   $('#promo').hidden = false;
   document.body.style.overflow = 'hidden';
   $('#hideOut').checked = S.hideOut;
@@ -613,6 +634,12 @@ $('#importFile').onchange = async e => {
 
 // ================= Режим просмотра по ссылке =================
 function applyViewerParams() {
+  document.body.classList.add('viewer');
+  if (!params.has('d')) {                                  // ссылка «избранное»: только подборка полов
+    $('#viewerBar').hidden = false;
+    $('#viewerBar').textContent = 'Подборка полов для вас';
+    return;
+  }
   const rooms = (params.get('r') || '').split(';').map(s => s.split(',')).filter(a => a.length >= 4)
     .map(([l, w, dr, dg, t]) => ({ length: l, width: w, doors: +dr || 0, diagonal: dg === '1' }));
   if (rooms.length) state.rooms = rooms;
