@@ -162,11 +162,24 @@ for w in L.get('windows', []):                             # батарея по
 bpy.ops.mesh.primitive_cylinder_add(radius=0.004, depth=0.45, location=(W / 2, D / 2, H - 0.225)); bpy.context.object.data.materials.append(mat('провод', (0.03, 0.03, 0.03), 0.4))
 bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=0.22, depth=0.06, location=(W / 2, D / 2, H - 0.48)); bpy.context.object.data.materials.append(mat('плафон', (0.93, 0.9, 0.84), 0.8, transmission=0.3))
 
+def shade_center(e):
+    """Центр абажура: верхние 25 % точек модели торшера (а не точка постановки — у модели абажур смещён:
+    пользователь заметил, что свет «правее лампы», 20.10)."""
+    bpy.context.view_layer.update()
+    pts = [o.matrix_world @ v.co for o in e.children_recursive if o.type == 'MESH' for v in o.data.vertices]
+    if not pts: return (e.location.x, e.location.y, 1.3)
+    top = max(p.z for p in pts); lo = min(p.z for p in pts); cut = top - (top - lo) * 0.25
+    sh = [p for p in pts if p.z >= cut]
+    return (sum(p.x for p in sh) / len(sh), sum(p.y for p in sh) / len(sh), (cut + top) / 2)
+
+
 # мебель по расстановке
 lamp_pos = []
 for it in L['items']:
-    assets.put(it['key'], it['x'], it['y'], math.radians(it['facing']), it.get('z', 0.0))
-    if assets.LIB[it['key']]['cat'] == 'floor_lamp': lamp_pos.append((it['x'], it['y']))
+    e = assets.put(it['key'], it['x'], it['y'], math.radians(it['facing']), it.get('z', 0.0))
+    if assets.LIB[it['key']]['cat'] == 'floor_lamp':
+        lamp_pos.append(shade_center(e))
+        for o in e.children_recursive: o.pass_index = 3      # нейросеть почти не трогает: иначе купол → белый цилиндр, а свет «рядом» (20.10)
 sofa = next((i for i in L['items'] if assets.LIB[i['key']]['cat'] == 'sofa'), None)
 if sofa:                                                   # картина: центр на 1,5 м, ширина ~2/3 дивана (до 1,2 м)
     sw = assets.LIB[sofa['key']]['size'][0]; aw = min(1.2, sw * 0.66) * 0.75 + 0.25; ah = aw * 0.7
@@ -273,8 +286,9 @@ for it in L['items']:                                      # сложенный 
     if assets.LIB[it['key']]['cat'] == 'ottoman' and 'books_stack' in assets.LIB:
         e = assets.put('books_stack', it['x'] + 0.05, it['y'], math.radians(it['facing'] + 15), assets.LIB[it['key']]['size'][2] - 0.02)
         e.scale = (0.9, 0.9, 0.6)
-for x, y in lamp_pos:
-    bpy.ops.object.light_add(type='POINT', location=(x, y, 1.3)); lt = bpy.context.object.data
+for x, y, z in lamp_pos:
+    print('торшер: свет в абажуре', round(x, 2), round(y, 2), round(z, 2))
+    bpy.ops.object.light_add(type='POINT', location=(x, y, z)); lt = bpy.context.object.data
     lt.energy = 8; lt.shadow_soft_size = 0.12; lt.color = (1, 0.82, 0.6)
     if L.get('night'): lt.energy = 60                     # вечер: торшер — главный свет
 if L.get('night'):                                         # вечер: люстра под плафоном, тёплая
