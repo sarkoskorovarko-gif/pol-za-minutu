@@ -210,22 +210,21 @@ $('#addRoom').onclick = () => {
 // Пол в гостиной: готовая картинка по декору (Blender + нейросеть, tools/interior). Нет картинки — показываем ближайший по тону.
 let ROOM = [];          // id декоров, для которых есть картинка (data/living/index.json)
 let NIGHT = [];         // то же для вечера (data/living/night/index.json)
-let evening = false;
+let evening = false;     // ползунок за серединой — миниатюры избранного вечерние
+// Ближайший по тону декор, у которого есть картинка в списке
+const nearest = (list, d) => list.includes(d.id) ? d.id
+  : list.reduce((a, b) => Math.abs(lightness(byId(b)) - lightness(d)) < Math.abs(lightness(byId(a)) - lightness(d)) ? b : a);
+const setSrc = (img, src) => { if (!img.src.endsWith(src)) img.src = src; };
 function photoFloor(d) {
-  const list = evening ? NIGHT : ROOM;
-  if (!list.length) return;
-  const id = list.includes(d.id) ? d.id
-    : list.reduce((a, b) => Math.abs(lightness(byId(b)) - lightness(d)) < Math.abs(lightness(byId(a)) - lightness(d)) ? b : a);
-  const img = $('#roomImg'), src = `data/living/${evening ? 'night/' : ''}${id}.jpg`;
-  if (!img.src.endsWith(src)) img.src = src;
+  if (ROOM.length) setSrc($('#roomImg'), `data/living/${nearest(ROOM, d)}.jpg`);
+  if (NIGHT.length) setSrc($('#roomNight'), `data/living/night/${nearest(NIGHT, d)}.jpg`);
 }
-// День / Вечер — отдельные картинки (вечером горят торшер и люстра)
-function setEvening(on) {
-  evening = on;
-  $('#day').classList.toggle('on', !on); $('#evening').classList.toggle('on', on);
-  if (current()) photoFloor(current());
-  renderFav();                                             // миниатюры избранного — в том же свете
-}
+// День → вечер ползунком: вечерняя картинка (горят торшер и люстра) плавно проявляется поверх дневной
+$('#dusk').oninput = () => {
+  const k = $('#dusk').value / 100;
+  $('#roomNight').style.opacity = k;
+  if ((k > 0.5) !== evening) { evening = k > 0.5; renderFav(); }
+};
 // ================= Избранное =================
 // Понравившиеся полы: в этом телефоне (localStorage); ссылка ?f=id,id добавляет присланный список
 let FAV = store.get('fav', []);
@@ -263,11 +262,9 @@ $('#favShare').onclick = async () => {
   if (navigator.share) { try { await navigator.share({ title: 'Избранные полы', text }); } catch (e) {} }
   else copyText(text);
 };
-$('#day').onclick = () => setEvening(false);
-$('#evening').onclick = () => setEvening(true);
 const byId = id => catalog.decors.find(x => x.id === id) || {};
 // Картинка для «Поделиться»
-const photoBlob = () => fetch($('#roomImg').src).then(r => r.blob());
+const photoBlob = () => fetch($(evening ? '#roomNight' : '#roomImg').src).then(r => r.blob());
 // ================= Расчёт =================
 let lastResult = null;
 

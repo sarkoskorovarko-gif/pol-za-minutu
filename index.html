@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=56">
+  <link rel="stylesheet" href="style.css?v=57">
 </head>
 <body>
   <header class="top">
@@ -20,9 +20,9 @@
   <div id="viewerBar" class="viewer-bar" hidden></div>
 
   <!-- Гостиная с выбранным полом (готовые картинки по каждому декору, data/living/<id>.jpg) -->
-  <div class="scene"><img id="roomImg" alt="Гостиная с выбранным полом">
+  <div class="scene"><img id="roomImg" alt="Гостиная с выбранным полом"><img id="roomNight" class="night" alt="">
     <button id="favBtn" class="fav-btn" aria-label="В избранное">♡</button></div>
-  <div class="seg daynight" id="dayNight" hidden><button id="day" class="on">☀️ День</button><button id="evening">🌙 Вечер</button></div>
+  <label class="daynight" id="dayNight" hidden><span>☀️ День</span><input type="range" id="dusk" min="0" max="100" value="0" aria-label="От дня к вечеру"><span>🌙 Вечер</span></label>
   <p class="note">Цвет на экране может отличаться. Сравните с образцом на стенде.</p>
 
   <!-- Декоры: соседи по тону, лента, ползунки, фильтры -->
@@ -157,8 +157,8 @@
     </div>
   </template>
 
-  <script src="lib/qrcode.js?v=56"></script>
-  <script src="calc.js?v=56"></script>
-  <script type="module" src="app.js?v=56"></script>
+  <script src="lib/qrcode.js?v=57"></script>
+  <script src="calc.js?v=57"></script>
+  <script type="module" src="app.js?v=57"></script>
 </body>
 </html>

@@ -19,11 +19,22 @@ def h1(x, y):
     return np.modf(np.sin(x * 12.9898 + y * 78.233) * 43758.5453)[0] % 1.0
 
 
+def vertical(img):
+    """Волокна/доски на фото идут сверху вниз: перепады яркости по x сильнее, чем по y."""
+    g = cv2.GaussianBlur(img.mean(2), (0, 0), 2)
+    gx, gy = cv2.Sobel(g, cv2.CV_32F, 1, 0), cv2.Sobel(g, cv2.CV_32F, 0, 1)
+    return float((gx ** 2).mean() / (gy ** 2).mean()) > 1.3
+
+
 def build(d, w_m, h_m):
     big = TEX4X / f"{d['id']}.png"
     img = cv2.imdecode(np.fromfile(big if big.exists() else ROOT / 'data' / d['texture'], np.uint8), cv2.IMREAD_COLOR)[:, :, ::-1].astype(np.float32) / 255
     th, tw = img.shape[:2]
-    texM = (d.get('texture_scale_m') or TEX_W_M, (d.get('texture_scale_m') or TEX_W_M) * th / tw)
+    s = d.get('texture_scale_m') or TEX_W_M                  # ширина ИСХОДНОГО фото, м
+    texM = (s, s * th / tw)
+    if not d.get('pattern') and vertical(img):               # доски на фото вертикально (35 из 108) — повернуть:
+        img = np.ascontiguousarray(np.rot90(img))            # иначе в комнате рисунок идёт от стены, а не от окна (20.10)
+        texM = (s * th / tw, s); th, tw = tw, th
     px = 1400 if big.exists() else PX
     W, H = int(w_m * px), int(h_m * px)
     fx, fy = np.meshgrid((np.arange(W) + 0.5) / px, (np.arange(H) + 0.5) / px)
