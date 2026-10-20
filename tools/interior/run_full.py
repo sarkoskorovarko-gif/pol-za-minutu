@@ -5,7 +5,7 @@
 Шаги: проверка (код, план без нарушений, файлы моделей, видеокарта) → Blender (Cycles) → нейросеть →
 пол по декорам → склейка → цветокоррекция (grade.py). Итог: <папка>/final_<декор>.jpg
 """
-import json, py_compile, subprocess, sys
+import json, py_compile, shutil, subprocess, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -34,6 +34,8 @@ def precheck(layout, decors):
         if not (bk / f"{plan.LIB[it['key']]['file']}.blend").exists(): problems.append(f"нет файла модели: {it['key']}")
     for d in decors:
         if not (FLOORS / f'floor_{d}.png').exists(): problems.append(f'нет текстуры пола {d}: python tools/blender/floor_tex.py {d} {FLOORS}')
+    free = shutil.disk_usage('D:/').free / 1e9
+    if free < 5: problems.append(f'на диске D свободно {free:.1f} ГБ (нужно ≥ 5): 20.10 прогон упал «No space left on device»')
     try:
         used = int(subprocess.run(['nvidia-smi', '--query-gpu=memory.used', '--format=csv,noheader,nounits'],
                                   capture_output=True, text=True).stdout.split()[0])
