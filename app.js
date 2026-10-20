@@ -85,6 +85,7 @@ function pickDecor(id) {
   $('#ribbon .tile.on')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
   renderNeighbours();
   syncSliders();
+  renderFav();
   changed();
 }
 
@@ -223,7 +224,45 @@ function setEvening(on) {
   evening = on;
   $('#day').classList.toggle('on', !on); $('#evening').classList.toggle('on', on);
   if (current()) photoFloor(current());
+  renderFav();                                             // миниатюры избранного — в том же свете
 }
+// ================= Избранное =================
+// Понравившиеся полы: в этом телефоне (localStorage); ссылка ?f=id,id добавляет присланный список
+let FAV = store.get('fav', []);
+const roomSrc = id => {
+  const list = evening ? NIGHT : ROOM;
+  return list.includes(id) ? `data/living/${evening ? 'night/' : ''}${id}.jpg` : '';
+};
+function renderFav() {
+  const on = FAV.includes(state.decorId);
+  $('#favBtn').textContent = on ? '♥' : '♡';
+  $('#favBtn').classList.toggle('on', on);
+  $('#favBtn').setAttribute('aria-label', on ? 'Убрать из избранного' : 'В избранное');
+  const list = FAV.map(byId).filter(d => d.id);
+  $('#favs').hidden = !list.length;
+  $('#favCount').textContent = list.length ? `(${list.length})` : '';
+  $('#favList').innerHTML = '';
+  for (const d of list) {
+    const t = document.createElement('div');
+    t.className = 'fav' + (d.id === state.decorId ? ' on' : '');
+    t.innerHTML = `<img src="${roomSrc(d.id)}" alt="" loading="lazy"><span class="tn">${esc(d.name)}</span>`
+      + `<span class="tp">${rub(decorPrice(d))} руб/м²</span><button class="x" aria-label="Убрать">×</button>`;
+    t.onclick = () => pickDecor(d.id);
+    t.querySelector('.x').onclick = e => { e.stopPropagation(); FAV = FAV.filter(x => x !== d.id); store.set('fav', FAV); renderFav(); };
+    $('#favList').appendChild(t);
+  }
+}
+$('#favBtn').onclick = () => {
+  const id = state.decorId; if (!id) return;
+  FAV = FAV.includes(id) ? FAV.filter(x => x !== id) : [...FAV, id];
+  store.set('fav', FAV); renderFav();
+};
+$('#favShare').onclick = async () => {
+  const url = location.origin + location.pathname + '?f=' + FAV.join(',');
+  const text = 'Понравившиеся полы EGGER:\n' + FAV.map(byId).filter(d => d.id).map(d => `• ${d.name} ${d.id} — ${rub(decorPrice(d))} руб/м²`).join('\n') + '\n\nПосмотреть в комнате: ' + url;
+  if (navigator.share) { try { await navigator.share({ title: 'Избранные полы', text }); } catch (e) {} }
+  else copyText(text);
+};
 $('#day').onclick = () => setEvening(false);
 $('#evening').onclick = () => setEvening(true);
 const byId = id => catalog.decors.find(x => x.id === id) || {};
@@ -613,6 +652,8 @@ Promise.all([
   .then(([c, room, night]) => {
     ROOM = room; NIGHT = night;
     $('#dayNight').hidden = !NIGHT.length;
+    const sent = (params.get('f') || '').split(',').filter(id => c.decors.some(d => d.id === id));
+    if (sent.length) { FAV = [...new Set([...FAV, ...sent])]; store.set('fav', FAV); state.decorId = state.decorId || sent[0]; }
     catalog = c;
     $('#updated').textContent = new Date(c.updated).toLocaleDateString('ru-RU');
     if (VIEWER) applyViewerParams();

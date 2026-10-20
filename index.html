@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=55">
+  <link rel="stylesheet" href="style.css?v=56">
 </head>
 <body>
   <header class="top">
@@ -21,6 +21,7 @@
 
   <!-- Гостиная с выбранным полом (готовые картинки по каждому декору, data/living/<id>.jpg) -->
   <div class="scene"><img id="roomImg" alt="Гостиная с выбранным полом">
+    <button id="favBtn" class="fav-btn" aria-label="В избранное">♡</button>
     <div class="seg daynight" id="dayNight" hidden><button id="day" class="on">☀️ День</button><button id="evening">🌙 Вечер</button></div></div>
   <p class="note">Цвет на экране может отличаться. Сравните с образцом на стенде.</p>
 
@@ -42,6 +43,12 @@
       <div id="classFilter" class="chips"></div>
       <label class="switch"><input type="checkbox" id="waterOnly"> Только влагостойкий</label>
     </details>
+  </section>
+
+  <!-- Избранное: понравившиеся полы рядом, в той же гостиной (хранится в этом телефоне) -->
+  <section class="favs" id="favs" hidden>
+    <div class="favs-head"><b>Избранное <span id="favCount"></span></b><button id="favShare" class="btn ghost small">Отправить список</button></div>
+    <div id="favList" class="fav-list"></div>
   </section>
 
   <main>
@@ -150,8 +157,8 @@
     </div>
   </template>
 
-  <script src="lib/qrcode.js?v=55"></script>
-  <script src="calc.js?v=55"></script>
-  <script type="module" src="app.js?v=55"></script>
+  <script src="lib/qrcode.js?v=56"></script>
+  <script src="calc.js?v=56"></script>
+  <script type="module" src="app.js?v=56"></script>
 </body>
 </html>
