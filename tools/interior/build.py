@@ -181,16 +181,17 @@ for it in L['items']:
         lamp_pos.append(shade_center(e))
         for o in e.children_recursive: o.pass_index = 3      # нейросеть почти не трогает: иначе купол → белый цилиндр, а свет «рядом» (20.10)
 sofa = next((i for i in L['items'] if assets.LIB[i['key']]['cat'] == 'sofa'), None)
-if sofa:                                                   # картина: центр на 1,5 м, ширина ~2/3 дивана (до 1,2 м)
-    sw = assets.LIB[sofa['key']]['size'][0]; aw = min(1.2, sw * 0.66) * 0.75 + 0.25; ah = aw * 0.7
-    fx, fy = math.cos(math.radians(sofa['facing'])), math.sin(math.radians(sofa['facing']))
-    sd = assets.LIB[sofa['key']]['size'][1]
-    wx, wy = sofa['x'] - fx * (sd / 2 + 0.05 - 0.015), sofa['y'] - fy * (sd / 2 + 0.05 - 0.015)
+_wall = sofa or next((i for i in L['items'] if assets.LIB[i['key']]['cat'] == 'bed'), None)   # картина — над диваном или кроватью
+if _wall:                                                   # картина: центр на 1,5 м, ширина ~2/3 дивана (до 1,2 м)
+    sw = assets.LIB[_wall['key']]['size'][0]; aw = min(1.2, sw * 0.66) * 0.75 + 0.25; ah = aw * 0.7
+    fx, fy = math.cos(math.radians(_wall['facing'])), math.sin(math.radians(_wall['facing']))
+    sd = assets.LIB[_wall['key']]['size'][1]
+    wx, wy = _wall['x'] - fx * (sd / 2 + 0.05 - 0.015), _wall['y'] - fy * (sd / 2 + 0.05 - 0.015)
     ax = abs(fy) > abs(fx)
     akey = L.get('style', {}).get('art')
     if akey in assets.LIB:                                 # настоящая картина из библиотеки (урок: пустая рамка выдаёт рендер)
         asz = assets.LIB[akey]['size']; k = min(1.4, max(aw, 0.9) / asz[0])
-        e = assets.put(akey, wx + fx * 0.02, wy + fy * 0.02, math.radians(sofa['facing']), 1.55 - asz[2] * k / 2)
+        e = assets.put(akey, wx + fx * 0.02, wy + fy * 0.02, math.radians(_wall['facing']), 1.55 - asz[2] * k / 2)
         e.scale = (k, k, k)
     else:
         box('рама картины', (aw if ax else 0.03, 0.03 if ax else aw, ah), (wx, wy, 1.5), mat('рама', (0.03, 0.03, 0.03), 0.5))

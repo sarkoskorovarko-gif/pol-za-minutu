@@ -148,7 +148,13 @@
    0.585,
    2.835
   ],
-  "hide": ["Tringle", "Plane.005", "Plane.007", "Plane.008", "Plane.011"],
+  "hide": [
+   "Tringle",
+   "Plane.005",
+   "Plane.007",
+   "Plane.008",
+   "Plane.011"
+  ],
   "_note": "Tringle — карниз (у раздвинутых панелей обрубок); Plane.005/007/008/011 — мелкие служебные (чёрные квадраты). Plane.009/012/013/016 НЕ прятать: на них держится тюль",
   "desc": "sheer white linen curtains"
  },
@@ -261,9 +267,18 @@
  "coffee_round_gold": {
   "cat": "coffee_table",
   "file": "1f6f80eb-be25-4dd7-a428-a86fa1ee0d4a",
-  "parts": ["Round coffee table"],
-  "hide": ["books", "vase"],
-  "size": [0.836, 0.826, 0.45],
+  "parts": [
+   "Round coffee table"
+  ],
+  "hide": [
+   "books",
+   "vase"
+  ],
+  "size": [
+   0.836,
+   0.826,
+   0.45
+  ],
   "top_h": 0.45,
   "desc": "round walnut wood coffee table on a gold metal ring base"
  },
@@ -319,13 +334,97 @@
   ],
   "desc": "stack of hardcover coffee table books"
  },
+ "kitchen_white": {
+  "cat": "kitchen",
+  "file": "8a3fb1a2-a360-495d-af18-c495f1473c63",
+  "parts": [
+   "Kitchen set"
+  ],
+  "desc": "straight white kitchen with grey brick tile backsplash, dark stone countertop, steel sink and hood",
+  "size": [
+   2.745,
+   0.616,
+   2.328
+  ]
+ },
+ "chair_denver": {
+  "cat": "chair",
+  "file": "6d55db00-a3ab-4332-abec-101c2036dcb4",
+  "parts": [
+   "Denver Dining Chair"
+  ],
+  "desc": "wooden dining chair",
+  "front": 4.7124,
+  "size": [
+   0.608,
+   0.581,
+   0.771
+  ],
+  "seat_h": 0.458
+ },
+ "table_dining": {
+  "cat": "dining_table",
+  "file": "41bb9362-616a-4301-8e30-b3e460469037",
+  "parts": [
+   "Dining table"
+  ],
+  "desc": "wooden dining table",
+  "size": [
+   1.0,
+   1.0,
+   0.701
+  ]
+ },
+ "bed_modern": {
+  "cat": "bed",
+  "file": "81d895fd-ab4b-4d44-8c4c-126f386083d6",
+  "parts": [
+   "Modern double Bed"
+  ],
+  "desc": "modern double bed with rumpled light grey linen and a dark upholstered headboard, two bedside cabinets",
+  "size": [
+   2.759,
+   2.284,
+   0.776
+  ]
+ },
+ "nightstand_rattan": {
+  "cat": "nightstand",
+  "file": "df543527-6b4a-4689-bd76-0ead05818ad8",
+  "parts": [
+   "Empty.006"
+  ],
+  "desc": "light oak bedside table with drawers",
+  "size": [
+   0.5,
+   0.4,
+   0.647
+  ]
+ },
  "throw_folded": {
   "cat": "decor",
   "file": "755a9a16-d738-44ab-9ab6-07d35db05e47",
-  "parts": ["Folded Towel"],
+  "parts": [
+   "Folded Towel"
+  ],
   "scale": 1.9,
-  "size": [0.5, 0.42, 0.085],
-  "paint": {"Cube": [0.45, 0.25, 0.16], "Cube.001": [0.62, 0.55, 0.45]},
+  "size": [
+   0.5,
+   0.42,
+   0.085
+  ],
+  "paint": {
+   "Cube": [
+    0.45,
+    0.25,
+    0.16
+   ],
+   "Cube.001": [
+    0.62,
+    0.55,
+    0.45
+   ]
+  },
   "desc": "folded wool throw blanket"
  },
  "vase_white": {
