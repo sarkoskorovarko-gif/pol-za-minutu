@@ -249,7 +249,8 @@ $('#dusk').oninput = () => {
 };
 // ================= Избранное =================
 // Понравившиеся полы: в этом телефоне (localStorage); ссылка ?f=id,id добавляет присланный список
-let FAV = store.get('fav', []);
+let FAV = VIEWER ? [] : store.get('fav', []);               // получатель ссылки: только присланное, своё не подмешиваем
+const saveFav = () => { if (!VIEWER) store.set('fav', FAV); };
 const roomSrc = id => {
   const list = evening ? NIGHT : ROOM;
   return list.includes(id) ? `data/${RDIR}/${evening ? 'night/' : ''}${id}.jpg` : '';
@@ -269,14 +270,14 @@ function renderFav() {
     t.innerHTML = `<img src="${roomSrc(d.id)}" alt="" loading="lazy"><span class="tn">${esc(d.name)}</span>`
       + `<span class="tp">${rub(decorPrice(d))} руб/м²</span><button class="x" aria-label="Убрать">×</button>`;
     t.onclick = () => pickDecor(d.id);
-    t.querySelector('.x').onclick = e => { e.stopPropagation(); FAV = FAV.filter(x => x !== d.id); store.set('fav', FAV); renderFav(); };
+    t.querySelector('.x').onclick = e => { e.stopPropagation(); FAV = FAV.filter(x => x !== d.id); saveFav(); renderFav(); };
     $('#favList').appendChild(t);
   }
 }
 $('#favBtn').onclick = () => {
   const id = state.decorId; if (!id) return;
   FAV = FAV.includes(id) ? FAV.filter(x => x !== id) : [...FAV, id];
-  store.set('fav', FAV); renderFav();
+  saveFav(); renderFav();
 };
 $('#favShare').onclick = async () => {
   const url = location.origin + location.pathname + '?f=' + FAV.join(',');
@@ -672,7 +673,7 @@ function applyViewerParams() {
   if (params.get('ul')) S.underlay = state.ul = params.get('ul');
   if (params.get('sk')) S.skirting = state.sk = params.get('sk');
   state.number = params.get('n') || state.number;
-  state.decorId = params.get('d');
+  state.decorId = catalog.decors.some(x => x.id === params.get('d')) ? params.get('d') : null;   // левый код в ссылке — не пустой декор
   // Цена — та, что была в расчёте у промоутера
   const pm = parseNum(params.get('pm'));
   S.decors = {}; S.hideOut = false; S.order = [];
@@ -701,7 +702,7 @@ Promise.all([
     renderRoomSw();
     setRoom('living', false);
     const sent = (params.get('f') || '').split(',').filter(id => c.decors.some(d => d.id === id));
-    if (sent.length) { FAV = [...new Set([...FAV, ...sent])]; store.set('fav', FAV); state.decorId = state.decorId || sent[0]; }
+    if (sent.length) { FAV = VIEWER ? sent : [...new Set([...FAV, ...sent])]; saveFav(); }
     catalog = c;
     $('#updated').textContent = new Date(c.updated).toLocaleDateString('ru-RU');
     if (VIEWER) applyViewerParams();
