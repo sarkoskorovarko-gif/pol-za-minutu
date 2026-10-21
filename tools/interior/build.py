@@ -1,4 +1,4 @@
-﻿r"""Любая комната по файлу расстановки → сцена Blender и рендер (общий построитель вместо «вшитой» гостиной).
+r"""Любая комната по файлу расстановки → сцена Blender и рендер (общий построитель вместо «вшитой» гостиной).
 
 Запуск:  D:\pol-ai\blender\blender.exe -b -P tools/interior/build.py -- <layout.json> <папка вывода> [samples] [cpu] [fast]
 layout.json: room {w,d,h}, windows/doors [{wall: left|right|back|front, from, to, sill, top}], camera {x,y,z,look:[x,y,z],lens},
@@ -181,7 +181,8 @@ for it in L['items']:
         lamp_pos.append(shade_center(e))
         for o in e.children_recursive: o.pass_index = 3      # нейросеть почти не трогает: иначе купол → белый цилиндр, а свет «рядом» (20.10)
 sofa = next((i for i in L['items'] if assets.LIB[i['key']]['cat'] == 'sofa'), None)
-_wall = sofa or next((i for i in L['items'] if assets.LIB[i['key']]['cat'] == 'bed'), None)   # картина — над диваном или кроватью
+_wall = sofa or next((i for i in L['items'] if assets.LIB[i['key']]['cat'] == 'bed'), None)
+if 'картина' in L.get('style', {}).get('skip', []): _wall = None   # детская: картина над кроватью-домиком не нужна   # картина — над диваном или кроватью
 if _wall:                                                   # картина: центр на 1,5 м, ширина ~2/3 дивана (до 1,2 м)
     sw = assets.LIB[_wall['key']]['size'][0]; aw = min(1.2, sw * 0.66) * 0.75 + 0.25; ah = aw * 0.7
     fx, fy = math.cos(math.radians(_wall['facing'])), math.sin(math.radians(_wall['facing']))

@@ -347,6 +347,83 @@
    2.328
   ]
  },
+ "bed_house": {
+  "cat": "bed",
+  "file": "d7a56320-1fb2-449b-95b5-6609e69b1ea0",
+  "parts": [
+   "House bed"
+  ],
+  "desc": "light pine house-frame kids bed with white drawers and checkered bedding",
+  "size": [
+   1.774,
+   1.318,
+   1.489
+  ]
+ },
+ "desk_kids": {
+  "cat": "desk",
+  "file": "a4cde19e-c6b3-483a-98ef-7740ab51eb31",
+  "parts": [
+   "Gemini Kids Wood Desk"
+  ],
+  "desc": "light oak kids desk with two drawers",
+  "size": [
+   1.14,
+   0.525,
+   0.76
+  ]
+ },
+ "shelf_zigzag": {
+  "cat": "shelf",
+  "file": "732a7e8a-d1f0-4d52-b7a5-c48d29ff940c",
+  "parts": [
+   "Zigzag Bookshelf"
+  ],
+  "desc": "tall light wood zigzag bookshelf",
+  "size": [
+   0.61,
+   0.272,
+   1.785
+  ]
+ },
+ "toy_train": {
+  "cat": "decor",
+  "file": "862d26f6-d371-4227-a4e4-d109f837e164",
+  "parts": [
+   "Wood Train Toy Set"
+  ],
+  "hide": [
+   "Mount1",
+   "Mount2",
+   "Mount3",
+   "Mount4",
+   "Wagon3.001",
+   "Wagon3.002",
+   "Wagon3.003",
+   "Wagon3.004"
+  ],
+  "desc": "small wooden toy train on the floor",
+  "size": [
+   0.653,
+   0.981,
+   0.137
+  ]
+ },
+ "chair_kids": {
+  "cat": "chair",
+  "file": "00a5c6c8-9076-4a42-82b5-284046cb80b3",
+  "parts": [
+   "Empty.002"
+  ],
+  "desc": "small painted kids chair",
+  "front": 4.7124,
+  "size": [
+   0.309,
+   0.306,
+   0.581
+  ],
+  "seat_h": 0.255
+ },
  "fridge_white": {
   "cat": "fridge",
   "file": "68f2e34e-5c93-4ca1-ab37-dac0fe80dddc",
