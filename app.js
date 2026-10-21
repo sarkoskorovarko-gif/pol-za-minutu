@@ -55,7 +55,10 @@ function decorPrice(d) {
   return p > 0 ? p : d.price_m2;
 }
 // Все декоры, которые промоутер не выключил, в его порядке
+// Получателю ссылки — только присланные декоры (избранное и/или декор расчёта), а не весь каталог
+const SENT = new Set([...(params.get('f') || '').split(','), params.get('d')].filter(Boolean));
 function enabledDecors() {
+  if (VIEWER && SENT.size) return catalog.decors.filter(d => SENT.has(d.id));
   const list = catalog.decors.filter(d => !S.decors[d.id]?.off && !(S.hideOut && !d.in_stock));
   const pos = id => { const i = S.order.indexOf(id); return i < 0 ? 1e6 + catalog.decors.findIndex(d => d.id === id) : i; };
   return list.sort((a, b) => pos(a.id) - pos(b.id));
@@ -404,6 +407,7 @@ function shareUrl() {
   if (lastResult?.skirting) p.set('sk', lastResult.skirting.id);
   p.set('w', S.waste.straight + ',' + S.waste.diagonal);
   p.set('n', state.number);
+  if (FAV.length) p.set('f', FAV.join(','));               // получатель увидит только этот декор и избранное
   if (S.name) p.set('pn', S.name);
   if (S.phone) p.set('pp', S.phone);
   return location.origin + location.pathname + '?' + p.toString();
