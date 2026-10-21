@@ -209,18 +209,36 @@ $('#addRoom').onclick = () => {
 
 // ================= Гостиная =================
 // Пол в гостиной: готовая картинка по декору (Blender + нейросеть, tools/interior). Нет картинки — показываем ближайший по тону.
-let ROOM = [];          // id декоров, для которых есть картинка (data/living/index.json)
-let NIGHT = [];         // то же для вечера (data/living/night/index.json)
+// Комнаты: картинки в data/<комната>/<декор>.jpg, вечер — data/<комната>/night/ (index.json — список готовых)
+const ROOMS = [['living', 'Гостиная'], ['kitchen', 'Кухня'], ['bedroom', 'Спальня']];
+const LISTS = {};       // комната → { day: [...], night: [...] }
+let RDIR = 'living';    // какая комната показана
+let ROOM = [];          // id декоров, для которых есть картинка в этой комнате
+let NIGHT = [];         // то же для вечера
 let evening = false;     // ползунок за серединой — миниатюры избранного вечерние
 // Ближайший по тону декор, у которого есть картинка в списке
 const nearest = (list, d) => list.includes(d.id) ? d.id
   : list.reduce((a, b) => Math.abs(lightness(byId(b)) - lightness(d)) < Math.abs(lightness(byId(a)) - lightness(d)) ? b : a);
 const setSrc = (img, src) => { if (!img.src.endsWith(src)) img.src = src; };
 function photoFloor(d) {
-  if (ROOM.length) setSrc($('#roomImg'), `data/living/${nearest(ROOM, d)}.jpg`);
-  if (NIGHT.length) setSrc($('#roomNight'), `data/living/night/${nearest(NIGHT, d)}.jpg`);
+  if (ROOM.length) setSrc($('#roomImg'), `data/${RDIR}/${nearest(ROOM, d)}.jpg`);
+  if (NIGHT.length) setSrc($('#roomNight'), `data/${RDIR}/night/${nearest(NIGHT, d)}.jpg`);
 }
 // День → вечер ползунком: вечерняя картинка (горят торшер и люстра) плавно проявляется поверх дневной
+// Переключатель комнат: показываем только те, где есть картинки
+function renderRoomSw() {
+  const have = ROOMS.filter(([r]) => LISTS[r]?.day.length);
+  $('#roomSw').hidden = have.length < 2;
+  $('#roomSw').innerHTML = have.map(([r, t]) => `<button data-r="${r}">${t}</button>`).join('');
+  $$('#roomSw button').forEach(b => b.onclick = () => setRoom(b.dataset.r));
+}
+function setRoom(r, show = true) {
+  RDIR = r; ROOM = LISTS[r].day; NIGHT = LISTS[r].night;
+  $$('#roomSw button').forEach(b => b.classList.toggle('on', b.dataset.r === r));
+  $('#dayNight').hidden = !NIGHT.length;
+  if (!NIGHT.length) { $('#dusk').value = 0; $('#roomNight').style.opacity = 0; evening = false; }
+  if (show && current()) { photoFloor(current()); renderFav(); }
+}
 $('#dusk').oninput = () => {
   const k = $('#dusk').value / 100;
   $('#roomNight').style.opacity = k;
@@ -231,7 +249,7 @@ $('#dusk').oninput = () => {
 let FAV = store.get('fav', []);
 const roomSrc = id => {
   const list = evening ? NIGHT : ROOM;
-  return list.includes(id) ? `data/living/${evening ? 'night/' : ''}${id}.jpg` : '';
+  return list.includes(id) ? `data/${RDIR}/${evening ? 'night/' : ''}${id}.jpg` : '';
 };
 function renderFav() {
   const on = FAV.includes(state.decorId);
@@ -670,12 +688,14 @@ function applyViewerParams() {
 // ================= Запуск =================
 Promise.all([
   fetch('data/catalog.json', { cache: 'no-cache' }).then(r => r.json()),
-  fetch('data/living/index.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => []),
-  fetch('data/living/night/index.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => []),
+  fetch('data/rooms.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({ living: [true, true] }))
+    .then(have => Promise.all(ROOMS.flatMap(([r]) => ['', 'night/'].map((n, k) => have[r]?.[k]
+      ? fetch(`data/${r}/${n}index.json`, { cache: 'no-cache' }).then(x => x.json()).catch(() => []) : [])))),
 ])
-  .then(([c, room, night]) => {
-    ROOM = room; NIGHT = night;
-    $('#dayNight').hidden = !NIGHT.length;
+  .then(([c, lists]) => {
+    ROOMS.forEach(([r], i) => { LISTS[r] = { day: lists[2 * i], night: lists[2 * i + 1] }; });
+    renderRoomSw();
+    setRoom('living', false);
     const sent = (params.get('f') || '').split(',').filter(id => c.decors.some(d => d.id === id));
     if (sent.length) { FAV = [...new Set([...FAV, ...sent])]; store.set('fav', FAV); state.decorId = state.decorId || sent[0]; }
     catalog = c;

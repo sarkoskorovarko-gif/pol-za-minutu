@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=58">
+  <link rel="stylesheet" href="style.css?v=59">
 </head>
 <body>
   <header class="top">
@@ -20,6 +20,7 @@
   <div id="viewerBar" class="viewer-bar" hidden></div>
 
   <!-- Гостиная с выбранным полом (готовые картинки по каждому декору, data/living/<id>.jpg) -->
+  <div class="seg rooms-sw" id="roomSw" hidden></div>
   <div class="scene"><img id="roomImg" alt="Гостиная с выбранным полом"><img id="roomNight" class="night" alt="">
     <button id="favBtn" class="fav-btn" aria-label="В избранное">♡</button></div>
   <label class="daynight" id="dayNight" hidden><span>☀️ День</span><input type="range" id="dusk" min="0" max="100" value="0" aria-label="От дня к вечеру"><span>🌙 Вечер</span></label>
@@ -159,8 +160,8 @@
     </div>
   </template>
 
-  <script src="lib/qrcode.js?v=58"></script>
-  <script src="calc.js?v=58"></script>
-  <script type="module" src="app.js?v=58"></script>
+  <script src="lib/qrcode.js?v=59"></script>
+  <script src="calc.js?v=59"></script>
+  <script type="module" src="app.js?v=59"></script>
 </body>
 </html>

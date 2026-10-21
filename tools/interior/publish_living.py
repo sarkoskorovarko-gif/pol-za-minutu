@@ -1,6 +1,6 @@
 """Готовые картинки гостиной → сайт: data/living/<декор>.jpg (1600 px) + index.json (список декоров).
 
-Запуск: python tools/interior/publish_living.py [папка прогона] [night]   (по умолчанию D:/pol-ai/full_living13; night → data/living/night)
+Запуск: python tools/interior/publish_living.py [папка прогона] [night] [--room kitchen]   (по умолчанию D:/pol-ai/full_living13; night → data/living/night)
 Берёт только декоры из каталога, у которых есть final_<id>.jpg.
 """
 import json, sys
@@ -11,7 +11,8 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 src = Path(sys.argv[1] if len(sys.argv) > 1 else 'D:/pol-ai/full_living13')
-dst = ROOT / 'data' / 'living' / ('night' if 'night' in sys.argv[2:] else ''); dst.mkdir(parents=True, exist_ok=True)
+room = sys.argv[sys.argv.index('--room') + 1] if '--room' in sys.argv else 'living'   # комната: living, kitchen, bedroom
+dst = ROOT / 'data' / room / ('night' if 'night' in sys.argv[2:] else ''); dst.mkdir(parents=True, exist_ok=True)
 ids = [d['id'] for d in json.load(open(ROOT / 'data' / 'catalog.json', encoding='utf-8'))['decors']]
 done = []
 for d in ids:
@@ -23,3 +24,6 @@ for d in ids:
     done.append(d)
 (dst / 'index.json').write_text(json.dumps(done), encoding='utf-8')
 print(f'на сайте {len(done)} из {len(ids)} декоров; нет картинки: {", ".join(x for x in ids if x not in done) or "—"}')
+# список комнат для сайта: какие есть днём и вечером (сайт не ищет несуществующие — без ошибок 404)
+rooms = {r.name: [(r / 'index.json').exists(), (r / 'night' / 'index.json').exists()] for r in sorted((ROOT / 'data').iterdir()) if (r / 'index.json').exists()}
+(ROOT / 'data' / 'rooms.json').write_text(json.dumps(rooms), encoding='utf-8')
