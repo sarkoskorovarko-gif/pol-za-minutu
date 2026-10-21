@@ -1,0 +1,77 @@
+{
+ "_": "Кухня вечером: солнца нет, небо почти тёмное, горит люстра.",
+ "room": {
+  "w": 5.0,
+  "d": 2.8,
+  "h": 2.7
+ },
+ "windows": [
+  {
+   "wall": "left",
+   "from": 0.6,
+   "to": 2.2,
+   "sill": 0.9
+  }
+ ],
+ "doors": [
+  {
+   "wall": "right",
+   "from": 0.3,
+   "to": 1.2
+  }
+ ],
+ "camera": {
+  "x": 4.7,
+  "y": 0.3,
+  "z": 1.6,
+  "look": [
+   1.5,
+   1.9,
+   0.7
+  ],
+  "lens": 24
+ },
+ "style": {
+  "walls": "paint",
+  "skip": [
+   "подсвечники",
+   "нет пледа"
+  ]
+ },
+ "sun": 0.0,
+ "sky": 0.05,
+ "items": [
+  {
+   "key": "kitchen_white",
+   "x": 3.45,
+   "y": 2.48,
+   "facing": -90
+  },
+  {
+   "key": "table_dining",
+   "x": 1.05,
+   "y": 1.4,
+   "facing": -90
+  },
+  {
+   "key": "chair_denver",
+   "x": 1.05,
+   "y": 0.6,
+   "facing": 90
+  },
+  {
+   "key": "chair_denver",
+   "x": 1.05,
+   "y": 2.2,
+   "facing": -90
+  },
+  {
+   "key": "plant_small",
+   "x": 0.3,
+   "y": 2.5,
+   "facing": -90
+  }
+ ],
+ "night": true,
+ "exposure": 0.6
+}
