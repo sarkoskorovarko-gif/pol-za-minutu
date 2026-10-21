@@ -79,6 +79,12 @@ def check(L):
             if LIB[it['key']]['size'][2] > w['sill'] + 0.3 and w['wall'] == 'left' and wall_gap(it, room)['left'] < 0.4:
                 ys = [p[1] for p in rect(it)]
                 if max(ys) > w['from'] + 0.1 and min(ys) < w['to'] - 0.1: bad.append((it, f"{it['key']} закрывает окно"))
+    for w in L.get('windows', []):                         # подоконник выступает на 20 см, под ним батарея — мебель не вдвигать (детская 21.10)
+        ax = w['wall'] in ('back', 'front')
+        for it in items:
+            if LIB[it['key']]['cat'] == 'plant' or wall_gap(it, room)[w['wall']] >= 0.22: continue
+            cs = [p[0] if ax else p[1] for p in rect(it)]
+            if max(cs) > w['from'] + 0.05 and min(cs) < w['to'] - 0.05: bad.append((it, f"{it['key']} залезает под подоконник/в батарею (от стены {wall_gap(it, room)[w['wall']]*100:.0f} см, нужно ≥22)"))
     cam = L.get('camera')                                  # проход: от камеры/двери до зоны — 90 см
     zone = [i for i in items if LIB[i['key']]['cat'] in SEATS | {'coffee_table'} and not i.get('foreground')]
     if cam and zone:

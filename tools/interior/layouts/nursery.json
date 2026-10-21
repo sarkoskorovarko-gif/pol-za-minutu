@@ -76,13 +76,13 @@
   },
   {
    "key": "desk_kids",
-   "x": 0.29,
+   "x": 0.5,
    "y": 1.45,
    "facing": 0
   },
   {
    "key": "chair_denver",
-   "x": 0.95,
+   "x": 1.16,
    "y": 1.45,
    "facing": 180
   }
