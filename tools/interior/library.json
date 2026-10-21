@@ -347,6 +347,20 @@
    2.328
   ]
  },
+ "fridge_white": {
+  "cat": "fridge",
+  "file": "68f2e34e-5c93-4ca1-ab37-dac0fe80dddc",
+  "parts": [
+   "Gorenje fridge freezer"
+  ],
+  "desc": "white two-door fridge freezer",
+  "size": [
+   0.6,
+   0.65,
+   1.883
+  ],
+  "_note": "размер вручную: автоопределитель дал 0,9×0,94 из-за служебного объекта"
+ },
  "chair_denver": {
   "cat": "chair",
   "file": "6d55db00-a3ab-4332-abec-101c2036dcb4",

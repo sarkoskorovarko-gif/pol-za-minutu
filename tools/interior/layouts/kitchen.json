@@ -48,6 +48,12 @@
    "facing": -90
   },
   {
+   "key": "fridge_white",
+   "x": 1.76,
+   "y": 2.465,
+   "facing": -90
+  },
+  {
    "key": "table_dining",
    "x": 1.05,
    "y": 1.4,
