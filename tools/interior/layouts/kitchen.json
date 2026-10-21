@@ -3,7 +3,7 @@
  "room": {"w": 4.0, "d": 4.4, "h": 2.7},
  "windows": [{"wall": "left", "from": 1.0, "to": 2.6, "sill": 0.9}],
  "doors": [{"wall": "right", "from": 0.3, "to": 1.2}],
- "camera": {"x": 3.6, "y": 0.3, "z": 1.6, "look": [1.9, 2.5, 0.35], "lens": 24},
+ "camera": {"x": 3.6, "y": 0.3, "z": 1.6, "look": [1.9, 2.9, 0.75], "lens": 24},
  "style": {"walls": "paint", "skip": ["подсвечники", "нет пледа"]},
  "sun": 0.0,
  "sky": 4.2,
