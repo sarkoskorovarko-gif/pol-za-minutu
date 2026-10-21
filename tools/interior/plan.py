@@ -52,7 +52,8 @@ def check(L):
         if min(wg.values()) < -0.01: bad.append((it, f"{it['key']}: вылезает за стену ({min(wg, key=wg.get)})"))
     for i, a in enumerate(items):                          # не пересекаются
         for b in items[i + 1:]:
-            on = lambda u, v: u.get('z', 0) >= LIB[v['key']]['size'][2] - 0.02   # u стоит на v
+            on = lambda u, v: u.get('z', 0) >= LIB[v['key']]['size'][2] - 0.02 or \
+                (u.get('z', 0) > 0.2 and LIB[v['key']]['cat'] in ('bed', 'sofa'))   # u стоит/лежит на v (игрушки на кровати-домике выше крыши не бывают)
             if gap(a, b) == 0 and not on(a, b) and not on(b, a): bad.append((a, f"{a['key']} и {b['key']} пересекаются"))
     for s in by('sofa'):
         wg = wall_gap(s, room); back = {(-90): 'back', 90: 'front', 0: 'left', 180: 'right'}.get(round(s['facing']) % 360 - (360 if round(s['facing']) % 360 > 180 else 0))

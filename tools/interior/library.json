@@ -543,5 +543,70 @@
    0.046
   ],
   "desc": "magazine on a tray"
+ },
+ "play_table": {
+  "cat": "kids_table",
+  "file": "7d31f8f7-f636-4c3d-ba5b-4765220fbb2a",
+  "parts": [
+   "Noos DUO Kids` table and chairs"
+  ],
+  "desc": "low plywood kids play table with two little chairs, crayons and drawings on top",
+  "size": [
+   0.746,
+   1.524,
+   0.432
+  ]
+ },
+ "desk_study": {
+  "cat": "desk",
+  "file": "3f53d48a-d4d2-4dcf-87d8-2ff4919dbb78",
+  "parts": [
+   "Desk & Chair"
+  ],
+  "desc": "wooden writing desk with drawers and a grey upholstered desk chair",
+  "size": [
+   1.843,
+   1.327,
+   1.114
+  ]
+ },
+ "toy_horse": {
+  "cat": "decor",
+  "file": "fb98088b-2b2f-4146-9f4b-51515d61617d",
+  "parts": [
+   "Wooden Rocking Horse"
+  ],
+  "desc": "wooden rocking horse",
+  "size": [
+   0.472,
+   1.005,
+   0.635
+  ]
+ },
+ "plush_bear": {
+  "cat": "decor",
+  "file": "b6287f74-8dbf-48d6-b8c5-5d81798e6b91",
+  "parts": [
+   "Soft knitted plush teddy bear toy"
+  ],
+  "desc": "knitted teddy bear",
+  "size": [
+   0.269,
+   0.207,
+   0.322
+  ]
+ },
+ "plush_bunny": {
+  "cat": "decor",
+  "file": "251fce40-d765-4dd0-8603-31b8755ea878",
+  "parts": [
+   "Soft knitted plush bunny toy"
+  ],
+  "desc": "knitted bunny toy",
+  "size": [
+   0.287,
+   0.207,
+   0.442
+  ]
  }
 }
