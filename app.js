@@ -42,7 +42,7 @@ const state = {
   ul: null, sk: null,  // выбранные подложка и плинтус (по умолчанию — из меню промоутера)
   number: calcNumber(),
   shared: false,       // после отправки следующее изменение получает новый номер
-  filter: { color: null, cls: null, water: false },
+  filter: { color: null, cls: null, thick: null, water: false },
 };
 
 // Режим просмотра по ссылке (для покупателя)
@@ -67,7 +67,7 @@ function enabledDecors() {
 function visibleDecors() {
   const f = state.filter;
   return enabledDecors().filter(d =>
-    (!f.color || d.color_group === f.color) && (!f.cls || d.class === f.cls) && (!f.water || d.water_resistant));
+    (!f.color || d.color_group === f.color) && (!f.cls || d.class === f.cls) && (!f.thick || d.thickness_mm === f.thick) && (!f.water || d.water_resistant));
 }
 const current = () => catalog.decors.find(d => d.id === state.decorId);
 
@@ -166,6 +166,7 @@ function renderFilters() {
   const en = enabledDecors();
   chips($('#colorFilter'), COLOR_GROUPS.filter(g => en.some(d => d.color_group === g)), 'color', v => v);
   chips($('#classFilter'), [...new Set(en.map(d => d.class).filter(Boolean))].sort(), 'cls', v => 'Класс ' + v);
+  chips($('#thickFilter'), [...new Set(en.map(d => d.thickness_mm).filter(Boolean))].sort((a, b) => a - b), 'thick', v => v + ' мм');
 }
 $('#waterOnly').onchange = e => { state.filter.water = e.target.checked; renderRibbon(); };
 
