@@ -214,7 +214,8 @@ $('#addRoom').onclick = () => {
 // Пол в гостиной: готовая картинка по декору (Blender + нейросеть, tools/interior). Нет картинки — показываем ближайший по тону.
 // Комнаты: картинки в data/<комната>/<декор>.jpg, вечер — data/<комната>/night/ (index.json — список готовых)
 const ROOMS = [['living', 'Гостиная'], ['kitchen', 'Кухня'], ['bedroom', 'Спальня'], ['nursery', 'Детская']];
-const LISTS = {};       // комната → { day: [...], night: [...] }
+const LISTS = {};       // комната → { day, night, xday, xnight } (x — укладка вдоль окна, data/<комната>/x/)
+let LAY = '';           // '' — доски от окна, 'x/' — вдоль окна (повёрнуты на 90°)
 let RDIR = 'living';    // какая комната показана
 let ROOM = [];          // id декоров, для которых есть картинка в этой комнате
 let NIGHT = [];         // то же для вечера
@@ -222,10 +223,11 @@ let evening = false;     // ползунок за серединой — мин�
 // Ближайший по тону декор, у которого есть картинка в списке
 const nearest = (list, d) => list.includes(d.id) ? d.id
   : list.reduce((a, b) => Math.abs(lightness(byId(b)) - lightness(d)) < Math.abs(lightness(byId(a)) - lightness(d)) ? b : a);
+const lay = () => LISTS[RDIR]?.xday.length ? LAY : '';   // папка укладки для показанной комнаты
 const setSrc = (img, src) => { if (!img.src.endsWith(src)) img.src = src; };
 function photoFloor(d) {
-  if (ROOM.length) setSrc($('#roomImg'), `data/${RDIR}/${nearest(ROOM, d)}.jpg`);
-  if (NIGHT.length) setSrc($('#roomNight'), `data/${RDIR}/night/${nearest(NIGHT, d)}.jpg`);
+  if (ROOM.length) setSrc($('#roomImg'), `data/${RDIR}/${lay()}${nearest(ROOM, d)}.jpg`);
+  if (NIGHT.length) setSrc($('#roomNight'), `data/${RDIR}/${lay()}night/${nearest(NIGHT, d)}.jpg`);
 }
 // День → вечер ползунком: вечерняя картинка (горят торшер и люстра) плавно проявляется поверх дневной
 // Переключатель комнат: показываем только те, где есть картинки
@@ -236,12 +238,17 @@ function renderRoomSw() {
   $$('#roomSw button').forEach(b => b.onclick = () => setRoom(b.dataset.r));
 }
 function setRoom(r, show = true) {
-  RDIR = r; ROOM = LISTS[r].day; NIGHT = LISTS[r].night;
+  RDIR = r;
+  const L = LISTS[r], x = L.xday.length > 0 && LAY;       // выбор укладки помним; в комнате без поворота — от окна
+  ROOM = x ? L.xday : L.day; NIGHT = x ? L.xnight : L.night;
+  $('#laySw').hidden = !L.xday.length;
+  $$('#laySw button').forEach(b => b.classList.toggle('on', b.dataset.l === LAY));
   $$('#roomSw button').forEach(b => b.classList.toggle('on', b.dataset.r === r));
   $('#dayNight').hidden = !NIGHT.length;
   if (!NIGHT.length) { $('#dusk').value = 0; $('#roomNight').style.opacity = 0; evening = false; }
   if (show && current()) { photoFloor(current()); renderFav(); }
 }
+$$('#laySw button').forEach(b => b.onclick = () => { LAY = b.dataset.l; setRoom(RDIR); });
 $('#dusk').oninput = () => {
   const k = $('#dusk').value / 100;
   $('#roomNight').style.opacity = k;
@@ -253,7 +260,7 @@ let FAV = VIEWER ? [] : store.get('fav', []);               // получате�
 const saveFav = () => { if (!VIEWER) store.set('fav', FAV); };
 const roomSrc = id => {
   const list = evening ? NIGHT : ROOM;
-  return list.includes(id) ? `data/${RDIR}/${evening ? 'night/' : ''}${id}.jpg` : '';
+  return list.includes(id) ? `data/${RDIR}/${lay()}${evening ? 'night/' : ''}${id}.jpg` : '';
 };
 function renderFav() {
   const on = FAV.includes(state.decorId);
@@ -694,11 +701,11 @@ function applyViewerParams() {
 Promise.all([
   fetch('data/catalog.json', { cache: 'no-cache' }).then(r => r.json()),
   fetch('data/rooms.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({ living: [true, true] }))
-    .then(have => Promise.all(ROOMS.flatMap(([r]) => ['', 'night/'].map((n, k) => have[r]?.[k]
+    .then(have => Promise.all(ROOMS.flatMap(([r]) => ['', 'night/', 'x/', 'x/night/'].map((n, k) => have[r]?.[k]
       ? fetch(`data/${r}/${n}index.json`, { cache: 'no-cache' }).then(x => x.json()).catch(() => []) : [])))),
 ])
   .then(([c, lists]) => {
-    ROOMS.forEach(([r], i) => { LISTS[r] = { day: lists[2 * i], night: lists[2 * i + 1] }; });
+    ROOMS.forEach(([r], i) => { const [day, night, xday, xnight] = lists.slice(4 * i, 4 * i + 4); LISTS[r] = { day, night, xday, xnight }; });
     renderRoomSw();
     setRoom('living', false);
     const sent = (params.get('f') || '').split(',').filter(id => c.decors.some(d => d.id === id));

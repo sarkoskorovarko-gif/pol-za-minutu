@@ -9,6 +9,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+import plank_src
+
 ROOT = Path(__file__).resolve().parents[2]
 PX = 800                               # точек на метр пола (с фото ×4 — 1400)
 TEX4X = Path('D:/pol-ai/tex4x')         # увеличенные фото декоров (upscale_tex.py)
@@ -52,6 +54,14 @@ def build(d, w_m, h_m):
         k = np.floor(h1(row, col) * nr)
         u0 = h1(col, row + 31.0) * max(0.0, 1 - L / texM[0])
         u, v = u0 + lx / texM[0], 1 - (rows[0] + (k + ly / Wb) * rows[1])
+        seg = plank_src.segments(img)                        # доска = один цельный кусок доски с фото, без чужих стыков (22.10)
+        if seg:
+            sg = np.array(seg)[np.floor(h1(row + 5.3, col + 2.1) * len(seg)).astype(int) % len(seg)]   # (H, W, 4)
+            sw = (sg[..., 3] - sg[..., 2]) * texM[0]            # длина куска, м
+            span = np.minimum(sw, L)                             # длиннее доски — берём часть, короче — растягиваем (до ~2 раз)
+            st = sg[..., 2] * texM[0] + h1(col + 9.7, row) * (sw - span)
+            u = (st + lx / L * span) / texM[0]
+            v = 1 - (sg[..., 0] + ly / Wb * (sg[..., 1] - sg[..., 0]))
         e = np.minimum(np.minimum(lx, L - lx), np.minimum(ly, Wb - ly))
         joint = np.clip(e / (0.0022 if d.get('chamfer') else 0.0008), 0, 1) ** 0.5
     mx = ((u % 1) * tw).astype(np.float32); my = (((1 - v) % 1) * th).astype(np.float32)
@@ -67,9 +77,13 @@ def build(d, w_m, h_m):
 
 if __name__ == '__main__':
     did, out = sys.argv[1], Path(sys.argv[2]); out.mkdir(parents=True, exist_ok=True)
+    across = '--across' in sys.argv; sys.argv = [a for a in sys.argv if a != '--across']
     w_m, h_m = (float(sys.argv[3]), float(sys.argv[4])) if len(sys.argv) > 4 else (5.0, 4.2)
     d = next(x for x in json.load(open(ROOT / 'data' / 'catalog.json', encoding='utf-8'))['decors'] if x['id'] == did)
-    c, j = build(d, w_m, h_m)
+    if across:                                               # поперёк: доски от окна вглубь комнаты (по y) — строим повёрнутым и транспонируем
+        c, j = build(d, h_m, w_m); c, j = np.ascontiguousarray(c.transpose(1, 0, 2)), np.ascontiguousarray(j.T)
+    else:
+        c, j = build(d, w_m, h_m)
     cv2.imencode('.png', (c[:, :, ::-1] * 255).astype(np.uint8))[1].tofile(out / f'floor_{did}.png')
     cv2.imencode('.png', (j * 255).astype(np.uint8))[1].tofile(out / f'floor_{did}_joint.png')
     print('ok', did, c.shape)

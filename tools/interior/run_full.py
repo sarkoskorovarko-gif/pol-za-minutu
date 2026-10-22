@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT / 'tools' / 'interior'))
 def precheck(layout, decors):
     problems = []
     for f in ['tools/interior/build.py', 'tools/interior/assets.py', 'tools/interior/plan.py', 'tools/interior/grade.py',
-              'tools/blender/ai_realism.py', 'tools/blender/floor_render.py', 'tools/blender/floor_composite.py']:
+              'tools/blender/ai_realism.py', 'tools/blender/floor_render.py', 'tools/blender/floor_composite.py', 'tools/blender/floor_tex.py', 'tools/blender/plank_src.py']:
         try: py_compile.compile(str(ROOT / f), doraise=True)
         except py_compile.PyCompileError as e: problems.append(f'код: {f}: {e.msg[:120]}')
     import re                                               # урок (дважды!): команда «утонула» в комментарии после «a; # … ; b = …»
@@ -32,8 +32,8 @@ def precheck(layout, decors):
     for it in L['items']:
         if it['key'] not in plan.LIB: problems.append(f"нет паспорта: {it['key']}"); continue
         if not (bk / f"{plan.LIB[it['key']]['file']}.blend").exists(): problems.append(f"нет файла модели: {it['key']}")
-    for d in decors:
-        if not (FLOORS / f'floor_{d}.png').exists(): problems.append(f'нет текстуры пола {d}: python tools/blender/floor_tex.py {d} {FLOORS}')
+    for d in decors:                                        # фото декора — цель цвета для floor_match
+        if not (FLOORS / f'floor_{d}.png').exists(): problems.append(f'нет фото пола {d}: python tools/blender/floor_tex.py {d} {FLOORS}')
     free = shutil.disk_usage('D:/').free / 1e9
     if free < 5: problems.append(f'на диске D свободно {free:.1f} ГБ (нужно ≥ 5): 20.10 прогон упал «No space left on device»')
     try:
@@ -65,10 +65,16 @@ if __name__ == '__main__':
     if '--floors-only' not in sys.argv:                     # --floors-only: комната и нейросеть уже готовы в out, меняем только пол
         run([BL, '-b', '-P', 'tools/interior/build.py', '--', layout, out, '256'])
         run([sys.executable, 'tools/blender/ai_realism.py', out, dn])
-    for d in decors:                                        # по одному: 6 текстур 4000 px разом не влезли в видеопамять (19.10)
-        run([BL, '-b', out / 'room.blend', '-P', 'tools/blender/floor_render.py', '--', FLOORS, '256', d])
+    room = json.loads(Path(layout).read_text(encoding='utf-8'))['room']
+    tex = out / 'tex'; tex.mkdir(exist_ok=True)
     fl = out / 'floors'; fl.mkdir(exist_ok=True)
-    for d in decors: (fl / f'room_{d}.png').write_bytes((FLOORS / f'room_{d}.png').read_bytes())
+    across = ['--across'] if '--across' in sys.argv else []   # укладка поперёк окна (доски вглубь комнаты)
+    for d in decors:                                        # по одному: 6 текстур 4000 px разом не влезли в видеопамять (19.10)
+        # текстура — под размер ЭТОЙ комнаты: общая 5×4,2 м растягивала доски (кухня — на треть уже; проверка 22.10)
+        run([sys.executable, 'tools/blender/floor_tex.py', d, tex, str(room['w']), str(room['d']), *across])
+        run([BL, '-b', out / 'room.blend', '-P', 'tools/blender/floor_render.py', '--', tex, '256', d])
+        (fl / f'room_{d}.png').write_bytes((tex / f'room_{d}.png').read_bytes())
+        for f in [*tex.glob(f'floor_{d}*'), *tex.glob(f'room_{d}*')]: f.unlink()             # текстура 7000 px ~50 МБ — не копить
     run([sys.executable, 'tools/blender/floor_composite.py', out, fl, *decors])
     night = json.loads(Path(layout).read_text(encoding='utf-8')).get('night')
     gopt = ['--target', '95', '--warm', '1.5'] if night else []   # вечер: не вытягивать до дневной яркости, тёплый свет ламп
