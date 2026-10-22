@@ -1,6 +1,6 @@
 ﻿// Работа без интернета. После первого открытия файлы сайта хранятся в телефоне.
 // При изменении сайта увеличить номер версии — телефоны скачают новые файлы.
-const VERSION = 'v61';
+const VERSION = 'v62';
 const FILES = ['./', 'index.html', 'style.css?v=61', 'calc.js?v=61', 'app.js?v=61', 'data/living/index.json',
   'lib/qrcode.js?v=61', 'manifest.json', 'icons/icon-192.png', 'data/catalog.json'];
 
