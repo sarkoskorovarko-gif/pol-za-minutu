@@ -158,9 +158,10 @@ for w in L.get('windows', []):                             # батарея по
             x, y = f(a, -0.12)
             e = assets.put('curtains', x, y, math.atan2(iy, ix))
             e.scale = (0.65 / assets.LIB['curtains']['size'][0], k, k)
-# светильник по центру потолка
-bpy.ops.mesh.primitive_cylinder_add(radius=0.004, depth=0.45, location=(W / 2, D / 2, H - 0.225)); bpy.context.object.data.materials.append(mat('провод', (0.03, 0.03, 0.03), 0.4))
-bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=0.22, depth=0.06, location=(W / 2, D / 2, H - 0.48)); bpy.context.object.data.materials.append(mat('плафон', (0.93, 0.9, 0.84), 0.8, transmission=0.3))
+# светильник по центру потолка (skip 'люстра': в спальне плафон срезан краем кадра и висит перед окном — проверка 22.10)
+if 'люстра' not in L.get('style', {}).get('skip', []):
+  bpy.ops.mesh.primitive_cylinder_add(radius=0.004, depth=0.45, location=(W / 2, D / 2, H - 0.225)); bpy.context.object.data.materials.append(mat('провод', (0.03, 0.03, 0.03), 0.4))
+  bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=0.22, depth=0.06, location=(W / 2, D / 2, H - 0.48)); bpy.context.object.data.materials.append(mat('плафон', (0.93, 0.9, 0.84), 0.8, transmission=0.3))
 
 def shade_center(e):
     """Центр абажура: верхние 25 % точек модели торшера (а не точка постановки — у модели абажур смещён:
@@ -296,6 +297,7 @@ for x, y, z in lamp_pos:
 if L.get('night'):                                         # вечер: люстра под плафоном, тёплая
     bpy.ops.object.light_add(type='POINT', location=(W / 2, D / 2, H - 0.56)); lt = bpy.context.object.data
     lt.energy = 30; lt.shadow_soft_size = 0.2; lt.color = (1, 0.8, 0.55)
+    bpy.context.object.visible_glossy = bpy.context.object.visible_transmission = False   # иначе шар света отражается в стекле окна кругом (спальня, 22.10)
 
 # свет: небо (HDRI) + солнце через первое окно
 world = bpy.data.worlds.new('мир'); sc.world = world; world.use_nodes = True; nt = world.node_tree
