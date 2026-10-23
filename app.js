@@ -42,7 +42,7 @@ const state = {
   ul: null, sk: null,  // выбранные подложка и плинтус (по умолчанию — из меню промоутера)
   number: calcNumber(),
   shared: false,       // после отправки следующее изменение получает новый номер
-  filter: { color: null, cls: null, thick: null, water: false },
+  filter: { color: null, cls: null, thick: null, water: false, q: '' },
 };
 
 // Режим просмотра по ссылке (для покупателя)
@@ -66,7 +66,8 @@ function enabledDecors() {
 // С учётом фильтров покупателя
 function visibleDecors() {
   const f = state.filter;
-  return enabledDecors().filter(d =>
+  const q = f.q.toLowerCase().replace(/\s+/g, '');                // поиск: часть названия или номера (273, epl273, тоскано)
+  return enabledDecors().filter(d => (!q || (d.name + d.id).toLowerCase().replace(/\s+/g, '').includes(q)) &&
     (!f.color || d.color_group === f.color) && (!f.cls || d.class === f.cls) && (!f.thick || d.thickness_mm === f.thick) && (!f.water || d.water_resistant));
 }
 const current = () => catalog.decors.find(d => d.id === state.decorId);
@@ -168,6 +169,7 @@ function renderFilters() {
   chips($('#classFilter'), [...new Set(en.map(d => d.class).filter(Boolean))].sort(), 'cls', v => 'Класс ' + v);
   chips($('#thickFilter'), [...new Set(en.map(d => d.thickness_mm).filter(Boolean))].sort((a, b) => a - b), 'thick', v => v + ' мм');
 }
+$('#q').oninput = e => { state.filter.q = e.target.value.trim(); renderRibbon(); };
 $('#waterOnly').onchange = e => { state.filter.water = e.target.checked; renderRibbon(); };
 
 // ================= Комнаты (размеры) =================
@@ -729,3 +731,10 @@ Promise.all([
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
+
+// Размер комнаты всегда с нуля: браузер при «назад»/обновлении подставлял прошлые цифры
+addEventListener('pageshow', e => {
+  if (VIEWER) return;
+  state.rooms = [{ length: '', width: '', doors: 1, diagonal: false }];
+  if (catalog) renderRooms();
+});

@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=65">
+  <link rel="stylesheet" href="style.css?v=66">
 </head>
 <body>
   <header class="top">
@@ -34,6 +34,7 @@
       <div class="decor-name"><b id="decorName">—</b><span id="decorInfo" class="muted small"></span></div>
       <button id="darker" class="nb" aria-label="Темнее"></button>
     </div>
+    <input id="q" class="inp search" type="search" autocomplete="off" placeholder="Поиск: название или номер (например 273)" aria-label="Поиск декора">
     <div id="ribbon" class="ribbon"></div>
     <div class="sliders">
       <label>Светлее<input type="range" id="slL" min="0" max="0" step="1">Темнее</label>
@@ -146,9 +147,9 @@
     <div class="room">
       <div class="room-head"><b class="room-title"></b><button class="del" title="Удалить комнату">✕</button></div>
       <div class="row">
-        <label>Длина, м<input class="inp len" inputmode="decimal" placeholder="5"></label>
+        <label>Длина, м<input class="inp len" inputmode="decimal" autocomplete="off" placeholder="5"></label>
         <span class="x">×</span>
-        <label>Ширина, м<input class="inp wid" inputmode="decimal" placeholder="4"></label>
+        <label>Ширина, м<input class="inp wid" inputmode="decimal" autocomplete="off" placeholder="4"></label>
       </div>
       <div class="row">
         <label>Дверей
@@ -162,8 +163,8 @@
     </div>
   </template>
 
-  <script src="lib/qrcode.js?v=65"></script>
-  <script src="calc.js?v=65"></script>
-  <script type="module" src="app.js?v=65"></script>
+  <script src="lib/qrcode.js?v=66"></script>
+  <script src="calc.js?v=66"></script>
+  <script type="module" src="app.js?v=66"></script>
 </body>
 </html>
