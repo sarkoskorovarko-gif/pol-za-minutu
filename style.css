@@ -146,3 +146,51 @@ h2 { margin: 0 0 12px; font-size: 20px; }
 .fav .x { position: absolute; top: 4px; right: 4px; width: 32px; height: 32px; border-radius: 50%; border: 0; background: rgba(255,255,255,.9); font-size: 18px; cursor: pointer; }
 .favs-head .btn { width: auto; flex: 0 0 auto; min-height: 40px; padding: 0 14px; }
 .rooms-sw { max-width: 560px; margin: 8px auto; padding: 0 16px; }
+
+/* ---------- Удобство в магазине: крупнее всё, что нажимают пальцем ---------- */
+.seg button { min-height: 52px; font-size: 16px; font-weight: 500; }
+.decor-name b { font-size: 21px; }
+.decor-name .small { font-size: 14px; }
+.nb { width: 72px; height: 56px; }
+.nb .sw { width: 40px; height: 40px; }
+.search { min-height: 52px; font-size: 18px; border-radius: 12px; }
+.chip { min-height: 44px; padding: 6px 16px; border-radius: 22px; font-size: 15px; }
+.tile { width: 112px; }
+.tile .sw { height: 80px; }
+.tile .tn { font-size: 13px; }
+.tile .tp { font-size: 13px; font-weight: 600; color: var(--text); }
+.daynight, .sliders label { font-size: 15px; min-height: 48px; }
+.daynight input, .sliders input { height: 44px; }
+.more summary { min-height: 48px; font-size: 15px; font-weight: 600; }
+.total { font-size: 48px; }
+/* На большом экране — шире, чтобы не было пустых полей */
+@media (min-width: 900px) {
+  .decor-box, .favs, .rooms-sw, .daynight, main { max-width: 760px; }
+  .scene img { max-height: 76vh; }
+}
+
+/* ---------- Обновлённый вид: тёплый, мягкий, «интерьерный» ---------- */
+:root { --bg: #f6f3ee; --card: #fffdfa; --text: #2a2622; --muted: #8a8178; --accent: #1d6b47; --accent-2: #2f8a5e; --line: #e6dfd4; --shadow: 0 6px 20px rgba(60,45,30,.08), 0 1px 3px rgba(60,45,30,.06); }
+body { font-family: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; letter-spacing: .1px; }
+.top { background: linear-gradient(120deg, #17573a, var(--accent-2)); padding: 14px 18px; font-weight: 500; box-shadow: 0 2px 10px rgba(0,0,0,.12); position: sticky; top: 0; z-index: 30; }
+.top b, .top strong { letter-spacing: 1.5px; }
+.scene { background: transparent; max-width: 1100px; margin: 10px auto 0; padding: 0 12px; }
+.scene img { border-radius: 18px; box-shadow: var(--shadow); }
+.scene .night { left: 12px; right: 12px; width: calc(100% - 24px); }
+.fav-btn { top: 12px; right: 24px; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+.seg { background: #ece6dc; border-radius: 14px; padding: 4px; gap: 4px; }
+.seg button { border: 0 !important; border-radius: 10px !important; background: transparent; color: var(--text); transition: background .2s, color .2s; }
+.seg .on { background: var(--card); color: var(--accent); box-shadow: 0 2px 6px rgba(60,45,30,.12); font-weight: 600; }
+.card { border-radius: 18px; box-shadow: var(--shadow); padding: 18px; }
+h2 { font-weight: 600; letter-spacing: .2px; }
+.inp, .big, .search { border-color: var(--line); background: var(--card); transition: border-color .2s, box-shadow .2s; }
+.inp:focus, .big:focus, .search:focus { outline: 0; border-color: var(--accent-2); box-shadow: 0 0 0 3px rgba(47,138,94,.15); }
+.tile { border-radius: 14px; box-shadow: var(--shadow); transition: transform .15s; background: var(--card); }
+.tile:active { transform: scale(.97); }
+.tile .sw { border-radius: 10px; }
+.chip { background: var(--card); border-color: var(--line); }
+.nb { background: var(--card); box-shadow: var(--shadow); border: 0; }
+.main { background: linear-gradient(120deg, var(--accent), var(--accent-2)); box-shadow: 0 4px 12px rgba(29,107,71,.25); }
+.ghost { border: 1.5px solid var(--line); background: var(--card); }
+.total { letter-spacing: -1px; }
+.note { font-style: italic; }
