@@ -194,3 +194,10 @@ h2 { font-weight: 600; letter-spacing: .2px; }
 .ghost { border: 1.5px solid var(--line); background: var(--card); }
 .total { letter-spacing: -1px; }
 .note { font-style: italic; }
+
+/* ---------- Палитра «Орех» ---------- */
+:root { --bg: #f3efe9; --card: #fff; --accent: #7a4b2a; --accent-2: #a8693d; --line: #e4d9cc; }
+.top { background: linear-gradient(120deg, #5c361d, var(--accent-2)); }
+.viewer-bar, .contact { background: #f1e6da; }
+.inp:focus, .big:focus, .search:focus { box-shadow: 0 0 0 3px rgba(168,105,61,.18); }
+.main { box-shadow: 0 4px 12px rgba(122,75,42,.25); }
