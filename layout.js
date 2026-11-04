@@ -65,7 +65,8 @@ function layoutRoom(o) {
   const diag = dir === 'diag';
 
   const poolA = [], poolB = [];   // A — с заводским L (в конец ряда), B — с заводским R (в начало)
-  const keep = (pool, len) => { if (len >= minPiece) pool.push(r1(len)); };
+  // остаток помнит, от какой доски он (id) — для проверки расчёта
+  const keep = (pool, len, id) => { if (len >= minPiece) pool.push(Object.assign(new Number(r1(len)), { id })); };
   const take = (pool, i) => pool.splice(i, 1)[0];
   const mod = x => { const m = r1(((x % B) + B) % B); return m < 0.5 ? B : m; };
 
@@ -128,23 +129,23 @@ function layoutRoom(o) {
 
     const pieces = [];
     let x = g.u0;
-    const add = (len, s, end) => { pieces.push({ x: r1(x), len: r1(len), src: s, end, short: len < minPiece - 0.5 }); x += len; };
+    const add = (len, s, end, board) => { pieces.push({ x: r1(x), len: r1(len), src: s, end, board, short: len < minPiece - 0.5 }); x += len; };
     const single = sh.k === 0 && sh.t === 0;
 
     // начало ряда
-    if (src === 'spare') take(poolB, from);
+    if (src === 'spare') add(sh.s, 'spare', single ? 'only' : 'start', take(poolB, from).id);
     else {
-      boards++;
+      const id = ++boards;
       src = sh.s >= B - 0.5 ? 'full' : 'cut';
-      if (src === 'cut') keep(poolA, B - sh.s - kerf);
+      if (src === 'cut') keep(poolA, B - sh.s - kerf, id);
+      add(sh.s, src, single ? 'only' : 'start', id);
     }
-    add(sh.s, src, single ? 'only' : 'start');
-    for (let j = 0; j < sh.k; j++) { boards++; add(B, 'full', 'mid'); }
+    for (let j = 0; j < sh.k; j++) add(B, 'full', 'mid', ++boards);
     // конец ряда: остаток с заводским L или новая доска (её правая часть — в кучу B)
     if (sh.t > 0) {
       const j = poolA.reduce((bj, p, jj) => p >= sh.t && (bj < 0 || p < poolA[bj]) ? jj : bj, -1);
-      if (j >= 0) { take(poolA, j); add(sh.t, 'spare', 'end'); }
-      else { boards++; add(sh.t, 'cut', 'end'); keep(poolB, B - sh.t - kerf); }
+      if (j >= 0) add(sh.t, 'spare', 'end', take(poolA, j).id);
+      else { const id = ++boards; add(sh.t, 'cut', 'end', id); keep(poolB, B - sh.t - kerf, id); }
     }
     if (diag && pieces.some(q => q.short)) warnings.push(i);   // у углов короткие куски неизбежны — предупреждаем
     if (prev && sh.joints.length && prev.length) minFound = Math.min(minFound, shiftTo(sh, prev));

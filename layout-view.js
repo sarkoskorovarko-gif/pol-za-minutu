@@ -120,7 +120,9 @@ function drawLayout(plan, mode, tex) {
       }
       g.restore();
     }
-    if (p.src !== 'full') labels.push([...toScreen(X + Wd / 2, Y + Ht / 2), Math.round(p.len / 10) + '', Math.max(Wd, Ht) * (diag ? .6 : 1), Math.min(Wd, Ht)]);
+    if (!diag && j === Math.floor(r.pieces.length / 2) && r.w < plan.boardW - 0.5 && p.src === 'full')
+      labels.push([X + Wd / 2, Y + Ht / 2, `полоса ${Math.round(r.w / 10)} см`, Math.max(Wd, Ht), Math.min(Wd, Ht), Ht > Wd ? -Math.PI / 2 : 0]);
+    if (p.src !== 'full') labels.push([...toScreen(X + Wd / 2, Y + Ht / 2), Math.round(p.len / 10) + '', Math.max(Wd, Ht) * (diag ? .6 : 1), Math.min(Wd, Ht), diag ? Math.PI / 4 : Ht > Wd ? -Math.PI / 2 : 0]);
   }));
   if (diag) {
     g.restore();
@@ -132,11 +134,21 @@ function drawLayout(plan, mode, tex) {
 
   // длины неполных кусков, см — на белой плашке, если помещается
   g.font = '600 22px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  for (const [x, y, t, big, small] of labels) {
-    const w = g.measureText(t).width + 10;
-    if (big < w + 4 || small < 24) continue;
-    g.fillStyle = 'rgba(255,255,255,.92)'; g.fillRect(x - w / 2, y - 13, w, 26);
-    g.fillStyle = '#2a2622'; g.fillText(t, x, y + .5);
+  // подпись у каждого подрезанного куска: шрифт уменьшаем, пока не влезет; у диагонали — внутрь комнаты
+  const [rx0, ry0, rx1, ry1] = diag ? [G * k, G * k, (G + plan.room.a) * k, (G + plan.room.b) * k] : [0, 0, c.width, c.height];
+  for (let [x, y, t, big, small, vert] of labels) {
+    x = Math.min(Math.max(x, rx0 + 16), rx1 - 16); y = Math.min(Math.max(y, ry0 + 10), ry1 - 10);
+    // крупно, насколько позволяет кусок: высота цифр — почти вся ширина доски
+    g.font = '700 100px system-ui, sans-serif';
+    const per = g.measureText(t).width / 100;          // ширина текста на 1 px шрифта
+    const f = Math.max(13, Math.min(40, small * 0.78, (big - 8) / per));
+    g.font = `700 ${f}px system-ui, sans-serif`;
+    const w = g.measureText(t).width + 8, h = f + 6;
+    g.save(); g.translate(x, y);
+    if (vert) g.rotate(vert);                           // цифры идут вдоль доски, как она лежит на схеме
+    g.fillStyle = 'rgba(255,255,255,.93)'; g.fillRect(-w / 2, -h / 2, w, h);
+    g.fillStyle = '#1f1a16'; g.fillText(t, 0, 1);
+    g.restore();
   }
   if (mode === 'plan' && !diag) {                  // номера рядов
     g.fillStyle = '#8a8178'; g.font = '20px system-ui, sans-serif';
