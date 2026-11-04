@@ -180,6 +180,22 @@ box('потолок', (W, D, 0.02), (W / 2, D / 2, H + 0.01), M['ceil'])
 box('стена задняя', (W + 0.4, 0.1, H), (W / 2, D + 0.05, H / 2), M['wall'])
 box('стена правая', (0.1, D, H), (W + 0.05, D / 2, H / 2), M['wall'])
 box('стена у камеры', (W + 0.4, 0.1, H), (W / 2, -0.05, H / 2), M['wall'])
+
+# дверь на дальней стене (layout: doors[].leaf) — плита с фото двери из каталога; без фото — нейтральная (слой двери: door_layer.py)
+_lay = Path(next((a[7:] for a in argv if a.startswith('layout=')), Path(__file__).resolve().parents[1] / 'interior' / 'layouts' / 'living_auto.json'))
+for d in json.loads(_lay.read_text(encoding='utf-8')).get('doors', []):
+    if d.get('leaf') and d['wall'] == 'back':
+        dw, dh = d['to'] - d['from'], d.get('top', 2.05)
+        bpy.ops.mesh.primitive_plane_add(size=1); dr = bpy.context.object; dr.name = 'ДВЕРЬ'
+        dr.scale = (dw, dh, 1); dr.rotation_euler = (math.pi / 2, 0, 0)
+        dr.location = ((d['from'] + d['to']) / 2, D - 0.03, dh / 2); dr.pass_index = 4   # перед плинтусом (урок: плинтус шёл по низу двери)
+        bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+        bpy.ops.object.modifier_add(type='SOLIDIFY'); dr.modifiers[-1].thickness = 0.02
+        dm = mat('дверь', (0.6, 0.6, 0.6), 0.5); dr.data.materials.append(dm)
+        dimg = next((a[5:] for a in argv if a.startswith('door=')), None)
+        if dimg:
+            nt_ = dm.node_tree; ti = nt_.nodes.new('ShaderNodeTexImage'); ti.image = bpy.data.images.load(dimg)
+            nt_.links.new(ti.outputs['Color'], nt_.nodes['Principled BSDF'].inputs['Base Color'])
 wy0, wy1, wz0, wz1 = 1.0, 3.0, 0.85, 2.45             # окно 2,0 × 1,6 м
 box('стена левая низ', (0.25, D, wz0), (-0.125, D / 2, wz0 / 2), M['wall'])
 box('стена левая верх', (0.25, D, H - wz1), (-0.125, D / 2, (H + wz1) / 2), M['wall'])
@@ -226,7 +242,7 @@ if BK:
         assets.put(it['key'], it['x'], it['y'], math.radians(it['facing']), it.get('z', 0.0))
     sofa = next(i for i in LAY['items'] if assets.LIB[i['key']]['cat'] == 'sofa')
     lamp = next((i for i in LAY['items'] if assets.LIB[i['key']]['cat'] == 'floor_lamp'), None)
-    sx = sofa['x']                                    # картина — над центром дивана
+    sx = LAY.get('art_x', sofa['x'])                                   # картина — над центром дивана
     # мелочи: подсвечники на подоконнике
     bk('202f91e8-1742-4ebf-b62b-a30ec53b7734', (0.08, 2.55, wz0), 0.0, height=0.45)
     # плед свисает с правого подлокотника (форма — под этот диван, сдвиг — по его месту)
@@ -271,9 +287,10 @@ if not BK:
     L.energy = 8; L.shadow_soft_size = 0.12; L.color = (1, 0.82, 0.6)
     # растение в углу и картина над диваном
     gltf('potted_plant_02', (0.55, D - 0.5, 0), height=1.25, rot=0.6)
-box('рама картины', (1.1, 0.03, 0.75), (sx, D - 0.02, 1.58), M['black'], 0.004)
-box('паспарту', (1.04, 0.012, 0.69), (sx, D - 0.036, 1.58), M['white'])
-box('картина', (0.86, 0.008, 0.52), (sx, D - 0.044, 1.58), M['art'])
+if sx is not None:                                    # art_x: null — без картины (кадр с дверью)
+    box('рама картины', (1.1, 0.03, 0.75), (sx, D - 0.02, 1.58), M['black'], 0.004)
+    box('паспарту', (1.04, 0.012, 0.69), (sx, D - 0.036, 1.58), M['white'])
+    box('картина', (0.86, 0.008, 0.52), (sx, D - 0.044, 1.58), M['art'])
 
 # ---------- свет: панорама парка за окном + солнце ----------
 world = bpy.data.worlds.new('мир'); sc.world = world; world.use_nodes = True
@@ -293,7 +310,10 @@ sun.rotation_euler = Vector((1.0, 0.3, -0.6)).to_track_quat('-Z', 'Y').to_euler(
 bpy.ops.object.camera_add(location=(W - 0.4, 0.35, 1.3))
 cam = bpy.context.object; sc.camera = cam
 cam.data.lens = 22; cam.data.sensor_width = 36
-cam.rotation_euler = (Vector((1.9, D, 0.95)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
+_cam = json.loads(_lay.read_text(encoding='utf-8')).get('camera', {})   # дверь в кадре: свой взгляд и объектив из расстановки
+cam.data.lens = _cam.get('lens', 22)
+if 'look' in _cam: cam.location = (_cam['x'], _cam['y'], _cam.get('z', 1.3))
+cam.rotation_euler = (Vector(_cam.get('look', (1.9, D, 0.95))) - cam.location).to_track_quat('-Z', 'Y').to_euler()
 
 # ---------- рендер ----------
 sc.render.engine = 'CYCLES'
@@ -333,6 +353,10 @@ nt.links.new(idm.outputs['Alpha'], fo.inputs[0])
 nz = nt.nodes.new('CompositorNodeNormalize'); inv = nt.nodes.new('CompositorNodeInvert')
 nt.links.new(rl.outputs['Depth'], nz.inputs[0]); nt.links.new(nz.outputs[0], inv.inputs['Color'])
 fo.file_slots.new('depth'); nt.links.new(inv.outputs['Color'], fo.inputs[1])
+if bpy.data.objects.get('ДВЕРЬ'):                    # дверь — как картина: нейросеть не трогает, вставка из Blender
+    idd = nt.nodes.new('CompositorNodeIDMask'); idd.index = 4; idd.use_antialiasing = True
+    nt.links.new(rl.outputs['IndexOB'], idd.inputs['ID value'])
+    fo.file_slots.new('art_mask'); nt.links.new(idd.outputs['Alpha'], fo.inputs[2])
 sc.render.filepath = str(OUT / 'room.png'); sc.render.image_settings.file_format = 'PNG'
 bpy.ops.render.render(write_still=True)
 
