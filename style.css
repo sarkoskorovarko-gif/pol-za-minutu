@@ -225,3 +225,21 @@ h2 { font-weight: 600; letter-spacing: .2px; }
 .link { border: 0; background: none; color: var(--accent); font-weight: 600; text-decoration: underline; padding: 0; font-size: 14px; cursor: pointer; }
 .cuts summary { min-height: 44px; display: flex; align-items: center; font-weight: 600; color: var(--accent); cursor: pointer; }
 .cuts ol { margin: 0; padding-left: 22px; font-size: 14px; line-height: 1.5; }
+
+/* ---------- Компактная раскладка экрана ---------- */
+.scene-ctl { display: flex; align-items: center; gap: 10px; max-width: 760px; margin: 8px auto 0; padding: 0 12px; flex-wrap: wrap; }
+.scene-ctl .daynight { flex: 1 1 220px; margin: 0; padding: 0; }
+.scene-ctl .rooms-sw { flex: 1 1 260px; margin: 0; padding: 4px; }
+.note { margin-top: 4px; }
+.card { padding: 14px; margin-bottom: 10px; }
+.decor-box { margin-top: 4px; }
+.more .sliders { margin-top: 4px; }
+.lines li { padding: 8px 0; }
+.need { margin-top: 10px; padding: 12px; }
+@media (min-width: 1000px) {
+  .layout-cols { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(380px, 1fr); gap: 20px; max-width: 1440px; margin: 0 auto; padding: 0 16px; align-items: start; }
+  .layout-cols .scene { max-width: none; padding: 0; }
+  .layout-cols .decor-box, .layout-cols .favs, .layout-cols .rooms-sw, .layout-cols .scene-ctl { max-width: none; padding-left: 0; padding-right: 0; }
+  .layout-cols main { max-width: none; padding: 10px 0 40px; position: sticky; top: 64px; max-height: calc(100vh - 72px); overflow-y: auto; }
+  .layout-cols .scene img { max-height: 62vh; }
+}

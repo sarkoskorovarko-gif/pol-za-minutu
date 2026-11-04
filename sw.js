@@ -1,8 +1,8 @@
 ﻿// Работа без интернета. После первого открытия файлы сайта хранятся в телефоне.
 // При изменении сайта увеличить номер версии — телефоны скачают новые файлы.
-const VERSION = 'v72';
-const FILES = ['./', 'index.html', 'style.css?v=72', 'calc.js?v=72', 'layout.js?v=72', 'layout-view.js?v=72', 'app.js?v=72', 'data/living/index.json',
-  'lib/qrcode.js?v=72', 'manifest.json', 'icons/icon-192.png', 'data/catalog.json'];
+const VERSION = 'v73';
+const FILES = ['./', 'index.html', 'style.css?v=73', 'calc.js?v=73', 'layout.js?v=73', 'layout-view.js?v=73', 'app.js?v=73', 'data/living/index.json',
+  'lib/qrcode.js?v=73', 'manifest.json', 'icons/icon-192.png', 'data/catalog.json'];
 
 self.addEventListener('install', e => {
   // cache: 'reload' — мимо кэша браузера (там могут лежать файлы прошлой версии до 10 минут)

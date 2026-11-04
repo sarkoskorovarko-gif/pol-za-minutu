@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=72">
+  <link rel="stylesheet" href="style.css?v=73">
 </head>
 <body>
   <header class="top">
@@ -20,11 +20,15 @@
   <div id="viewerBar" class="viewer-bar" hidden></div>
 
   <!-- Гостиная с выбранным полом (готовые картинки по каждому декору, data/living/<id>.jpg) -->
+  <div class="layout-cols">
+  <div class="col-left">
   <div class="seg rooms-sw" id="roomSw" hidden></div>
   <div class="scene"><img id="roomImg" alt="Гостиная с выбранным полом"><img id="roomNight" class="night" alt="">
     <button id="favBtn" class="fav-btn" aria-label="В избранное">♡</button></div>
+  <div class="scene-ctl">
   <label class="daynight" id="dayNight" hidden><span>☀️ День</span><input type="range" id="dusk" min="0" max="100" value="0" aria-label="От дня к вечеру"><span>🌙 Вечер</span></label>
   <div class="seg rooms-sw" id="laySw" hidden><button data-l="">Доски от окна</button><button data-l="x/">Вдоль окна</button></div>
+  </div>
   <p class="note">Цвет на экране может отличаться. Сравните с образцом на стенде.</p>
 
   <!-- Декоры: соседи по тону, лента, ползунки, фильтры -->
@@ -36,13 +40,13 @@
     </div>
     <input id="q" class="inp search" type="search" autocomplete="off" placeholder="Название или номер, напр. 273" aria-label="Поиск декора">
     <div id="ribbon" class="ribbon"></div>
+    <div id="colorFilter" class="chips"></div>
+    <details class="more">
+      <summary>Ещё фильтры</summary>
     <div class="sliders">
       <label>Светлее<input type="range" id="slL" min="0" max="0" step="1">Темнее</label>
       <label>Теплее<input type="range" id="slW" min="0" max="0" step="1">Холоднее</label>
     </div>
-    <div id="colorFilter" class="chips"></div>
-    <details class="more">
-      <summary>Ещё фильтры</summary>
       <div id="classFilter" class="chips"></div>
       <div id="thickFilter" class="chips" aria-label="Толщина доски"></div>
       <label class="switch"><input type="checkbox" id="waterOnly"> Только влагостойкий</label>
@@ -55,6 +59,7 @@
     <div id="favList" class="fav-list"></div>
   </section>
 
+  </div>
   <main>
     <!-- Экран «Размеры» -->
     <section class="card" id="sizes">
@@ -81,6 +86,7 @@
       <div id="contact" class="contact" hidden></div>
     </section>
   </main>
+  </div>
 
   <!-- Окно QR -->
   <dialog id="qrDlg" class="dlg">
@@ -170,10 +176,10 @@
     </div>
   </template>
 
-  <script src="lib/qrcode.js?v=72"></script>
-  <script src="calc.js?v=72"></script>
-  <script src="layout.js?v=72"></script>
-  <script src="layout-view.js?v=72"></script>
-  <script type="module" src="app.js?v=72"></script>
+  <script src="lib/qrcode.js?v=73"></script>
+  <script src="calc.js?v=73"></script>
+  <script src="layout.js?v=73"></script>
+  <script src="layout-view.js?v=73"></script>
+  <script type="module" src="app.js?v=73"></script>
 </body>
 </html>
