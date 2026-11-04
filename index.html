@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=73">
+  <link rel="stylesheet" href="style.css?v=74">
 </head>
 <body>
   <header class="top">
@@ -25,10 +25,8 @@
   <div class="seg rooms-sw" id="roomSw" hidden></div>
   <div class="scene"><img id="roomImg" alt="Гостиная с выбранным полом"><img id="roomNight" class="night" alt="">
     <button id="favBtn" class="fav-btn" aria-label="В избранное">♡</button></div>
-  <div class="scene-ctl">
   <label class="daynight" id="dayNight" hidden><span>☀️ День</span><input type="range" id="dusk" min="0" max="100" value="0" aria-label="От дня к вечеру"><span>🌙 Вечер</span></label>
   <div class="seg rooms-sw" id="laySw" hidden><button data-l="">Доски от окна</button><button data-l="x/">Вдоль окна</button></div>
-  </div>
   <p class="note">Цвет на экране может отличаться. Сравните с образцом на стенде.</p>
 
   <!-- Декоры: соседи по тону, лента, ползунки, фильтры -->
@@ -40,13 +38,13 @@
     </div>
     <input id="q" class="inp search" type="search" autocomplete="off" placeholder="Название или номер, напр. 273" aria-label="Поиск декора">
     <div id="ribbon" class="ribbon"></div>
-    <div id="colorFilter" class="chips"></div>
-    <details class="more">
-      <summary>Ещё фильтры</summary>
     <div class="sliders">
       <label>Светлее<input type="range" id="slL" min="0" max="0" step="1">Темнее</label>
       <label>Теплее<input type="range" id="slW" min="0" max="0" step="1">Холоднее</label>
     </div>
+    <div id="colorFilter" class="chips"></div>
+    <details class="more">
+      <summary>Ещё фильтры</summary>
       <div id="classFilter" class="chips"></div>
       <div id="thickFilter" class="chips" aria-label="Толщина доски"></div>
       <label class="switch"><input type="checkbox" id="waterOnly"> Только влагостойкий</label>
@@ -68,6 +66,9 @@
       <button id="addRoom" class="btn ghost">+ комната</button>
     </section>
 
+    <!-- Раскладка досок — всегда на виду, сразу после размеров -->
+    <section class="card" id="layoutCard"><div id="layoutBox" class="layout-box"><p class="muted small">Введите размеры комнаты — здесь появится раскладка досок.</p></div></section>
+
     <!-- Экран «Расчёт» -->
     <section class="card" id="result">
       <div class="total"><span id="total">—</span> <small>руб.</small></div>
@@ -77,7 +78,6 @@
         <label>Плинтус<select id="pickSkirting" class="big"></select></label>
       </div>
       <ul id="lines" class="lines"></ul>
-      <div id="layoutBox" class="layout-box"></div>
       <p class="muted small">Цены Материка на <span id="updated"></span>. Проверьте цену на кассе.</p>
       <div class="actions promo-only">
         <button id="share" class="btn main">Отправить</button>
@@ -176,10 +176,10 @@
     </div>
   </template>
 
-  <script src="lib/qrcode.js?v=73"></script>
-  <script src="calc.js?v=73"></script>
-  <script src="layout.js?v=73"></script>
-  <script src="layout-view.js?v=73"></script>
-  <script type="module" src="app.js?v=73"></script>
+  <script src="lib/qrcode.js?v=74"></script>
+  <script src="calc.js?v=74"></script>
+  <script src="layout.js?v=74"></script>
+  <script src="layout-view.js?v=74"></script>
+  <script type="module" src="app.js?v=74"></script>
 </body>
 </html>

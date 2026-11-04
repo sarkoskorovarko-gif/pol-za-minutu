@@ -16,6 +16,9 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
 };
 
+// Подложка и плинтус пока не продаются через сайт — выключены (вернуть: true)
+const EXTRAS = false;
+
 // Настройки промоутера. При пустом хранилище — значения по умолчанию
 const DEFAULTS = {
   pin: null,             // PIN владельца
@@ -326,14 +329,14 @@ function update() {
   if (!d || rooms.some(r => !r)) {
     $('#total').textContent = '—';
     $('#calcInfo').textContent = 'Введите длину и ширину каждой комнаты';
-    $('#lines').innerHTML = ''; $('#layoutBox').innerHTML = '';
+    $('#lines').innerHTML = ''; $('#layoutBox').innerHTML = '<p class="muted small">Введите размеры комнаты — здесь появится раскладка досок.</p>';
     return;
   }
 
   const decor = { ...d, price_m2: decorPrice(d) };
   const underlayItem = underlayNow(), skirtingItem = skirtingNow();
-  const underlay = state.use.underlay && underlayItem ? underlayItem : null;
-  let skirting = state.use.skirting && skirtingItem ? { ...skirtingItem } : null;
+  const underlay = EXTRAS && state.use.underlay && underlayItem ? underlayItem : null;
+  let skirting = EXTRAS && state.use.skirting && skirtingItem ? { ...skirtingItem } : null;
   if (skirting && !state.use.accessories) skirting.needs_accessories = false;
   const waste = { straight: S.waste.straight / 100, diagonal: S.waste.diagonal / 100 };
 
@@ -354,9 +357,9 @@ function update() {
 
   // Строки. Снятые галочкой — серым, чтобы можно было вернуть
   const lines = res.lines.slice();
-  if (!state.use.underlay && underlayItem) lines.push({ key: 'underlay', off: true });
-  if (!state.use.skirting && skirtingItem) lines.push({ key: 'skirting', off: true });
-  if (skirtingItem?.needs_accessories && (!state.use.accessories || !state.use.skirting)) lines.push({ key: 'accessories', off: true });
+  if (EXTRAS && !state.use.underlay && underlayItem) lines.push({ key: 'underlay', off: true });
+  if (EXTRAS && !state.use.skirting && skirtingItem) lines.push({ key: 'skirting', off: true });
+  if (EXTRAS && skirtingItem?.needs_accessories && (!state.use.accessories || !state.use.skirting)) lines.push({ key: 'accessories', off: true });
 
   $('#lines').innerHTML = '';
   for (const l of lines) {
@@ -500,7 +503,7 @@ function fillPicks() {
   };
   $('#pickUnderlay').innerHTML = opt(catalog.underlay, underlayNow());
   $('#pickSkirting').innerHTML = opt(catalog.skirting, skirtingNow());
-  $('#picks').hidden = !catalog.underlay.length && !catalog.skirting.length;
+  $('#picks').hidden = !EXTRAS || (!catalog.underlay.length && !catalog.skirting.length);
 }
 $('#pickUnderlay').onchange = e => { state.ul = e.target.value; changed(); };
 $('#pickSkirting').onchange = e => { state.sk = e.target.value; changed(); };
