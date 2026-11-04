@@ -25,7 +25,9 @@ const DEFAULTS = {
   hideOut: true,         // скрывать то, чего нет в наличии
   defaultDecor: null,
   underlay: null, skirting: null,
-  waste: { straight: 7, diagonal: 15 }, // %
+  waste: { straight: 7, diagonal: 15 }, // % — только для декоров без размеров доски
+  reserve: { straight: 2, diag: 3 },     // запас досок сверху на весь заказ
+  sellBy: 'pcs',                         // 'pcs' — поштучно, 'pack' — упаковками
   name: '', phone: '',
 };
 let S = { ...DEFAULTS, ...store.get('settings', {}) };
@@ -36,12 +38,14 @@ const saveLog = () => store.set('log', LOG);
 // ================= Состояние экрана =================
 let catalog = null;
 const state = {
-  rooms: [{ length: '', width: '', doors: 1, diagonal: false }],
+  rooms: [{ length: '', width: '', doors: 1, dir: 'long', scheme: 'deck' }],
   use: { underlay: true, skirting: true, accessories: true },
   decorId: null,
   ul: null, sk: null,  // выбранные подложка и плинтус (по умолчанию — из меню промоутера)
   number: calcNumber(),
   shared: false,       // после отправки следующее изменение получает новый номер
+  reserve: null,       // запас досок в этом расчёте (null — из настроек)
+  view: 'look',        // картинка раскладки: 'look' — как будет выглядеть, 'plan' — чертёж
   filter: { color: null, cls: null, thick: null, water: false, q: '' },
 };
 
@@ -187,10 +191,11 @@ function renderRooms() {
     el.querySelector('.doors').textContent = r.doors;
     el.querySelector('.minus').onclick = () => { r.doors = Math.max(0, r.doors - 1); renderRooms(); };
     el.querySelector('.plus').onclick = () => { r.doors = Math.min(9, r.doors + 1); renderRooms(); };
-    el.querySelectorAll('.lay').forEach(b => {
-      b.classList.toggle('on', (b.dataset.d === '1') === r.diagonal);
-      b.onclick = () => { r.diagonal = b.dataset.d === '1'; renderRooms(); };
-    });
+    for (const [cls, key] of [['.dirs', 'dir'], ['.schemes', 'scheme']])
+      el.querySelectorAll(cls + ' button').forEach(b => {
+        b.classList.toggle('on', b.dataset.v === r[key]);
+        b.onclick = () => { r[key] = b.dataset.v; renderRooms(); };
+      });
     el.querySelector('.del').onclick = () => {
       state.rooms.splice(i, 1);
       renderRooms();
@@ -204,11 +209,11 @@ function renderRooms() {
 function roomNums(r) {
   const l = parseNum(r.length), w = parseNum(r.width);
   if (!(l > 0 && l < 100 && w > 0 && w < 100)) return null;
-  return { length: l, width: w, doors: r.doors, diagonal: r.diagonal };
+  return { length: l, width: w, doors: r.doors, diagonal: r.dir === 'diag', dir: r.dir, scheme: r.scheme };
 }
 
 $('#addRoom').onclick = () => {
-  state.rooms.push({ length: '', width: '', doors: 1, diagonal: false });
+  state.rooms.push({ length: '', width: '', doors: 1, dir: 'long', scheme: 'deck' });
   renderRooms();
   $$('.len')[state.rooms.length - 1].focus();
 };
@@ -321,7 +326,7 @@ function update() {
   if (!d || rooms.some(r => !r)) {
     $('#total').textContent = '—';
     $('#calcInfo').textContent = 'Введите длину и ширину каждой комнаты';
-    $('#lines').innerHTML = '';
+    $('#lines').innerHTML = ''; $('#layoutBox').innerHTML = '';
     return;
   }
 
@@ -332,7 +337,17 @@ function update() {
   if (skirting && !state.use.accessories) skirting.needs_accessories = false;
   const waste = { straight: S.waste.straight / 100, diagonal: S.waste.diagonal / 100 };
 
+  // Точная раскладка (прямая укладка): число досок по рядам; диагональ — по запасу в %
+  const plans = rooms.map(r => planFor(r, d));
+  if (hasBoard(d)) {
+    const bm2 = d.board_len_mm * d.board_w_mm / 1e6;
+    decor.board_m2 = bm2;
+    decor.boards_floor = rooms.reduce((n, r, i) => n + (plans[i] ? plans[i].boards : Math.ceil(r.length * r.width * (1 + waste.diagonal) / bm2 - 1e-9)), 0);
+    decor.boards_reserve = reserveNow();
+    decor.sell_by = S.sellBy;
+  }
   const res = calculate(rooms, decor, underlay, skirting, waste);
+  renderLayouts(plans, rooms, decor);
   lastResult = { res, decor, underlay, skirting };
   $('#total').textContent = rub(res.total);
   $('#calcInfo').textContent = `Расчёт № ${state.number} · площадь ${rub(res.area)} м²`;
@@ -373,6 +388,98 @@ function update() {
   }
 }
 
+// 1 доска, 2 доски, 5 досок
+const pl = (n, a, b, c) => n + ' ' + (n % 10 === 1 && n % 100 !== 11 ? a : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? b : c);
+
+const hasBoard = d => d.board_len_mm > 0 && d.board_w_mm > 0;
+const anyDiag = () => state.rooms.some(r => r.dir === 'diag');
+// Запас досок: в этом расчёте, иначе из настроек (+3, если есть диагональ)
+const reserveNow = () => state.reserve ?? (anyDiag() ? S.reserve.diag : S.reserve.straight);
+
+// План раскладки комнаты; перебор вариантов дорогой — запоминаем по входным данным
+const planCache = new Map();
+function planFor(r, d) {
+  if (!hasBoard(d)) return null;
+  const key = [r.length, r.width, r.dir, r.scheme, d.board_len_mm, d.board_w_mm].join('|');
+  if (!planCache.has(key)) {
+    if (planCache.size > 200) planCache.clear();
+    planCache.set(key, bestLayout({ L: Math.round(r.length * 1000), W: Math.round(r.width * 1000),
+      boardLen: d.board_len_mm, boardW: d.board_w_mm,
+      dir: r.dir, scheme: r.scheme }));
+  }
+  return planCache.get(key);
+}
+
+// Текстура декора для картинки: грузим один раз, доски на фото находим один раз
+const texCache = new Map();
+function texFor(d) {
+  if (!d.texture) return Promise.resolve(null);
+  if (!texCache.has(d.id)) texCache.set(d.id, new Promise(ok => {
+    const img = new Image();
+    img.onload = () => { try { ok({ img, seg: textureSegments(img, d) }); } catch (e) { ok(null); } };
+    img.onerror = () => ok(null);
+    img.src = 'data/' + d.texture;
+  }));
+  return texCache.get(d.id);
+}
+
+const DIR_NAMES = { long: 'вдоль длинной стены', cross: 'поперёк', diag: 'по диагонали' };
+const SCHEME_NAMES = { deck: 'хаотично', half: 'смещение 1/2', third: 'смещение 1/3' };
+
+// Итог в досках, подсказка, картинки раскладки и список резов
+let layoutCanvases = [];
+function renderLayouts(plans, rooms, decor) {
+  const box = $('#layoutBox');
+  box.innerHTML = '';
+  layoutCanvases = [];
+  if (!decor.boards_floor) return;
+  const floor = decor.boards_floor, res = decor.boards_reserve, total = floor + res;
+  const need = document.createElement('div');
+  need.className = 'need';
+  need.innerHTML = `<div class="need-total">Нужно купить ${pl(total, 'доску', 'доски', 'досок')}</div>
+    <p>${pl(floor, 'доска уйдёт', 'доски уйдут', 'досок уйдёт')} на пол, ещё ${res} — запас на случай скола или ошибки при резке.</p>
+    ${S.sellBy === 'pack' && decor.pack_pcs > 0 ? `<p>Это ${pl(Math.ceil(total / decor.pack_pcs), 'упаковка', 'упаковки', 'упаковок')} по ${decor.pack_pcs} шт., останется ${Math.ceil(total / decor.pack_pcs) * decor.pack_pcs - total} шт.</p>` : ''}
+    ${VIEWER ? '' : `<div class="res-row"><span class="muted small">Запас, досок</span><span class="stepper"><button class="minus">−</button><b>${res}</b><button class="plus">+</button></span></div>`}`;
+  if (!VIEWER) {
+    need.querySelector('.minus').onclick = () => { state.reserve = Math.max(0, res - 1); changed(); };
+    need.querySelector('.plus').onclick = () => { state.reserve = Math.min(50, res + 1); changed(); };
+  }
+  box.appendChild(need);
+
+  plans.forEach((p, i) => {
+    const r = rooms[i], el = document.createElement('div');
+    el.className = 'layout';
+    const title = rooms.length > 1 ? `Комната ${i + 1}` : 'Раскладка';
+    if (!p) {
+      el.innerHTML = `<div class="layout-head"><b>${title}</b></div><p class="muted small">Для этой комнаты схему построить не удалось — досок посчитано по площади с запасом.</p>`;
+      box.appendChild(el);
+      return;
+    }
+    const how = `${pl(p.boards, 'доска', 'доски', 'досок')} · ${DIR_NAMES[p.dir]}, ${SCHEME_NAMES[p.scheme]}`;
+    const hint = !VIEWER && p.hint
+      ? `<div class="hint">Если класть ${DIR_NAMES[p.hint.dir]}, ${SCHEME_NAMES[p.hint.scheme]}, хватит ${pl(p.hint.boards, 'доски', 'досок', 'досок')}. <button class="link apply">Так и сделать</button></div>` : '';
+    el.innerHTML = `<div class="layout-head"><b>${title}</b><span class="muted small">${how}</span></div>${hint}
+      <div class="seg view-sw"><button data-v="look">Как будет выглядеть</button><button data-v="plan">Чертёж</button></div>
+      <div class="lay-pic"></div><p class="muted small lay-legend"></p>
+      <details class="cuts"><summary>Резы для мастера</summary><ol>${cutList(p).map(t => `<li>${esc(t)}</li>`).join('')}</ol></details>`;
+    if (hint) el.querySelector('.apply').onclick = () => { state.rooms[i].dir = p.hint.dir; state.rooms[i].scheme = p.hint.scheme; renderRooms(); };
+    const pic = el.querySelector('.lay-pic'), legend = el.querySelector('.lay-legend');
+    el._draw = () => {
+      el.querySelectorAll('.view-sw button').forEach(b => b.classList.toggle('on', b.dataset.v === state.view));
+      legend.textContent = LAY_LEGEND[state.view];
+      texFor(decor).then(tex => {
+        const look = drawLayout(p, 'look', tex), plan = drawLayout(p, 'plan', null);
+        layoutCanvases[i] = { look, plan };
+        pic.innerHTML = '';
+        pic.appendChild(state.view === 'look' ? look : plan);
+      });
+    };
+    el.querySelectorAll('.view-sw button').forEach(b => b.onclick = () => { state.view = b.dataset.v; $$('#layoutBox .layout').forEach(x => x._draw?.()); });
+    el._draw();
+    box.appendChild(el);
+  });
+}
+
 function underlayNow() {
   const id = state.ul || S.underlay;
   return catalog.underlay.find(u => u.id === id) || catalog.underlay[0];
@@ -400,7 +507,9 @@ $('#pickSkirting').onchange = e => { state.sk = e.target.value; changed(); };
 
 function lineDetail(l, decor, underlay, skirting) {
   let s = `${l.qty} ${l.unit}`;
-  if (l.key === 'laminate') s += ` (${rub(l.m2)} м²) · ${decor.name} ${decor.id}`;
+  if (l.key === 'laminate' && l.unit === 'дос.') s = `${pl(l.qty, 'доска', 'доски', 'досок')} (${rub(l.m2)} м²) · ${decor.name} ${decor.id}`;
+  else if (l.key === 'laminate' && l.spare != null) s += ` (${l.pcs} шт., останется ${l.spare}) · ${decor.name} ${decor.id}`;
+  else if (l.key === 'laminate') s += ` (${rub(l.m2)} м²) · ${decor.name} ${decor.id}`;
   if (l.key === 'underlay') s += ` · ${underlay.name}`;
   if (l.key === 'skirting') s += ` (нужно ${rub(l.len)} м) · ${skirting.name}`;
   return s;
@@ -412,11 +521,12 @@ function shareUrl() {
   const p = new URLSearchParams();
   p.set('d', state.decorId);
   p.set('pm', decorPrice(current()));
-  p.set('r', state.rooms.map(r => [parseNum(r.length), parseNum(r.width), r.doors, r.diagonal ? 1 : 0].join(',')).join(';'));
+  p.set('r', state.rooms.map(r => [parseNum(r.length), parseNum(r.width), r.doors, r.dir === 'diag' ? 1 : 0, r.dir, r.scheme].join(',')).join(';'));
   p.set('u', [state.use.underlay, state.use.skirting, state.use.accessories].map(Number).join(''));
   if (lastResult?.underlay) p.set('ul', lastResult.underlay.id);
   if (lastResult?.skirting) p.set('sk', lastResult.skirting.id);
   p.set('w', S.waste.straight + ',' + S.waste.diagonal);
+  p.set('rs', reserveNow() + ',' + (S.sellBy === 'pack' ? 1 : 0));
   p.set('n', state.number);
   if (FAV.length) p.set('f', FAV.join(','));               // получатель увидит только этот декор и избранное
   if (S.name) p.set('pn', S.name);
@@ -428,6 +538,7 @@ function shareText() {
   const { res, decor, underlay, skirting } = lastResult;
   const out = [`Расчёт пола № ${state.number}`, `Ламинат EGGER: ${decor.name} (${decor.id})`,
     `Площадь: ${rub(res.area)} м²`, ''];
+  if (res.boards) out.push(`Нужно купить ${pl(res.boards, 'доску', 'доски', 'досок')}: ${pl(decor.boards_floor, 'доска уйдёт', 'доски уйдут', 'досок уйдёт')} на пол, ещё ${decor.boards_reserve} — запас на случай скола или ошибки при резке.`, '');
   for (const l of res.lines) out.push(`${NAMES[l.key]}: ${lineDetail(l, decor, underlay, skirting)} — ${rub(l.sum)} руб.`);
   out.push('', `ИТОГО: ${rub(res.total)} руб.`, `Цены магазина «Материк» на ${$('#updated').textContent}.`);
   if (S.name || S.phone) out.push(`Консультант EGGER: ${[S.name, S.phone].filter(Boolean).join(', ')}`);
@@ -458,7 +569,12 @@ $('#share').onclick = async () => {
     // картинка комнаты с выбранным полом — если телефон умеет отправлять файлы
     const blob = await photoBlob().catch(() => null);
     const file = blob && new File([blob], `pol-${state.number}.jpg`, { type: 'image/jpeg' });
-    if (file && navigator.canShare?.({ files: [file] })) data.files = [file];
+    // схемы раскладки: как будет выглядеть и чертёж
+    const pics = await Promise.all(layoutCanvases.flatMap((c, i) => !c ? [] : ['look', 'plan'].map(m =>
+      new Promise(ok => c[m].toBlob(b => ok(b && new File([b], `raskladka-${i + 1}-${m === 'look' ? 'vid' : 'chertezh'}.png`, { type: 'image/png' })))))));
+    const files = [file, ...pics].filter(Boolean);
+    if (files.length && navigator.canShare?.({ files })) data.files = files;
+    else if (file && navigator.canShare?.({ files: [file] })) data.files = [file];
     try { await navigator.share(data); } catch (e) {
       // если с картинкой не вышло (кроме «закрыли меню») — отправляем только текст
       if (data.files && e.name !== 'AbortError') { delete data.files; try { await navigator.share(data); } catch (e2) {} }
@@ -552,6 +668,9 @@ function openPromo(role) {
   $('#setSkirting').value = S.skirting || catalog.skirting[0]?.id;
   $('#wasteS').value = S.waste.straight;
   $('#wasteD').value = S.waste.diagonal;
+  $('#resS').value = S.reserve.straight;
+  $('#resD').value = S.reserve.diag;
+  $('#sellBy').value = S.sellBy;
   $('#pName').value = S.name;
   $('#pPhone').value = S.phone;
   renderDecorAdmin();
@@ -568,6 +687,9 @@ $('#hideOut').onchange = e => { S.hideOut = e.target.checked; saveSettings(); re
 $('#setUnderlay').onchange = e => { S.underlay = e.target.value; saveSettings(); fillPicks(); changed(); };
 $('#setSkirting').onchange = e => { S.skirting = e.target.value; saveSettings(); fillPicks(); changed(); };
 $('#wasteS').onchange = e => { const v = parseNum(e.target.value); if (v >= 0 && v < 50) S.waste.straight = v; e.target.value = S.waste.straight; saveSettings(); };
+$('#resS').onchange = e => { const v = Math.round(parseNum(e.target.value)); if (v >= 0 && v <= 50) S.reserve = { ...S.reserve, straight: v }; e.target.value = S.reserve.straight; saveSettings(); changed(); };
+$('#resD').onchange = e => { const v = Math.round(parseNum(e.target.value)); if (v >= 0 && v <= 50) S.reserve = { ...S.reserve, diag: v }; e.target.value = S.reserve.diag; saveSettings(); changed(); };
+$('#sellBy').onchange = e => { S.sellBy = e.target.value; saveSettings(); changed(); };
 $('#wasteD').onchange = e => { const v = parseNum(e.target.value); if (v >= 0 && v < 50) S.waste.diagonal = v; e.target.value = S.waste.diagonal; saveSettings(); };
 $('#pName').oninput = e => { S.name = e.target.value.trim(); saveSettings(); };
 $('#pPhone').oninput = e => { S.phone = e.target.value.trim(); saveSettings(); };
@@ -674,12 +796,15 @@ function applyViewerParams() {
     return;
   }
   const rooms = (params.get('r') || '').split(';').map(s => s.split(',')).filter(a => a.length >= 4)
-    .map(([l, w, dr, dg, t]) => ({ length: l, width: w, doors: +dr || 0, diagonal: dg === '1' }));
+    .map(([l, w, dr, dg, dir, sc]) => ({ length: l, width: w, doors: +dr || 0, dir: ['long', 'cross', 'diag'].includes(dir) ? dir : (dg === '1' ? 'diag' : 'long'), scheme: ['deck', 'half', 'third'].includes(sc) ? sc : 'deck' }));
   if (rooms.length) state.rooms = rooms;
   const u = params.get('u') || '111';
   state.use = { underlay: u[0] === '1', skirting: u[1] === '1', accessories: u[2] === '1' };
   const [ws, wd] = (params.get('w') || '').split(',').map(parseNum);
   if (ws >= 0 && wd >= 0) S.waste = { straight: ws, diagonal: wd };
+  const [rs, pk] = (params.get('rs') || '').split(',');
+  if (rs !== undefined && rs !== '' && +rs >= 0) state.reserve = +rs;
+  if (pk) S.sellBy = pk === '1' ? 'pack' : 'pcs';
   if (params.get('ul')) S.underlay = state.ul = params.get('ul');
   if (params.get('sk')) S.skirting = state.sk = params.get('sk');
   state.number = params.get('n') || state.number;
@@ -735,6 +860,6 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
 // Размер комнаты всегда с нуля: браузер при «назад»/обновлении подставлял прошлые цифры
 addEventListener('pageshow', e => {
   if (VIEWER) return;
-  state.rooms = [{ length: '', width: '', doors: 1, diagonal: false }];
+  state.rooms = [{ length: '', width: '', doors: 1, dir: 'long', scheme: 'deck' }];
   if (catalog) renderRooms();
 });

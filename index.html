@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=71">
+  <link rel="stylesheet" href="style.css?v=72">
 </head>
 <body>
   <header class="top">
@@ -72,6 +72,7 @@
         <label>Плинтус<select id="pickSkirting" class="big"></select></label>
       </div>
       <ul id="lines" class="lines"></ul>
+      <div id="layoutBox" class="layout-box"></div>
       <p class="muted small">Цены Материка на <span id="updated"></span>. Проверьте цену на кассе.</p>
       <div class="actions promo-only">
         <button id="share" class="btn main">Отправить</button>
@@ -119,8 +120,13 @@
         <label class="lbl">Подложка по умолчанию<select id="setUnderlay" class="big"></select></label>
         <label class="lbl">Плинтус по умолчанию<select id="setSkirting" class="big"></select></label>
         <div class="row">
-          <label>Запас прямо, %<input id="wasteS" class="inp" inputmode="decimal"></label>
-          <label>Запас по диагонали, %<input id="wasteD" class="inp" inputmode="decimal"></label>
+          <label>Запас прямо, досок<input id="resS" class="inp" inputmode="numeric"></label>
+          <label>Запас по диагонали, досок<input id="resD" class="inp" inputmode="numeric"></label>
+        </div>
+        <label class="lbl">Продаём ламинат<select id="sellBy" class="big"><option value="pcs">поштучно</option><option value="pack">упаковками</option></select></label>
+        <div class="row">
+          <label>Для расчёта без размеров доски, %<input id="wasteS" class="inp" inputmode="decimal"></label>
+          <label>То же по диагонали, %<input id="wasteD" class="inp" inputmode="decimal"></label>
         </div>
       </section>
 
@@ -155,16 +161,19 @@
         <label>Дверей
           <span class="stepper"><button class="minus">−</button><b class="doors">1</b><button class="plus">+</button></span>
         </label>
-        <label>Укладка
-          <span class="seg"><button class="lay on" data-d="0">прямо</button><button class="lay" data-d="1">по диагонали</button></span>
-        </label>
       </div>
+      <div class="lbl">Как класть доски</div>
+      <div class="seg dirs"><button data-v="long">Вдоль</button><button data-v="cross">Поперёк</button><button data-v="diag">Диагональ</button></div>
+      <div class="lbl">Смещение рядов</div>
+      <div class="seg schemes"><button data-v="deck">Хаотично</button><button data-v="half">1/2</button><button data-v="third">1/3</button></div>
       <div class="room-area muted"></div>
     </div>
   </template>
 
-  <script src="lib/qrcode.js?v=71"></script>
-  <script src="calc.js?v=71"></script>
-  <script type="module" src="app.js?v=71"></script>
+  <script src="lib/qrcode.js?v=72"></script>
+  <script src="calc.js?v=72"></script>
+  <script src="layout.js?v=72"></script>
+  <script src="layout-view.js?v=72"></script>
+  <script type="module" src="app.js?v=72"></script>
 </body>
 </html>

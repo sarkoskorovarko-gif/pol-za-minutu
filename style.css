@@ -201,3 +201,27 @@ h2 { font-weight: 600; letter-spacing: .2px; }
 .viewer-bar, .contact { background: #f1e6da; }
 .inp:focus, .big:focus, .search:focus { box-shadow: 0 0 0 3px rgba(168,105,61,.18); }
 .main { box-shadow: 0 4px 12px rgba(122,75,42,.25); }
+
+/* ---------- Раскладка досок ---------- */
+.layout { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.layout-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.layout svg { width: 100%; height: auto; display: block; border-radius: 6px; margin-bottom: 6px; }
+.layout .lroom { fill: #ece6dc; }
+.layout .bf { fill: #b88a5f; stroke: #fff; stroke-width: .6; }
+.layout .bc { fill: #e3c9a8; stroke: #fff; stroke-width: .6; }
+
+/* ---------- Точная раскладка ---------- */
+.room .lbl { margin: 8px 0 4px; font-size: 13px; }
+.room .seg button { min-height: 44px; font-size: 14px; }
+.need { margin-top: 14px; padding: 14px; border-radius: 14px; background: #f6efe6; }
+.need-total { font-size: 24px; font-weight: 700; color: var(--accent); }
+.need p { margin: 6px 0 0; }
+.res-row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+.res-row .stepper button { width: 44px; height: 44px; }
+.layout .seg { margin: 8px 0; }
+.lay-pic canvas { width: 100%; height: auto; display: block; border-radius: 8px; box-shadow: var(--shadow); }
+.lay-legend { margin: 8px 0; }
+.hint { margin: 6px 0; padding: 10px 12px; border-radius: 10px; background: #fff4df; font-size: 14px; }
+.link { border: 0; background: none; color: var(--accent); font-weight: 600; text-decoration: underline; padding: 0; font-size: 14px; cursor: pointer; }
+.cuts summary { min-height: 44px; display: flex; align-items: center; font-weight: 600; color: var(--accent); cursor: pointer; }
+.cuts ol { margin: 0; padding-left: 22px; font-size: 14px; line-height: 1.5; }

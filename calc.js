@@ -17,7 +17,8 @@ function money(x) {
 
 /**
  * rooms: [{ length, width, doors, diagonal }]
- * decor: { price_m2, pack_m2 }
+ * decor: { price_m2, pack_m2 } и, если есть точная раскладка, board_m2, boards_floor, boards_reserve,
+ *        sell_by ('pcs' — поштучно, 'pack' — упаковками), pack_pcs
  * underlay: { price, pack_m2 } или null (снята галочка)
  * skirting: { price, length_m, needs_accessories, corner_price, cap_price } или null
  * waste: { straight: 0.07, diagonal: 0.15 }
@@ -39,9 +40,20 @@ function calculate(rooms, decor, underlay, skirting, waste) {
 
   const res = { area, areaWithWaste, lines: [] };
 
-  const packs = Math.ceil(areaWithWaste / decor.pack_m2 - 1e-9);
-  const lamSum = money(packs * decor.pack_m2 * decor.price_m2);
-  res.lines.push({ key: 'laminate', qty: packs, unit: 'уп.', m2: money(packs * decor.pack_m2), sum: lamSum });
+  if (decor.boards_floor) {
+    // Точная раскладка: доски на пол + запас на весь заказ; салон продаёт поштучно
+    const n = decor.boards_floor + decor.boards_reserve;
+    if (decor.sell_by === 'pack' && decor.pack_pcs > 0) {
+      const packs = Math.ceil(n / decor.pack_pcs), pcs = packs * decor.pack_pcs;
+      res.lines.push({ key: 'laminate', qty: packs, unit: 'уп.', pcs, spare: pcs - n, m2: money(pcs * decor.board_m2), sum: money(pcs * decor.board_m2 * decor.price_m2) });
+    } else {
+      res.lines.push({ key: 'laminate', qty: n, unit: 'дос.', m2: money(n * decor.board_m2), sum: money(n * decor.board_m2 * decor.price_m2) });
+    }
+    res.boards = n;
+  } else {
+    const packs = Math.ceil(areaWithWaste / decor.pack_m2 - 1e-9);
+    res.lines.push({ key: 'laminate', qty: packs, unit: 'уп.', m2: money(packs * decor.pack_m2), sum: money(packs * decor.pack_m2 * decor.price_m2) });
+  }
 
   if (underlay) {
     const n = Math.ceil(area * (1 + UNDERLAY_EXTRA) / underlay.pack_m2 - 1e-9);
