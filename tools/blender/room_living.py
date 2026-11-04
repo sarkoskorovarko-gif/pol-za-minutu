@@ -305,6 +305,13 @@ bpy.ops.object.light_add(type='SUN', location=(0, 0, 5)); sun = bpy.context.obje
 sun.data.energy = 5.5; sun.data.angle = math.radians(BK and 4.0 or 1.0)   # 4°: края солнечных пятен мягче, как в жизни
 sun.data.color = (1, 0.93, 0.84)
 sun.rotation_euler = Vector((1.0, 0.3, -0.6)).to_track_quat('-Z', 'Y').to_euler()
+if json.loads(_lay.read_text(encoding='utf-8')).get('night'):   # вечер (как в build.py): солнца нет, небо тёмное, торшер и люстра — тёплый свет
+    sun.data.energy = 0; nt.nodes['Background'].inputs['Strength'].default_value = 0.08
+    for o in sc.objects:
+        if o.type == 'LIGHT' and o.data.type == 'POINT': o.data.energy = 60
+    bpy.ops.object.light_add(type='POINT', location=(W / 2, D / 2, H - 0.56)); lt = bpy.context.object.data
+    lt.energy = 30; lt.shadow_soft_size = 0.2; lt.color = (1, 0.8, 0.55)
+    bpy.context.object.visible_glossy = bpy.context.object.visible_transmission = False
 
 # ---------- камера: 1,3 м, объектив 22 мм ----------
 bpy.ops.object.camera_add(location=(W - 0.4, 0.35, 1.3))

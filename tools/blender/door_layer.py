@@ -20,6 +20,12 @@ sc.render.image_settings.file_format = 'PNG'; sc.render.image_settings.color_mod
 nt = dr.data.materials[0].node_tree
 ti = next((n for n in nt.nodes if n.type == 'TEX_IMAGE'), None) or nt.nodes.new('ShaderNodeTexImage')
 nt.links.new(ti.outputs['Color'], nt.nodes['Principled BSDF'].inputs['Base Color'])
+# стекло на фото тёмное/светлое однотонное — делаем его глянцевым: шероховатость по яркости (урок критика: «стекло как краска»)
+bs = nt.nodes['Principled BSDF']; bs.inputs['Coat Weight'].default_value = 0.15
+rmp = nt.nodes.new('ShaderNodeValToRGB'); rmp.color_ramp.elements[0].position = 0.12; rmp.color_ramp.elements[0].color = (0.04, 0.04, 0.04, 1)
+rmp.color_ramp.elements[1].position = 0.2; rmp.color_ramp.elements[1].color = (0.55, 0.55, 0.55, 1)
+bw = nt.nodes.new('ShaderNodeRGBToBW'); nt.links.new(ti.outputs['Color'], bw.inputs[0]); nt.links.new(bw.outputs[0], rmp.inputs[0])
+nt.links.new(rmp.outputs['Color'], bs.inputs['Roughness'])
 for f in IMGS:
     ti.image = bpy.data.images.load(f)
     sc.render.filepath = str(OUT / f'door_{Path(f).stem}.png')

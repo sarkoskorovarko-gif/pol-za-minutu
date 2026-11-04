@@ -71,7 +71,8 @@ WALLS = {'back': (W, lambda a, n: (a, D + n)), 'front': (W, lambda a, n: (a, -n)
 INWARD = {'back': (0, -1), 'front': (0, 1), 'left': (1, 0), 'right': (-1, 0)}
 openings = {w: [] for w in WALLS}
 for o in L.get('windows', []): openings[o['wall']].append((o['from'], o['to'], o.get('sill', 0.85), o.get('top', 2.4), 'win'))
-for o in L.get('doors', []): openings[o['wall']].append((o['from'], o['to'], 0.0, o.get('top', 2.1), 'door'))
+for o in L.get('doors', []):
+    if not o.get('leaf'): openings[o['wall']].append((o['from'], o['to'], 0.0, o.get('top', 2.1), 'door'))   # leaf — дверь-плита на стене, без проёма
 
 
 def piece(wall, a0, a1, z0, z1):
@@ -140,6 +141,15 @@ for wall, (ln, f) in WALLS.items():                       # розетки на�
         if free_at(wall, a):
             x, y = f(a, -0.006); ax = wall in ('back', 'front')
             box('розетка', (0.08 if ax else 0.012, 0.012 if ax else 0.08, 0.08), (x, y, 0.3), M['white'])
+for d in L.get('doors', []):                               # дверь-плита на дальней стене (как в room_living.py; слой двери — door_layer.py)
+    if d.get('leaf') and d['wall'] == 'back':
+        dw, dh = d['to'] - d['from'], d.get('top', 2.05)
+        bpy.ops.mesh.primitive_plane_add(size=1); dr = bpy.context.object; dr.name = 'ДВЕРЬ'
+        dr.scale = (dw, dh, 1); dr.rotation_euler = (math.pi / 2, 0, 0)
+        dr.location = ((d['from'] + d['to']) / 2, D - 0.03, dh / 2); dr.pass_index = 2   # 2 — нейросеть не трогает, вставка из Blender
+        bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+        bpy.ops.object.modifier_add(type='SOLIDIFY'); dr.modifiers[-1].thickness = 0.02
+        dr.data.materials.append(mat('дверь', (0.6, 0.6, 0.6), 0.5))
 for d in L.get('doors', []):                               # выключатель у двери
     if d.get('top', 2.1) <= 2.2 and d['wall'] in WALLS:
         a = d['to'] + 0.15 if d['to'] + 0.15 < WALLS[d['wall']][0] else d['from'] - 0.15
