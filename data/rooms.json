@@ -1,1 +1,1 @@
-{"bedroom": [true, true, true, true], "kitchen": [true, false, true, false], "living": [true, true, true, true], "nursery": [true, false, true, false]}
+{"bedroom": [true, true, true, true], "kitchen": [true, true, true, false], "living": [true, true, true, true], "nursery": [true, false, true, false]}
