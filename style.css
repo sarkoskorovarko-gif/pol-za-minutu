@@ -162,7 +162,7 @@ h2 { margin: 0 0 12px; font-size: 20px; }
 .daynight, .sliders label { font-size: 15px; min-height: 48px; }
 .daynight input, .sliders input { height: 44px; }
 .more summary { min-height: 48px; font-size: 15px; font-weight: 600; }
-.total { font-size: 48px; }
+.total { font-size: 40px; }
 /* На большом экране — шире, чтобы не было пустых полей */
 @media (min-width: 900px) {
   .decor-box, .favs, .rooms-sw, .daynight, main { max-width: 760px; }

@@ -831,7 +831,7 @@ function applyViewerParams() {
 // ================= Запуск =================
 Promise.all([
   fetch('data/catalog.json', { cache: 'no-cache' }).then(r => r.json()),
-  fetch('data/rooms.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({ living: [true, true] }))
+  fetch('data/rooms.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({ living: [true, true, true, true] }))
     .then(have => Promise.all(ROOMS.flatMap(([r]) => ['', 'night/', 'x/', 'x/night/'].map((n, k) => have[r]?.[k]
       ? fetch(`data/${r}/${n}index.json`, { cache: 'no-cache' }).then(x => x.json()).catch(() => []) : [])))),
 ])
@@ -863,6 +863,6 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
 // Размер комнаты всегда с нуля: браузер при «назад»/обновлении подставлял прошлые цифры
 addEventListener('pageshow', e => {
   if (VIEWER) return;
-  state.rooms = [{ length: '', width: '', doors: 1, dir: 'long', scheme: 'deck' }];
+  state.rooms = [{ length: '', width: '', doors: 1, dir: 'long', scheme: 'deck' }]; state.reserve = null;
   if (catalog) renderRooms();
 });
