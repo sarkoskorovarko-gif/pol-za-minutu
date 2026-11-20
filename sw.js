@@ -1,8 +1,9 @@
 ﻿// Работа без интернета. После первого открытия файлы сайта хранятся в телефоне.
 // При изменении сайта увеличить номер версии — телефоны скачают новые файлы.
-const VERSION = 'v78';
-const FILES = ['./', 'index.html', 'style.css?v=78', 'calc.js?v=78', 'layout.js?v=78', 'layout-view.js?v=78', 'app.js?v=78', 'data/living/index.json',
-  'lib/qrcode.js?v=78', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'data/catalog.json'];
+const PREFIX = 'pol-za-minutu:' + self.registration.scope + ':';
+const VERSION = PREFIX + 'v79';
+const FILES = ['./', 'index.html', 'style.css?v=79', 'calc.js?v=79', 'layout.js?v=79', 'layout-view.js?v=79', 'app.js?v=79', 'data/living/index.json', 'data/rooms.json',
+  'lib/qrcode.js?v=79', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'data/catalog.json'];
 
 self.addEventListener('install', e => {
   // cache: 'reload' — мимо кэша браузера (там могут лежать файлы прошлой версии до 10 минут)
@@ -12,26 +13,31 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
-    .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+    .then(keys => Promise.all(keys.filter(k => k.startsWith(PREFIX) && k !== VERSION).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
 self.addEventListener('fetch', e => {
-  const url = new URL(e.request.url);
-  if (e.request.method !== 'GET' || url.origin !== location.origin) return;
-  // Каталог, комнаты и страница — сначала из сети (свежие цены), без сети — из памяти
-  const fresh = url.pathname.endsWith('catalog.json') || url.pathname.endsWith('index.json') || url.pathname.endsWith('rooms.json') || url.pathname.endsWith('/') || url.pathname.endsWith('index.html');
-  if (fresh) {
-    e.respondWith(fetch(e.request, { cache: 'no-cache' }).then(r => {
-      const copy = r.clone();
-      caches.open(VERSION).then(c => c.put(e.request, copy));
-      return r;
-    }).catch(() => caches.match(e.request, { ignoreSearch: true })));
-    return;
-  }
-  // Остальное (код, текстуры) — из памяти, если есть; новое докладываем в память
-  e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(r => {
-    if (r.ok) { const copy = r.clone(); caches.open(VERSION).then(c => c.put(e.request, copy)); }
-    return r;
-  })));
+  const request = e.request;
+  if (request.method !== 'GET' || !request.url.startsWith(self.registration.scope)) return;
+  e.respondWith(serve(request));
 });
+
+async function serve(request) {
+  const cache = await caches.open(VERSION);
+  const url = new URL(request.url);
+  const page = request.mode === 'navigate';
+  const fresh = page || /\/(catalog|rooms|index)\.json$/.test(url.pathname);
+  if (page) url.search = '';
+  const key = page ? url.href : request;
+  const saved = await cache.match(key);
+  if (saved && !fresh) return saved;
+  try {
+    const response = await fetch(request, fresh ? { cache: 'no-cache' } : {});
+    if (!response.ok) return saved || response;
+    try { await cache.put(key, response.clone()); } catch { /* При заполненной памяти сайт работает из сети. */ }
+    return response;
+  } catch {
+    return saved || Response.error();
+  }
+}

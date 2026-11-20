@@ -7,7 +7,8 @@ const SKIRTING_EXTRA = 0.05; // запас плинтуса 5%
 
 // Число с запятой или точкой → число (или NaN)
 function parseNum(s) {
-  return parseFloat(String(s).replace(',', '.').trim());
+  const text = String(s).trim().replace(',', '.');
+  return /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(text) ? Number(text) : NaN;
 }
 
 // Округление денег до копеек
