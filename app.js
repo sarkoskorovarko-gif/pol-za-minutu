@@ -350,9 +350,25 @@ $('#cmpLight').oninput = showComparison;
 $$('[data-choose-side]').forEach(button => button.onclick = () => {
   const id = comparePair()[Number(button.dataset.chooseSide)];
   $('#cmpDialog').close();
+  $('#dusk').value = $('#cmpLightRow').hidden ? 0 : $('#cmpLight').value;
+  $('#dusk').oninput();
   pickDecor(id);
+  $('#choiceShare').hidden = false;
+  $('#choiceShare').focus({preventScroll:true});
   $('#roomImg').scrollIntoView({block: 'center'});
 });
+$('#choiceShare').onclick = async () => {
+  const decor = current();
+  const url = new URL(location.pathname, location.origin);
+  url.search = new URLSearchParams({ f: decor.id, choice: '1', room: RDIR,
+    along: lay() ? '1' : '0', light: $('#dusk').value }).toString();
+  const text = 'Выбрали ' + decor.name + ', ' + decor.id + '.';
+  if (navigator.share) {
+    try { await navigator.share({ text, url: url.href }); return; }
+    catch (error) { if (error.name === 'AbortError') return; }
+  }
+  copyText(text + '\n' + url.href);
+};
 $('#cmpShare').onclick = async () => {
   const url = new URL(location.pathname, location.origin);
   url.search = new URLSearchParams({f: comparePair().join(','), compare: '1', room: RDIR,
@@ -871,7 +887,7 @@ function applyViewerParams() {
   document.body.classList.add('viewer');
   if (!params.has('d')) {                                  // ссылка «избранное»: только подборка полов
     $('#viewerBar').hidden = false;
-    $('#viewerBar').textContent = 'Подборка полов для вас';
+    $('#viewerBar').textContent = params.get('choice') === '1' && SENT.size === 1 ? 'Выбранный пол' : 'Подборка полов для вас';
     return;
   }
   const rooms = (params.get('r') || '').split(';').map(s => s.split(',')).filter(a => a.length >= 4)
