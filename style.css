@@ -234,3 +234,21 @@ h2 { font-weight: 600; letter-spacing: .2px; }
   .layout-cols main { max-width: none; padding: 10px 0 40px; }
   .layout-cols .scene img { max-height: 62vh; }
 }
+
+.cmp-dialog { width:min(94vw,860px); max-height:92vh; overflow:auto; }
+.cmp-dialog header,.cmp-cols,#cmpLightRow { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.cmp-dialog header { justify-content:space-between; }
+.cmp-dialog h2 { margin:0; }
+.cmp-cols>* { flex:1; min-width:0; }
+.cmp-cols label { text-align:left; }
+.cmp-cols select { width:100%; display:block; font:inherit; }
+#cmpPhoto { --split:50%; position:relative; isolation:isolate; overflow:hidden; border-radius:12px; margin-bottom:10px; }
+.cmp-layer img { width:100%; display:block; }
+.cmp-layer img+img,.cmp-left,#cmpSplit { position:absolute; inset:0; }
+.cmp-layer img+img { height:100%; }
+.cmp-left { z-index:1; clip-path:inset(0 calc(100% - var(--split)) 0 0); }
+#cmpPhoto::after { content:''; position:absolute; top:0; bottom:0; left:var(--split); border-left:2px solid white; z-index:2; }
+#cmpPhoto i { position:absolute; left:clamp(16px,var(--split),calc(100% - 16px)); top:60%; transform:translateX(-50%); z-index:3; background:white; color:#222; border-radius:1em; padding:2px 8px; font-style:normal; }
+#cmpSplit { z-index:4; opacity:0; width:100%; height:100%; margin:0; cursor:ew-resize; }
+#cmpPhoto:focus-within { outline:3px solid currentColor; }
+#cmpLightRow input { flex:1; }

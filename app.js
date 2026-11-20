@@ -280,6 +280,7 @@ function renderFav() {
   $('#favBtn').setAttribute('aria-label', on ? 'Убрать из избранного' : 'В избранное');
   const list = FAV.map(byId).filter(d => d.id);
   $('#favs').hidden = !list.length;
+  $('#cmpOpen').hidden = list.length < 2;
   $('#favCount').textContent = list.length ? `(${list.length})` : '';
   $('#favList').innerHTML = '';
   for (const d of list) {
@@ -297,6 +298,73 @@ $('#favBtn').onclick = () => {
   FAV = FAV.includes(id) ? FAV.filter(x => x !== id) : [...FAV, id];
   saveFav(); renderFav();
 };
+function comparePair() {
+  return [$('#cmpLeft').value, $('#cmpRight').value];
+}
+
+function showComparison() {
+  const pair = comparePair();
+  const available = pair.every(id => ROOM.includes(id));
+  $('#cmpPhoto').hidden = !available;
+  $('#cmpMissing').hidden = available;
+  $('#cmpLightRow').hidden = !pair.every(id => NIGHT.includes(id));
+  if (!available) return;
+  pair.forEach((id, index) => {
+    const layer = $$('.cmp-layer')[index];
+    const prefix = 'data/' + RDIR + '/' + lay();
+    setSrc(layer.children[0], prefix + id + '.jpg');
+    layer.children[1].hidden = $('#cmpLightRow').hidden;
+    if (!layer.children[1].hidden) {
+      setSrc(layer.children[1], prefix + 'night/' + id + '.jpg');
+      layer.children[1].style.opacity = $('#cmpLight').value / 100;
+    }
+  });
+}
+
+function openComparison(split = 50) {
+  const ids = [...new Set(FAV)].filter(id => byId(id).id);
+  if (ids.length < 2) return;
+  const selects = [$('#cmpLeft'), $('#cmpRight')];
+  selects.forEach((select, i) => {
+    select.replaceChildren(...ids.map(id => new Option(byId(id).name + ' · ' + id, id)));
+    select.value = ids[i];
+    select.onchange = () => {
+      const other = selects[1 - i];
+      if (select.value === other.value) other.value = select.dataset.previous;
+      for (const input of selects) input.dataset.previous = input.value;
+      showComparison();
+    };
+    select.dataset.previous = select.value;
+  });
+  $('#cmpLight').value = $('#dusk').value;
+  $('#cmpSplit').value = split;
+  $('#cmpSplit').oninput();
+  showComparison();
+  $('#cmpDialog').showModal();
+}
+
+$('#cmpOpen').onclick = () => openComparison();
+$('#cmpClose').onclick = () => $('#cmpDialog').close();
+$('#cmpSplit').oninput = () => $('#cmpPhoto').style.setProperty('--split', $('#cmpSplit').value + '%');
+$('#cmpLight').oninput = showComparison;
+$$('[data-choose-side]').forEach(button => button.onclick = () => {
+  const id = comparePair()[Number(button.dataset.chooseSide)];
+  $('#cmpDialog').close();
+  pickDecor(id);
+  $('#roomImg').scrollIntoView({block: 'center'});
+});
+$('#cmpShare').onclick = async () => {
+  const url = new URL(location.pathname, location.origin);
+  url.search = new URLSearchParams({f: comparePair().join(','), compare: '1', room: RDIR,
+    along: lay() ? '1' : '0', light: $('#cmpLightRow').hidden ? '0' : $('#cmpLight').value,
+    split: $('#cmpSplit').value}).toString();
+  if (navigator.share) {
+    try { await navigator.share({title: 'Сравнение полов EGGER', url: url.href}); return; }
+    catch (error) { if (error.name === 'AbortError') return; }
+  }
+  copyText(url.href);
+};
+
 $('#favShare').onclick = async () => {
   const url = location.origin + location.pathname + '?f=' + FAV.join(',');
   const text = 'Понравившиеся полы EGGER:\n' + FAV.map(byId).filter(d => d.id).map(d => `• ${d.name} ${d.id} — ${rub(decorPrice(d))} руб/м²`).join('\n') + '\n\nПосмотреть в комнате: ' + url;
@@ -866,6 +934,7 @@ Promise.all([
     renderRibbon();
     renderRooms();
     fillPicks();
+    if (params.get('compare') === '1' && !params.has('d') && sent.length >= 2) openComparison(params.get('split') ?? 50);
   })
   .catch(err => {
     console.error(err);

@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css?v=79">
+  <link rel="stylesheet" href="style.css?v=80">
 </head>
 <body>
   <header class="top">
@@ -54,6 +54,7 @@
   <!-- Избранное: понравившиеся полы рядом, в той же гостиной (хранится в этом телефоне) -->
   <section class="favs" id="favs" hidden>
     <div class="favs-head"><b>Избранное <span id="favCount"></span></b><button id="favShare" class="btn ghost small">Отправить список</button></div>
+    <button id="cmpOpen" class="btn ghost small" hidden>Сравнить</button>
     <div id="favList" class="fav-list"></div>
   </section>
 
@@ -89,6 +90,19 @@
   </div>
 
   <!-- Окно QR -->
+  <dialog id="cmpDialog" class="dlg cmp-dialog" aria-labelledby="cmpTitle">
+  <header><h2 id="cmpTitle">Сравнение полов</h2><button id="cmpClose" class="btn ghost" aria-label="Закрыть">×</button></header>
+  <div class="cmp-cols"><label>Слева<select id="cmpLeft"></select></label><label>Справа<select id="cmpRight"></select></label></div>
+  <div id="cmpPhoto">
+    <div class="cmp-layer cmp-left"><img alt=""><img alt=""></div>
+    <div class="cmp-layer"><img alt=""><img alt=""></div>
+    <i aria-hidden="true">↔</i><input type="range" id="cmpSplit" aria-label="Граница сравнения" min="0" max="100">
+  </div>
+  <p id="cmpMissing" hidden>Для этой пары в выбранной комнате пока нет обоих фото.</p>
+  <label id="cmpLightRow">День <input type="range" id="cmpLight" aria-label="Освещение обоих полов" min="0" max="100"> Вечер</label>
+  <div class="cmp-cols"><button class="btn ghost" data-choose-side="0">Выбрать левый</button><button class="btn ghost" data-choose-side="1">Выбрать правый</button></div>
+  <button class="btn main" id="cmpShare">Отправить сравнение</button>
+</dialog>
   <dialog id="qrDlg" class="dlg">
     <p>Отсканируйте камерой телефона</p>
     <div id="qrBox"></div>
@@ -176,10 +190,10 @@
     </div>
   </template>
 
-  <script src="lib/qrcode.js?v=79"></script>
-  <script src="calc.js?v=79"></script>
-  <script src="layout.js?v=79"></script>
-  <script src="layout-view.js?v=79"></script>
-  <script type="module" src="app.js?v=79"></script>
+  <script src="lib/qrcode.js?v=80"></script>
+  <script src="calc.js?v=80"></script>
+  <script src="layout.js?v=80"></script>
+  <script src="layout-view.js?v=80"></script>
+  <script type="module" src="app.js?v=80"></script>
 </body>
 </html>
