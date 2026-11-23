@@ -230,6 +230,7 @@ h2 { font-weight: 600; letter-spacing: .2px; }
 @media (min-width: 1000px) {
   .layout-cols { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(380px, 1fr); gap: 20px; max-width: 1440px; margin: 0 auto; padding: 0 16px; align-items: start; }
   .layout-cols .scene { max-width: none; padding: 0; }
+  .layout-cols .scene .night { inset: 0; width: 100%; }
   .layout-cols .decor-box, .layout-cols .favs, .layout-cols .rooms-sw, .layout-cols .daynight { max-width: none; padding-left: 0; padding-right: 0; }
   .layout-cols main { max-width: none; padding: 10px 0 40px; }
   .layout-cols .scene img { max-height: 62vh; }
