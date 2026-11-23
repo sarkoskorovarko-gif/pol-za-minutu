@@ -1,9 +1,9 @@
 ﻿// Работа без интернета. После первого открытия файлы сайта хранятся в телефоне.
 // При изменении сайта увеличить номер версии — телефоны скачают новые файлы.
 const PREFIX = 'pol-za-minutu:' + self.registration.scope + ':';
-const VERSION = PREFIX + 'v81';
-const FILES = ['./', 'index.html', 'style.css?v=81', 'calc.js?v=81', 'layout.js?v=81', 'layout-view.js?v=81', 'app.js?v=81', 'data/living/index.json', 'data/rooms.json',
-  'lib/qrcode.js?v=81', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'data/catalog.json'];
+const VERSION = PREFIX + 'v82';
+const FILES = ['./', 'index.html', 'style.css?v=82', 'calc.js?v=82', 'layout.js?v=82', 'layout-view.js?v=82', 'app.js?v=82', 'data/living/index.json', 'data/rooms.json',
+  'lib/qrcode.js?v=82', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'data/catalog.json'];
 
 self.addEventListener('install', e => {
   // cache: 'reload' — мимо кэша браузера (там могут лежать файлы прошлой версии до 10 минут)

@@ -49,7 +49,7 @@ const state = {
   shared: false,       // после отправки следующее изменение получает новый номер
   reserve: null,       // запас досок в этом расчёте (null — из настроек)
   view: 'look',        // картинка раскладки: 'look' — как будет выглядеть, 'plan' — чертёж
-  filter: { color: null, cls: null, thick: null, water: false, q: '' },
+  filter: { color: null, cls: null, thick: null, water: false, sale: false, q: '' },
 };
 
 // Режим просмотра по ссылке (для покупателя)
@@ -75,7 +75,7 @@ function visibleDecors() {
   const f = state.filter;
   const q = f.q.toLowerCase().replace(/\s+/g, '');                // поиск: часть названия или номера (273, epl273, тоскано)
   return enabledDecors().filter(d => (!q || (d.name + d.id).toLowerCase().replace(/\s+/g, '').includes(q)) &&
-    (!f.color || d.color_group === f.color) && (!f.cls || d.class === f.cls) && (!f.thick || d.thickness_mm === f.thick) && (!f.water || d.water_resistant));
+    (!f.color || d.color_group === f.color) && (!f.cls || d.class === f.cls) && (!f.thick || d.thickness_mm === f.thick) && (!f.water || d.water_resistant) && (!f.sale || Boolean(d.promotion)));
 }
 const current = () => catalog.decors.find(d => d.id === state.decorId);
 
@@ -89,6 +89,7 @@ function pickDecor(id) {
   state.decorId = id;
   const d = current();
   if (!d) return;
+  $('#updated').textContent = new Date(d.price_date || catalog.updated).toLocaleDateString('ru-RU');
   photoFloor(d);
   $('#decorName').textContent = d.name;
   $('#decorInfo').textContent = `${d.id} · ${rub(decorPrice(d))} руб/м² · класс ${d.class ?? '—'}`
@@ -109,9 +110,9 @@ function renderRibbon() {
     const t = document.createElement('button');
     t.className = 'tile';
     t.dataset.id = d.id;
-    const badge = BADGES[S.decors[d.id]?.badge];
+    const badge = d.promotion || BADGES[S.decors[d.id]?.badge];
     t.innerHTML = `<span class="sw" style="${swatchStyle(d)}"></span>`
-      + (badge ? `<span class="badge b-${S.decors[d.id].badge}">${badge}</span>` : '')
+      + (badge ? `<span class="badge b-${d.promotion ? 'sale' : S.decors[d.id].badge}">${badge}</span>` : '')
       + `<span class="tn">${esc(d.name)}</span><span class="tp">${rub(decorPrice(d))}</span>`;
     t.onclick = () => pickDecor(d.id);
     $('#ribbon').appendChild(t);
@@ -177,6 +178,7 @@ function renderFilters() {
   chips($('#thickFilter'), [...new Set(en.map(d => d.thickness_mm).filter(Boolean))].sort((a, b) => a - b), 'thick', v => v + ' мм');
 }
 $('#q').oninput = e => { state.filter.q = e.target.value.trim(); renderRibbon(); };
+$('#saleOnly').onchange = e => { state.filter.sale = e.target.checked; renderRibbon(); };
 $('#waterOnly').onchange = e => { state.filter.water = e.target.checked; renderRibbon(); };
 
 // ================= Комнаты (размеры) =================
