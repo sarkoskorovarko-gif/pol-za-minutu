@@ -85,6 +85,12 @@ const lightness = d => d.lightness ?? L_BY_GROUP[d.color_group] ?? 55;
 const warmth = d => d.warmth ?? (d.color_group === 'серый' ? 0 : 10);
 
 // ================= Выбор декора =================
+function estimateNote(decor) {
+  if (!decor.price_date) return '';
+  const date = new Date(decor.price_date).toLocaleDateString('ru-RU');
+  return 'Предварительный расчёт. Последняя подтверждённая цена магазина — ' + date + '. Уточните цену и наличие.';
+}
+
 function pickDecor(id) {
   state.decorId = id;
   const d = current();
@@ -439,7 +445,7 @@ function update() {
   renderLayouts(plans, rooms, decor, res.lines[0]);
   lastResult = { res, decor, underlay, skirting };
   $('#total').textContent = rub(res.total);
-  $('#calcInfo').textContent = `Расчёт № ${state.number} · площадь ${rub(res.area)} м²`;
+  $('#calcInfo').textContent = `Расчёт № ${state.number} · площадь ${rub(res.area)} м²` + (decor.price_date ? ' · ' + estimateNote(decor) : '');
 
   // Строки. Снятые галочкой — серым, чтобы можно было вернуть
   const lines = res.lines.slice();
@@ -638,6 +644,7 @@ function shareText() {
   if (res.boards) out.push(`Нужно купить ${purchaseText(res.lines[0])}: ${pl(decor.boards_floor, 'доска уйдёт', 'доски уйдут', 'досок уйдёт')} на пол, ещё ${decor.boards_reserve} — запас на случай скола или ошибки при резке.`, '');
   for (const l of res.lines) out.push(`${NAMES[l.key]}: ${lineDetail(l, decor, underlay, skirting)} — ${rub(l.sum)} руб.`);
   out.push('', `ИТОГО: ${rub(res.total)} руб.`, `Цены магазина «Материк» на ${$('#updated').textContent}.`);
+  if (decor.price_date) out.push(estimateNote(decor));
   if (S.name || S.phone) out.push(`Консультант EGGER: ${[S.name, S.phone].filter(Boolean).join(', ')}`);
   out.push('', 'Посмотреть расчёт и пол в комнате:', shareUrl());
   return out.join('\n');
